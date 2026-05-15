@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Onboarding"
+  short_description: "Project onboarding and UTH enablement"
+  default_prompt: "Use uth-onboarding when the user explicitly asks to initialize or take over a project with UTH governance. It creates the project marker, minimal docs scaffold, existing-project backup and handoff snapshot, then hands existing projects to uth-docs."

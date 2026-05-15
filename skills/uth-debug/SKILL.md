@@ -1,6 +1,6 @@
 ---
 name: uth-debug
-description: Use when the user reports a bug, failing test, runtime error, regression, unexpected behavior, or asks Codex to locate and fix a defect. Routes debug work through minimal document lookup, optional uth-context-trace evidence loading, systematic debugging, verification, and narrow task-document writeback. Do not use for feature requests, architecture redesign, broad refactors, or pure code review unless a concrete defect must be diagnosed.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-debug, for bugs, failing tests, runtime errors, regressions, unexpected behavior, or defect diagnosis and repair. Routes debug work through minimal document lookup, optional uth-context-trace evidence loading, systematic debugging, verification, and narrow task-document writeback. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for feature requests, architecture redesign, broad refactors, or pure code review unless a concrete defect must be diagnosed.
 ---
 
 # uth-debug

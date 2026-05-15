@@ -2,14 +2,37 @@
 
 本文件画 UTH Governance 的纵向流程图谱。这里的 `UTH-SP` 指改造后保留在本包内的 `uth-sp-*` 方法 Skill，也就是从 Superpower 流程中拆出并纳入 UTH 调度的成熟方法流程。
 
-详细规则仍以各场景 Skill、`AGENT_工程治理启动手册.md`、`HOOKS_工程治理门禁手册.md` 和 `TEMPLATES_工程治理模板.md` 为准。
+详细规则仍以各场景 Skill、`docs/AGENT_工程治理启动手册.md`、`docs/HOOKS_工程治理门禁手册.md` 和 `docs/TEMPLATES_工程治理模板.md` 为准。
 
-## 0. 全链路总览
+## 0. 安装与项目启用边界
 
 ```mermaid
 flowchart TD
-    A["用户提出工程任务"] --> B["uth-governance<br/>顶层场景路由"]
-    B --> C{"是否有工程动作？"}
+    A["用户要求安装 UTH Governance"] --> B["clone / checkout<br/>uth-governance pack"]
+    B --> C["scripts/install.py<br/>只安装全局 skills"]
+    C --> D["全局 skills 可被 Agent 发现<br/>uth-* / uth-sp-*"]
+    D --> E{"用户是否在目标项目<br/>显式调用 /uth-onboarding？"}
+    E -- "否" --> F["不创建项目文档<br/>不创建 .uth-governance/<br/>不安装全局 Hook"]
+    E -- "是" --> G["uth-onboarding<br/>项目启用 / 新项目初始化 / 老项目接管"]
+    G --> H["复制项目本地 Hook<br/>tools/uth-hooks/"]
+    H --> I["创建项目标记<br/>.uth-governance/project.json"]
+    I --> J["其他 uth-* 场景开始自动路由"]
+```
+
+## 1. 全链路总览
+
+```mermaid
+flowchart TD
+    A["用户提出工程任务"] --> A1{"显式 uth-onboarding<br/>或 UTH 启用/接管？"}
+    A1 -- "是" --> A2["uth-onboarding<br/>项目启用 / 新项目初始化 / 老项目接管"]
+    A2 --> A3{"existing-project？"}
+    A3 -- "是" --> A4["自动接上 uth-docs<br/>旧文档治理 / context / current-state"]
+    A3 -- "否" --> A5["最小接管收口"]
+    A4 --> A5
+    A1 -- "否" --> B["uth-governance<br/>顶层场景路由"]
+    B --> B0{"是否存在<br/>.uth-governance/project.json？"}
+    B0 -- "否" --> B1["UTH 静默<br/>按普通 Codex 行为"]
+    B0 -- "是" --> C{"是否有工程动作？"}
     C -- "否" --> C1["正常回答<br/>不触发 UTH / UTH-SP"]
     C -- "是" --> D{"场景是否明确？"}
     D -- "否" --> D1["停下澄清一个问题"]
@@ -36,30 +59,57 @@ flowchart TD
     S --> P
 ```
 
-## 1. uth-governance 场景路由
+## 2. uth-governance 场景路由
 
 ```mermaid
 flowchart TD
     A["会话或任务开始"] --> B{"用户显式调用 skill-creator？"}
     B -- "是" --> B1["让路给 skill-creator<br/>不进入 UTH"]
-    B -- "否" --> C{"用户显式指定 uth-*？"}
-    C -- "是" --> C1["直接进入指定子 Skill"]
-    C -- "否" --> D{"是否有工程动作信号？"}
-    D -- "否" --> D1["正常回答<br/>不触发 UTH-SP"]
-    D -- "是" --> E["分层判断场景"]
-    E --> F{"唯一场景命中？"}
-    F -- "是" --> G["输出简短场景判定<br/>进入子 Skill"]
-    F -- "否，多场景" --> H["选择第一个执行场景<br/>后续场景留到收口交接"]
-    F -- "否，不明确" --> I["停下问一个澄清问题"]
+    B -- "否" --> C{"显式 uth-onboarding<br/>或 UTH 启用/接管？"}
+    C -- "是" --> C1["进入 uth-onboarding"]
+    C -- "否" --> C2{"项目是否有<br/>.uth-governance/project.json？"}
+    C2 -- "否" --> C3["UTH 静默<br/>不路由其他 uth-*"]
+    C2 -- "是" --> D{"用户显式指定 uth-*？"}
+    D -- "是" --> D1["直接进入指定子 Skill"]
+    D -- "否" --> E{"是否有工程动作信号？"}
+    E -- "否" --> E1["正常回答<br/>不触发 UTH-SP"]
+    E -- "是" --> F["分层判断场景"]
+    F --> G{"唯一场景命中？"}
+    G -- "是" --> H["输出简短场景判定<br/>进入子 Skill"]
+    G -- "否，多场景" --> I["选择第一个执行场景<br/>后续场景留到收口交接"]
+    G -- "否，不明确" --> J["停下问一个澄清问题"]
 
-    G --> J["Hook L1<br/>scene_declared / no_engineering_action / scene_ambiguous"]
-    H --> J
-    I --> K["不读全量 docs<br/>不直接开工"]
+    H --> K["Hook L1<br/>scene_declared / no_engineering_action / scene_ambiguous"]
+    I --> K
+    J --> L["不读全量 docs<br/>不直接开工"]
 ```
 
 说明：`uth-governance` 不直接调用 UTH-SP / Superpower。UTH-SP 触发判断由进入的子 Skill 负责。
 
-## 2. uth-design 方案评估 / 架构设计
+## 2.1 uth-onboarding 项目启用 / 接管
+
+```mermaid
+flowchart TD
+    A["用户显式要求启用 UTH<br/>或调用 /uth-onboarding"] --> B{"模式"}
+    B -- "new-project" --> C["读取最小入口<br/>AGENTS / README / docs / 构建配置 / 目录树"]
+    B -- "existing-project" --> D["读取最小入口<br/>旧文档结构 / README / 配置 / 少量 git 基线"]
+
+    C --> E["创建最小文档骨架<br/>docs/README / current-state / context / work / LW-Work / _governance"]
+    E --> F["复制项目本地 Hook<br/>tools/uth-hooks/"]
+    F --> G["写 .uth-governance/project.json"]
+    G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8"]
+    H1 --> H["UTH 最小接管完成"]
+
+    D --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
+    I --> J["创建接管快照<br/>docs/snapshots/ONB*-existing-project-handoff.md"]
+    J --> K["复制项目本地 Hook<br/>tools/uth-hooks/"]
+    K --> L["建立 current-state 初始索引<br/>不读全量源码，不声称全仓理解"]
+    L --> M["写 .uth-governance/project.json"]
+    M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state"]
+    M1 --> N["自动进入 uth-docs<br/>旧文档分类 / context / current-state / 归档"]
+```
+
+## 3. uth-design 方案评估 / 架构设计
 
 ```mermaid
 flowchart TD
@@ -92,7 +142,7 @@ flowchart TD
 
 补充：`uth-design` 默认不写 Todo；Todo 拆分由 `uth-dev` 负责。设计场景如经用户确认做少量代码补丁，必须走 L2 写入范围和 L3 代码强验证。设计场景是否建议 Git 收口由 Agent 判断，但进入 `uth-git` 仍需用户确认。
 
-## 3. uth-dev 增量开发
+## 4. uth-dev 增量开发
 
 ```mermaid
 flowchart TD
@@ -138,7 +188,7 @@ flowchart TD
     Z --> AD
 ```
 
-## 4. uth-debug 故障定位 / 修复
+## 5. uth-debug 故障定位 / 修复
 
 ```mermaid
 flowchart TD
@@ -179,7 +229,7 @@ flowchart TD
     V --> Z
 ```
 
-## 5. uth-review 审查 / 验收
+## 6. uth-review 审查 / 验收
 
 ```mermaid
 flowchart TD
@@ -205,7 +255,7 @@ flowchart TD
     N -- "否" --> P["收口：Findings-first / 验收结论 / 未验证风险<br/>默认不触发 Git 收口"]
 ```
 
-## 6. uth-docs 单开文档治理
+## 7. uth-docs 单开文档治理
 
 ```mermaid
 flowchart TD
@@ -236,7 +286,7 @@ flowchart TD
 
 说明：`uth-docs` 通常不调用 UTH-SP / Superpower；若文档治理目标、范围或验收不清，可以由场景内判断进入 `uth-sp-brainstorming`。
 
-## 7. uth-git Git / PR / 发布收口
+## 8. uth-git Git / PR / 发布收口
 
 ```mermaid
 flowchart TD
@@ -266,7 +316,7 @@ flowchart TD
     T --> U["收口：commit / remote / PR / tag / changelog / 风险"]
 ```
 
-## 8. uth-context-trace 文档定位 / 证据追踪
+## 9. uth-context-trace 文档定位 / 证据追踪
 
 ```mermaid
 flowchart TD
@@ -285,7 +335,7 @@ flowchart TD
 
 说明：`uth-context-trace` 是只读辅助 Skill，不调用 UTH-SP，不替代代码搜索，也不负责修复或审查。
 
-## 9. uth-utf8-guard 文档编码守卫
+## 10. uth-utf8-guard 文档编码守卫
 
 ```mermaid
 flowchart TD
@@ -301,7 +351,7 @@ flowchart TD
     H -- "是" --> J["文档场景可收口"]
 ```
 
-## 10. Hook 门禁位置总览
+## 11. Hook 门禁位置总览
 
 ```mermaid
 flowchart TD

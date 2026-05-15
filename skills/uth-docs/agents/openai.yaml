@@ -1,4 +1,4 @@
 interface:
   display_name: "UTH Docs"
   short_description: "Documentation governance and context sync"
-  default_prompt: "Use uth-docs for standalone documentation governance, current-state cleanup, context bootstrap or sync, archive cleanup, snapshots, and AGENTS/governance rule maintenance without code, tests, or Git writes."
+  default_prompt: "Use uth-docs for standalone documentation governance, onboarding follow-up, current-state cleanup, context bootstrap or sync, archive cleanup, snapshots, and AGENTS/governance rule maintenance without code, tests, or Git writes."

@@ -1,6 +1,6 @@
 ---
 name: uth-dev
-description: Use when the user asks Codex to implement an incremental feature, UI change, API change, field addition, behavior change, Todo implementation, or bounded development task. Controls light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-dev, for incremental feature, UI, API, field, behavior, Todo implementation, or bounded development work. Controls light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
 ---
 
 # uth-dev

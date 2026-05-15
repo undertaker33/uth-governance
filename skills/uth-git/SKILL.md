@@ -1,6 +1,6 @@
 ---
 name: uth-git
-description: Use when the user asks for Git, branch, commit, push, PR, merge, rebase, tag, release, changelog, worktree cleanup, or development-branch closure. Requires reading the project git workflow, inspecting current Git state, presenting a write plan, and waiting for explicit user confirmation before any Git write. Handles lightweight commit LW-Work records after successful commits. Do not use for implementation, debug, design, review, or docs maintenance unless the user is explicitly asking for Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-git, for Git, branch, commit, push, PR, merge, rebase, tag, release, changelog, worktree cleanup, or development-branch closure. Requires reading the project git workflow, inspecting current Git state, presenting a write plan, and waiting for explicit user confirmation before any Git write. Handles lightweight commit LW-Work records after successful commits. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for implementation, debug, design, review, or docs maintenance unless the user is explicitly asking for Git/release closure.
 ---
 
 # uth-git

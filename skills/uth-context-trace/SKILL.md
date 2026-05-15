@@ -1,6 +1,6 @@
 ---
 name: uth-context-trace
-description: Use when Codex needs to locate task-document evidence for a request, bug, review, implementation boundary, archived work item, or documentation conflict. Finds related active or archived task package, Design, Todo, Feedback, worker Prompt, Run Log, LW-Work record, ADR, and current fact sources by following the docs entry README and current-state index. This is a read-only evidence tracing skill; do not use it for code-location search, implementation, review judgment, document edits, or Git changes.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-context-trace, to locate task-document evidence for a request, bug, review, implementation boundary, archived work item, onboarding handoff snapshot, or documentation conflict. Finds related active or archived task package, Design, Todo, Feedback, worker Prompt, Run Log, LW-Work record, onboarding snapshot, ADR, and current fact sources by following the docs entry README and current-state index. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. This is a read-only evidence tracing skill; do not use it for code-location search, implementation, review judgment, document edits, or Git changes.
 ---
 
 # uth-context-trace
@@ -16,6 +16,7 @@ This skill answers:
 - which files are current fact sources
 - which files are only historical evidence
 - whether the relevant evidence is active or archived
+- whether an onboarding snapshot is relevant
 
 It does not judge code quality, locate implementation files, modify documents, or repair anything.
 
@@ -28,6 +29,7 @@ Use this skill when:
 - the user asks which document corresponds to a request, bug, or change
 - the user explicitly asks to locate archived work or old evidence
 - implementation and documents disagree, and current facts must be separated from historical evidence
+- a later scene needs the existing-project onboarding handoff snapshot
 - another UTH skill asks for a Design/Todo/Feedback/worker Prompt/Run/LW evidence chain
 
 Do not use this skill when:
@@ -86,6 +88,7 @@ Allowed read targets:
 - `runs/` records only when related to the target
 - `docs/LW-Work/` records only when the issue follows a lightweight committed change
 - `docs/archive/work/` or `docs/archive/LW-Work/` only when archive is explicitly in scope
+- `docs/snapshots/ONB*-existing-project-handoff.md` only when onboarding handoff context is explicitly needed or current-state points to it
 - ADRs only for the same decision area
 - `docs/context/*.md` only as current fact sources when relevant
 - Git commit metadata only when the user or LW record points to a commit
@@ -120,6 +123,7 @@ Treat these as historical evidence by default:
 - LW record
 - archived task package or archived LW record
 - ADR
+- onboarding handoff snapshot
 
 Historical evidence can explain why something happened, but it does not override current fact sources.
 
@@ -158,6 +162,7 @@ Associated Feedback:
 Associated worker Prompt:
 Associated Run Log:
 Associated ADR:
+Associated onboarding snapshot:
 Evidence chain summary:
 Current fact sources:
 Historical-only evidence:

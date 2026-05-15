@@ -37,6 +37,7 @@ tools/uth-hooks/uth-hook.py
 Hook 的目标是防止：
 
 - 没判场景就修改文件。
+- 未显式接管的项目误触发 UTH 场景。
 - 场景不明还继续开工。
 - 跨场景加戏。
 - 未授权 Git 写入。
@@ -167,7 +168,9 @@ Design 小补丁授权字段可使用：
 检查：
 
 ```text
+当前项目是否存在 .uth-governance/project.json？
 是否显式调用 skill-creator？
+是否显式调用 uth-onboarding 或要求启用 UTH？
 是否命中 uth-* 场景？
 是否多场景？
 是否场景不明？
@@ -176,6 +179,8 @@ Design 小补丁授权字段可使用：
 规则：
 
 - 显式 `skill-creator`：`PASS`，让路。
+- 显式 `uth-onboarding` 或显式 UTH 启用 / 接管：`PASS`，进入 onboarding。
+- 缺少 `.uth-governance/project.json` 且不是 onboarding / 安装 / 显式启用：`PASS`，保持 UTH 静默，不路由其他 `uth-*` 场景。
 - 场景明确：`PASS`，记录一行 `Scene: uth-dev/debug/...`。
 - 多场景：`PASS`，选择第一个执行场景，后续场景收口交接。
 - 场景不明：`BLOCK`，只问一个澄清问题。
@@ -532,7 +537,26 @@ BLOCK
 - 后续 Git / release 应继续阻断，除非用户明确承担风险。
 - Hook 对非零 warning / exception 且未给出豁免的场景返回 `ASK`，要求调用方询问用户或回到代码场景清理。
 
-### 6.3 uth-dev closeout
+### 6.3 uth-onboarding closeout
+
+检查：
+
+- mode 是 `new-project` 或 `existing-project`。
+- 已创建 `.uth-governance/project.json`。
+- 已复制项目本地 `tools/uth-hooks/`。
+- 已创建或更新 `docs/current-state.md` 初始索引。
+- 修改治理 Markdown 时已通过 UTF-8 Guard。
+- 没有修改业务源码或测试。
+- 没有执行 Git 写入。
+
+`existing-project` 还必须检查：
+
+- 已创建 `docs/ONBYYMMDDXX-pre-uth-docs-backup.zip`。
+- 已创建 `docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md`。
+- 已标记旧文档、未确认事实和 `uth-docs` 待处理事项。
+- 下一场景是 `uth-docs`，除非用户明确暂停。
+
+### 6.4 uth-dev closeout
 
 检查：
 
@@ -547,7 +571,7 @@ BLOCK
 - 如模块事实变化，标记 `Needs uth-docs context-sync`。
 - 未执行 Git 写入。
 
-### 6.4 uth-debug closeout
+### 6.5 uth-debug closeout
 
 检查：
 
@@ -559,7 +583,7 @@ BLOCK
 - blocker / baseline 变化时更新 current-state。
 - 如模块事实变化，标记 `Needs uth-docs context-sync`。
 
-### 6.5 uth-design closeout
+### 6.6 uth-design closeout
 
 默认不改代码。
 
@@ -599,7 +623,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - current-state 只作为索引更新。
 - implementation 请求交给 `uth-dev`。
 
-### 6.6 uth-review closeout
+### 6.7 uth-review closeout
 
 检查：
 
@@ -611,7 +635,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - 需要修复时路由到 `uth-debug` 或 `uth-dev`，不在 review 内直接修。
 - `pass with risk` 且存在 warning / exception 时，必须有用户风险豁免。
 
-### 6.7 uth-docs closeout
+### 6.8 uth-docs closeout
 
 检查：
 
@@ -624,7 +648,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - verification 写明 documentation-only，没有跑检查 / 测试。
 - 如需 Git，路由到 `uth-git`。
 
-### 6.8 uth-git closeout
+### 6.9 uth-git closeout
 
 检查：
 
@@ -638,7 +662,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - push/tag/merge 等结果有新鲜验证。
 - 只生成 Git plan、未执行 Git 写入时，不要求 `user_git_confirmed`，但必须有 `git_plan_present=true` 或 `plan_only=true`，并明确 no Git writes executed。
 
-### 6.9 uth-context-trace closeout
+### 6.10 uth-context-trace closeout
 
 检查：
 

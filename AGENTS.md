@@ -6,9 +6,10 @@ Keep this entry short. Full rules live in:
 
 - `README.md`
 - `docs/guide/installation.md`
-- `AGENT_工程治理启动手册.md`
-- `TEMPLATES_工程治理模板.md`
-- `HOOKS_工程治理门禁手册.md`
+- `docs/AGENT_工程治理启动手册.md`
+- `docs/TEMPLATES_工程治理模板.md`
+- `docs/HOOKS_工程治理门禁手册.md`
+- `docs/FLOW_全链路流程图.md`
 - `skills/`
 - `tools/uth-hooks/`
 - `scripts/install.py`
@@ -18,21 +19,23 @@ version suffixes to internal handbook/template filenames.
 
 ## When Applying This Pack
 
-Follow `docs/guide/installation.md` and prefer `scripts/install.py` when
-installing into a target project. The installation still separates three things:
+Follow `docs/guide/installation.md` and prefer `scripts/install.py`.
+Installation is global and does not initialize the current project. Project
+onboarding is a separate explicit action handled by `uth-onboarding`.
 
 1. **Skills**
    - Copy or install `skills/uth-*` and `skills/uth-sp-*` into the skill directory loaded by the target runtime.
    - If the runtime location is unknown, ask the user where that agent loads skills from.
 
 2. **Tools**
-   - Copy `tools/uth-hooks/` into the target project, or keep it as a shared central tool path.
-   - The hook runner is `tools/uth-hooks/uth-hook.py`.
+   - Do not install hook tools globally.
+   - `uth-onboarding` copies bundled hook tools into the target project as `tools/uth-hooks/`.
+   - The project-local hook runner is `tools/uth-hooks/uth-hook.py`.
 
 3. **Project Governance Docs**
-    - Copy governance docs into the target project, normally under `docs/_governance/`.
-    - Keep the target project root `AGENTS.md` lightweight: it should point to project facts and `uth-*` skills, not duplicate skill routing or full handbooks.
-    - Do not create project docs that restate `uth-*` skill triggers or scene execution flows.
+   - Do not create project docs during installation.
+   - Create project docs only when the user explicitly runs `uth-onboarding` or explicitly asks to enable UTH in that target project.
+   - `uth-onboarding` creates `.uth-governance/project.json`; without that marker, other `uth-*` scenes should stay silent unless the user explicitly asks to enable UTH.
 
 Do not copy this pack's old task packages, archives, `current-state`, or context docs as target-project facts.
 

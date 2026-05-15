@@ -1,20 +1,24 @@
 # UTH Governance Installation
 
-This guide is written for both humans and LLM agents. The preferred path is:
-read this guide, run the installer, verify the result, and report exactly what
-changed. Do not invent project facts while installing the governance pack.
+This guide is written for humans and LLM agents.
+
+Installation is global. It installs UTH skills only. It does not install hook
+tools globally, does not initialize the current project, does not create project
+docs, and does not create `.uth-governance/project.json`.
+
+Project onboarding is a separate explicit action handled by `uth-onboarding`.
 
 ## For Humans
 
 Give your agent this prompt:
 
 ```text
-Install and configure UTH Governance from GitHub:
+Install UTH Governance from GitHub:
 https://github.com/undertaker33/uth-governance.git
 
-Target project is the current working directory.
 Follow docs/guide/installation.md from that repository.
 Use runtime codex.
+Do not initialize the current project during installation.
 ```
 
 If the GitHub repository is private, authenticate Git first. The agent may use
@@ -29,14 +33,7 @@ If you are installing by hand:
 ```bash
 git clone https://github.com/undertaker33/uth-governance.git
 cd uth-governance
-python scripts/install.py --target /path/to/project --runtime codex
-```
-
-If UTH skills and hooks are already installed and you only want to initialize
-the target project's documentation system:
-
-```bash
-python scripts/install.py --target /path/to/project --runtime codex --project-init-only
+python scripts/install.py --runtime codex
 ```
 
 Use one of:
@@ -46,6 +43,12 @@ Use one of:
 - `--runtime opencode`
 - `--runtime custom --skills-dir /path/to/skills`
 
+Optional:
+
+- `--skip-skills`
+- `--force`
+- `--dry-run`
+
 ## For LLM Agents
 
 Follow these steps in order.
@@ -54,103 +57,85 @@ Follow these steps in order.
    - If the source repository is not already local, clone it from GitHub first.
    - Canonical URL: `https://github.com/undertaker33/uth-governance.git`.
    - SSH URL is acceptable when the user has configured Git for SSH.
-   - Clone into a temporary directory outside the target project, for example
-     `%TEMP%/uth-governance-install-*` on Windows or `/tmp/uth-governance-install-*`
-     on Unix-like systems.
-   - It must contain `AGENTS.md`, `skills/`, `tools/uth-hooks/`, and `scripts/install.py`.
-   - Do not treat this governance-pack repository as the target project.
+   - Clone into a temporary directory, for example `%TEMP%/uth-governance-install-*`
+     on Windows or `/tmp/uth-governance-install-*` on Unix-like systems.
+   - It must contain `AGENTS.md`, `skills/`, `scripts/install.py`, and the reference hook assets under `tools/uth-hooks/`.
+   - Do not treat this governance-pack repository as a target project.
 
-2. Confirm the target project root.
-   - If the user did not provide one, ask once.
-   - Do not install into the governance-pack repository unless the user explicitly asks.
-
-3. Determine the skill runtime.
+2. Determine the skill runtime.
    - For Codex: use `$CODEX_HOME/skills` when set, otherwise `~/.codex/skills`.
    - For Claude Code: use `~/.claude/skills`.
    - For OpenCode: use `$OPENCODE_CONFIG_DIR/skills` when set, otherwise `~/.config/opencode/skills`.
    - If unsure, ask the user or pass `--runtime custom --skills-dir <path>`.
 
-4. Run a dry run first.
+3. Run a dry run first.
 
    ```bash
-   python scripts/install.py --target <target-project> --runtime codex --dry-run
+   python scripts/install.py --runtime codex --dry-run
    ```
 
-5. Run the install.
+4. Run the install.
 
    ```bash
-   python scripts/install.py --target <target-project> --runtime codex
+   python scripts/install.py --runtime codex
    ```
 
    Use `--force` only when the user explicitly wants to overwrite existing UTH
-   skills or hook tools.
-   Use `--force-docs` only when the user explicitly wants to replace the UTH
-   scaffold docs or the marked UTH block in `AGENTS.md`.
+   skills.
 
-   If the user says UTH is already installed and only wants project docs:
+5. Verify the install.
 
-   ```bash
-   python scripts/install.py --target <target-project> --runtime codex --project-init-only
-   ```
+   Confirm the `uth-onboarding` skill exists in the selected skills directory.
+   Hook tools are verified after project onboarding because they are project-local.
 
-6. Verify the install.
-
-   PowerShell:
-
-   ```powershell
-   '{"type":"l1","active_scene":"uth-docs"}' | python <target-project>/tools/uth-hooks/uth-hook.py --event -
-   ```
-
-   Bash:
-
-   ```bash
-   printf '%s' '{"type":"l1","active_scene":"uth-docs"}' | python <target-project>/tools/uth-hooks/uth-hook.py --event -
-   ```
-
-7. Report the result.
+6. Report the result.
    - List the skill directory used.
-   - List whether `tools/uth-hooks/` was installed or skipped.
-   - List the project docs created or already present.
-   - If a temporary source clone was created, remove it after successful
-     verification unless the user asked to keep it.
+   - State that hook tools were not installed globally.
+   - State that no project docs were created.
+   - State that `.uth-governance/project.json` was not created.
+   - If a temporary source clone was created, remove it after successful verification unless the user asked to keep it.
    - State that no Git push was performed unless the user explicitly requested it.
 
 ## What the Installer Does
 
 - Copies `skills/uth-*` and `skills/uth-sp-*` into the selected skills directory.
-- Copies `tools/uth-hooks/` into the target project.
-- Creates a lightweight documentation skeleton:
-  - `docs/README.md`
-  - `docs/_governance/README.md`
-  - `docs/_governance/agent-rules.md`
-  - `docs/_governance/git-workflow.md`
-  - `docs/_governance/subagent-workflow.md`
-  - `docs/_governance/writing-rules.md`
-  - `docs/_governance/hook-gates.md`
-  - `docs/_governance/state-rules.md`
-  - `docs/_governance/adr-release-rules.md`
-  - `docs/current-state.md`
-  - `docs/project-overview.md`
-  - `docs/architecture.md`
-  - `docs/development.md`
-  - `docs/work/README.md`
-  - `docs/LW-Work/`
-  - `docs/LW-Work/README.md`
-  - `docs/context/README.md`
-  - `docs/archive/README.md`
-  - `docs/archive/work/`
-  - `docs/archive/LW-Work/`
-  - `docs/decisions/README.md`
-  - `docs/changelogs/README.md`
-  - `docs/state/snapshots/`
-- Appends a small UTH block to the target project root `AGENTS.md` if the block
-  is not already present.
+
+Default directories:
+
+```text
+Codex skills: ~/.codex/skills
+Claude skills: ~/.claude/skills
+OpenCode skills: ~/.config/opencode/skills
+```
 
 ## What the Installer Does Not Do
 
+- It does not initialize the current project.
+- It does not install hook tools globally.
+- It does not create project docs.
+- It does not modify root `AGENTS.md`.
+- It does not create `.uth-governance/project.json`.
+- It does not create a global `.uth-governance/` directory. `.uth-governance/` is project-local only.
+- It does not ask whether the current directory is a project directory.
 - It does not push Git commits.
 - It does not copy old task packages, archived work, or current-state facts from
-  this governance-pack repository into the target project.
-- It does not duplicate scene-flow details into the target project `AGENTS.md`.
-- It does not modify existing project docs except for appending the marked UTH
-  block to root `AGENTS.md`.
+  this governance-pack repository into any target project.
+
+## Project Onboarding After Install
+
+To enable UTH in a project, open that target project and explicitly run:
+
+```text
+/uth-onboarding
+```
+
+or tell the agent:
+
+```text
+Use uth-onboarding to enable UTH governance for this project.
+```
+
+`uth-onboarding` creates `.uth-governance/project.json`, copies project-local
+`tools/uth-hooks/`, creates or updates the minimal docs scaffold, and for
+existing projects creates the docs backup and handoff snapshot before handing
+deeper cleanup to `uth-docs`.

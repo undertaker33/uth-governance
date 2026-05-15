@@ -1,4 +1,4 @@
 interface:
   display_name: "UTH Governance"
   short_description: "Top-level UTH scene router"
-  default_prompt: "Use uth-governance at the start of repository work to classify the request, route to the right uth-* scene, stop on unclear scenes, and avoid unnecessary docs or UTH-SP triggers."
+  default_prompt: "Use uth-governance in UTH-enabled projects with .uth-governance/project.json to classify requests, route to the right uth-* scene, stop on unclear scenes, and keep non-onboarded projects silent unless the user asks for uth-onboarding."

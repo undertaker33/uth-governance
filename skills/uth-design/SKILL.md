@@ -1,6 +1,6 @@
 ---
 name: uth-design
-description: Use when the user asks for architecture design, technical selection, solution comparison, feasibility analysis, exploratory planning, design review before implementation, or evaluation of whether an approach is reasonable. Combines readonly evaluation and formal architecture/design authoring while controlling minimal document lookup, task-package Design writeback, high-threshold ADR creation, current-state index updates, and handoff to development. Do not use for direct coding, bug repair, post-implementation code review, standalone documentation maintenance, or Git/release closure unless the task is explicitly about design decisions.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-design, for architecture design, technical selection, solution comparison, feasibility analysis, exploratory planning, design review before implementation, or evaluation of whether an approach is reasonable. Combines readonly evaluation and formal architecture/design authoring while controlling minimal document lookup, task-package Design writeback, high-threshold ADR creation, current-state index updates, and handoff to development. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for direct coding, bug repair, post-implementation code review, standalone documentation maintenance, or Git/release closure unless the task is explicitly about design decisions.
 ---
 
 # uth-design

@@ -1,6 +1,6 @@
 ---
 name: uth-docs
-description: Use when the user asks for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, or documentation migration. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-docs, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, or the automatic follow-up after uth-onboarding existing-project handoff. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
 ---
 
 # UTH Docs
@@ -26,6 +26,7 @@ Choose one mode before reading broadly:
 - `archive-cleanup`: move explicitly completed task packages and LW documents into archive.
 - `snapshot`: save a historical state snapshot.
 - `migration`: move old Design/Todo/Feedback/run docs into the current UTH layout.
+- `onboarding-followup`: continue from an `uth-onboarding` existing-project handoff snapshot.
 
 If the mode is unclear, do read-only analysis first and ask before writing.
 
@@ -49,6 +50,7 @@ Then read only what the selected mode needs:
 - archive-cleanup: `docs/current-state.md`, completed `docs/work/D*` packages, and completed `docs/LW-Work/LW*` docs.
 - snapshot: `docs/current-state.md` and the minimum files needed to describe the snapshot.
 - migration: old source docs plus target templates.
+- onboarding-followup: `docs/snapshots/ONB*-existing-project-handoff.md`, `docs/current-state.md`, old docs named by the snapshot, and only the code/config needed to confirm current facts.
 
 Do not default to reading all of `docs/`, all task packages, old Design docs, old Feedback, run logs, worker Prompts, or LW records.
 
@@ -190,6 +192,18 @@ docs/archive/
 ```
 
 Archive both LW Todo files and final LW records together when available. Before moving items, ensure `docs/current-state.md` no longer treats them as active. After moving items, update indexes and links that still point to the old location.
+
+## Onboarding Follow-up
+
+When called from `uth-onboarding` after an existing-project handoff:
+
+- read the onboarding snapshot first
+- verify the backup zip path is recorded before migrating old docs
+- classify old docs as current candidate, historical evidence, archive candidate, or discard candidate
+- rebuild or propose `docs/context/` from code facts, not from old task logs alone
+- clean `docs/current-state.md` so old facts do not remain active by accident
+- extract only stable repeated rules from old `AGENTS.md`; do not copy the whole old file into the new one
+- keep the onboarding snapshot as historical handoff evidence
 
 ## Closeout
 

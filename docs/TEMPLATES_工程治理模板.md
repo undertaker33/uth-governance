@@ -17,6 +17,7 @@
 ## 0. 入口与让路
 
 - 进入本仓库处理工程任务时，先由 `uth-governance` 判定场景。
+- 本项目启用标记：`.uth-governance/project.json`。
 - 用户显式调用某个 `uth-*` 子 Skill 时，直接进入该子 Skill。
 - 用户显式调用 `skill-creator` 时，让路给 `skill-creator`。
 - 用户要求创建、修改或修补 Skill，但没有显式调用 `skill-creator` 时，停下来提醒用户显式调用。
@@ -41,11 +42,11 @@
 
 ### 2.1 【全局规则名称】
 
-- 
+-
 
 ### 2.2 【全局规则名称】
 
-- 
+-
 
 ## 3. 当前高频易错点
 
@@ -141,6 +142,7 @@
 
 ## 4. 状态快照
 
+- `snapshots/`：项目级快照，例如老项目接管 handoff。
 - `state/snapshots/`：历史状态快照。
 
 ## 5. 归档
@@ -202,6 +204,7 @@
 
 ## 8. 当前事实来源
 
+- `.uth-governance/project.json`
 - `docs/project-overview.md`
 - `docs/architecture.md`
 - `docs/development.md`
@@ -211,7 +214,35 @@
 
 ---
 
-## 4. docs/project-overview.md 模板
+## 4. .uth-governance/project.json 模板
+
+文件：
+
+```text
+.uth-governance/project.json
+```
+
+模板：
+
+````json
+{
+  "schema": "uth-governance-project/v1",
+  "enabled": true,
+  "onboarded_at": "YYYY-MM-DDTHH:mm:ss+08:00",
+  "onboarding_mode": "new-project | existing-project",
+  "docs_root": "docs",
+  "entrypoints": {
+    "agent": "AGENTS.md",
+    "docs": "docs/README.md",
+    "current_state": "docs/current-state.md",
+    "context": "docs/context/README.md"
+  }
+}
+````
+
+---
+
+## 5. docs/project-overview.md 模板
 
 ````md
 # 项目概览
@@ -235,6 +266,8 @@ project-root/
 ├─ frontend/
 ├─ backend/
 ├─ docs/
+├─ tools/
+│  └─ uth-hooks/
 └─ scripts/
 ```
 
@@ -243,6 +276,7 @@ project-root/
 - `frontend/`：
 - `backend/`：
 - `docs/`：
+- `tools/uth-hooks/`：项目本地 UTH Hook runner 与门禁脚本。
 - `scripts/`：
 
 ## 5. 技术栈
@@ -299,7 +333,7 @@ Infrastructure / Tools:
 
 ---
 
-## 5. docs/architecture.md 模板
+## 6. docs/architecture.md 模板
 
 ````md
 # 架构说明
@@ -350,7 +384,7 @@ Data / Runtime / External Tools
 
 ---
 
-## 6. docs/development.md 模板
+## 7. docs/development.md 模板
 
 ````md
 # 开发运行手册
@@ -401,7 +435,7 @@ Data / Runtime / External Tools
 
 ---
 
-## 7. docs/context/README.md 模板
+## 8. docs/context/README.md 模板
 
 ````md
 # 模块上下文入口
@@ -441,7 +475,7 @@ Data / Runtime / External Tools
 
 ---
 
-## 8. docs/context/模块文件模板
+## 9. docs/context/模块文件模板
 
 文件：
 
@@ -496,7 +530,7 @@ docs/context/10-模块名.md
 
 ---
 
-## 9. docs/_governance/README.md 模板
+## 10. docs/_governance/README.md 模板
 
 ````md
 # 工程治理规则目录
@@ -527,7 +561,7 @@ docs/context/10-模块名.md
 
 ---
 
-## 10. hook-gates.md 模板
+## 11. hook-gates.md 模板
 
 ````md
 # Hook 门禁规则
@@ -546,6 +580,7 @@ BLOCK 阻断
 
 ## 2. L0 Router Gate
 
+- 项目根目录没有 `.uth-governance/project.json` 时，除 `uth-onboarding`、安装流程或用户显式 UTH 启用请求外，其他 `uth-*` 场景默认静默。
 - 项目动作前必须已有明确 `uth-*` 场景判定。
 - 场景不明确时 `BLOCK`，交还调用方澄清。
 - 无工程动作时不触发 UTH，不触发 UTH-SP。
@@ -569,6 +604,7 @@ BLOCK 阻断
 ## 5. L3 Closeout Gate
 
 - 声称完成、修复、通过、可交付前必须有新鲜证据。
+- `uth-onboarding` 必须写入 `.uth-governance/project.json`、复制项目本地 `tools/uth-hooks/`，并建立初始 `docs/current-state.md`；老项目还必须先创建备份压缩包和接管快照，并自动交给 `uth-docs`。
 - `uth-dev` / `uth-debug` 代码改动后必须编译 / 构建通过，且 `0 warning / 0 exception`。
 - 经用户确认的 `uth-design` 小补丁同样触发代码强验证。
 - 首次进入 UTH 代码修改场景时，不默认接受旧 warning / exception baseline；默认先清到 `0 / 0`。
@@ -577,7 +613,7 @@ BLOCK 阻断
 
 ---
 
-## 11. agent-rules.md 模板
+## 12. agent-rules.md 模板
 
 ````md
 # Agent 行为规则
@@ -672,7 +708,7 @@ BLOCK 阻断
 
 ---
 
-## 12. git-workflow.md 模板
+## 13. git-workflow.md 模板
 
 ````md
 # Git 工作流规则
@@ -779,7 +815,7 @@ Git 写入前必须展示：
 
 ---
 
-## 13. subagent-workflow.md 模板
+## 14. subagent-workflow.md 模板
 
 ````md
 # Subagent 协作规则
@@ -880,7 +916,7 @@ exception 数：
 
 ---
 
-## 14. writing-rules.md 模板
+## 15. writing-rules.md 模板
 
 ````md
 # 文档写入规则
@@ -985,7 +1021,7 @@ docs/context/
 
 ---
 
-## 15. state-rules.md 模板
+## 16. state-rules.md 模板
 
 ````md
 # 状态维护规则
@@ -1035,7 +1071,7 @@ docs/state/snapshots/SYYMMDD-说明.md
 
 ---
 
-## 16. adr-release-rules.md 模板
+## 17. adr-release-rules.md 模板
 
 ````md
 # ADR 与发布规则
@@ -1086,7 +1122,7 @@ vMAJOR.MINOR.PATCH
 
 ---
 
-## 17. Design 模板
+## 18. Design 模板
 
 文件：
 
@@ -1169,7 +1205,7 @@ UI：
 
 ---
 
-## 18. Todo 模板
+## 19. Todo 模板
 
 文件：
 
@@ -1243,7 +1279,7 @@ docs/work/DYYMMDDXX-任务包标题/10-DYYMMDDXX-T01-todo-任务名.md
 
 ---
 
-## 19. Feedback 模板
+## 20. Feedback 模板
 
 文件：
 
@@ -1313,7 +1349,7 @@ docs/work/DYYMMDDXX-任务包标题/11-DYYMMDDXX-T01-feedback-任务名.md
 
 ---
 
-## 20. Run Log 模板
+## 21. Run Log 模板
 
 文件：
 
@@ -1358,7 +1394,7 @@ docs/work/DYYMMDDXX-任务包标题/runs/RYYMMDD-HHMM-T01-执行记录.md
 
 ---
 
-## 21. Worker Prompt 模板
+## 22. Worker Prompt 模板
 
 文件：
 
@@ -1447,7 +1483,7 @@ docs/work/DYYMMDDXX-任务包标题/prompts/PYYMMDD-HHMM-T01-worker-任务名.md
 
 ---
 
-## 22. LW-Work 模板
+## 23. LW-Work 模板
 
 轻量 Todo 文件：
 
@@ -1543,7 +1579,7 @@ docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 
 ---
 
-## 23. ADR 模板
+## 24. ADR 模板
 
 文件：
 
@@ -1581,7 +1617,7 @@ YYYY-MM-DD
 
 ---
 
-## 24. Changelog 模板
+## 25. Changelog 模板
 
 文件：
 
@@ -1615,7 +1651,7 @@ docs/changelogs/v0.1.0.md
 
 ---
 
-## 25. State Snapshot 模板
+## 26. State Snapshot 模板
 
 文件：
 
@@ -1657,7 +1693,7 @@ YYYY-MM-DD HH:mm
 
 ---
 
-## 26. Archive README 模板
+## 27. Archive README 模板
 
 文件：
 
@@ -1686,7 +1722,68 @@ docs/archive/README.md
 - 归档后，如仍有当前事实价值，应先提炼到 `docs/context/` 或常驻上下文文件，而不是依赖归档文件。
 ````
 
-## 27. Git 写入计划模板
+## 28. Onboarding Handoff Snapshot 模板
+
+文件：
+
+```text
+docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md
+```
+
+模板：
+
+````md
+# ONBYYMMDDXX 老项目接管快照
+
+## 1. 接管时间
+
+YYYY-MM-DD HH:mm
+
+## 2. Git 基线
+
+-
+
+## 3. 备份压缩包
+
+- `docs/ONBYYMMDDXX-pre-uth-docs-backup.zip`
+
+## 4. 接管前文档结构
+
+```text
+```
+
+## 5. 已发现项目入口
+
+-
+
+## 6. 已发现技术栈线索
+
+-
+
+## 7. 已发现模块线索
+
+-
+
+## 8. 旧规则中值得继承的内容
+
+-
+
+## 9. 旧文档可信度判断
+
+-
+
+## 10. 未确认事实
+
+-
+
+## 11. 需要 uth-docs 继续处理的事项
+
+-
+````
+
+---
+
+## 29. Git 写入计划模板
 
 ````md
 ## Git 写入计划

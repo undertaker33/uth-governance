@@ -1,6 +1,6 @@
 ---
 name: uth-review
-description: Use when the user asks for code review, validation, acceptance, test execution, delivery check, Todo acceptance, diff review, or readiness assessment. Routes review through minimal context loading, task-boundary evidence, optional uth-context-trace, verification before positive claims, and read-only findings-first output. Do not use for direct bug repair, implementation, architecture design, documentation maintenance, or Git/release closure unless explicitly requested after review.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-review, for code review, validation, acceptance, test execution, delivery check, Todo acceptance, diff review, or readiness assessment. Routes review through minimal context loading, task-boundary evidence, optional uth-context-trace, verification before positive claims, and read-only findings-first output. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for direct bug repair, implementation, architecture design, documentation maintenance, or Git/release closure unless explicitly requested after review.
 ---
 
 # uth-review
