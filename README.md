@@ -10,19 +10,32 @@ heavyweight process.
 Ask your coding agent to install the pack by following the installation guide:
 
 ```text
-Install and configure UTH Governance by following the instructions here:
-docs/guide/installation.md
+Install and configure UTH Governance from GitHub:
+https://github.com/undertaker33/uth-governance.git
+
+Target project is the current working directory.
+Follow docs/guide/installation.md from that repository.
+Use runtime codex.
 ```
 
-For a local checkout, point the agent at this repository path and the target
-project path.
+If the repository is private, make sure the agent's Git environment can access
+GitHub first. An equivalent SSH clone URL is fine when SSH is configured.
 
 ## Manual Install
 
-Run the installer from this repository:
+Clone the repository, then run the installer:
 
 ```bash
+git clone https://github.com/undertaker33/uth-governance.git
+cd uth-governance
 python scripts/install.py --target /path/to/project --runtime codex
+```
+
+If skills and hooks are already installed and you only want to initialize a
+project's documentation system:
+
+```bash
+python scripts/install.py --target /path/to/project --runtime codex --project-init-only
 ```
 
 Use `--runtime claude`, `--runtime opencode`, or `--skills-dir <path>` when the
