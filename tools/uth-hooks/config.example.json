@@ -33,7 +33,7 @@
     ],
     "uth-git": [
       "docs/changelogs/**",
-      "docs/work/LW-Work/**"
+      "docs/LW-Work/**"
     ]
   },
   "extra_hard_forbidden": [],

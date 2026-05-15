@@ -77,7 +77,7 @@ Hook 至少需要维护以下运行态信息，可由 wrapper、hook 系统或 A
   "ambiguous_state_resolved": true,
   "brainstorming_invoked": false,
   "explicit_no_brainstorm_reason": "scope and acceptance are clear",
-  "allowed_writes": ["src/**", "tests/**", "docs/work/LW-Work/**"],
+  "allowed_writes": ["src/**", "tests/**", "docs/LW-Work/**"],
   "forbidden_writes": ["docs/context/**", "docs/archive/**", "skills/**"],
   "scope_expansions": [],
   "user_git_confirmed": false,

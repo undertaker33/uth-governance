@@ -18,7 +18,7 @@
 7. **场景触发**：Agent 先判断场景，再按场景读取和写入，避免默认全读、默认全写。
 8. **UTH Skill 分层**：`uth-governance` 负责顶层路由；各 `uth-*` 子 Skill 负责文档读写治理、场景内 UTH-SP 触发门槛和收口协议，不替代成熟研发流程。
 9. **强流程门槛**：UTH-SP 不是随意触发；命中硬触发必须完整执行，只有满足明确豁免条件才走轻量路径。场景不清由 `uth-governance` 澄清；场景内需求、范围或验收不清时，再由子 Skill 判断是否进入 `uth-sp-brainstorming`。
-10. **轻量记录**：轻量代码改动不默认创建正式任务包；开发前在 `docs/work/LW-Work/` 创建轻量 Todo；如用户确认提交并完成 Git commit，再追加提交级轻量记录。
+10. **轻量记录**：轻量代码改动不默认创建正式任务包；开发前在 `docs/LW-Work/` 创建轻量 Todo；如用户确认提交并完成 Git commit，再追加提交级轻量记录。
 11. **Worker Prompt 留痕**：只有派发 `worker` 时，完整派发提示词必须先写入当前正式任务包 `prompts/`；同一 `worker` 返工时追加更新原 Prompt，不新建文件；有几个 `worker` 就记录几份。`planner` / `evaluator` 不记录 Prompt。
 12. **文档定位 Skill**：文档定位作为独立辅助 Skill，用于追溯 Design / Todo / Feedback / worker Prompt / Run Log 证据链，不替代代码搜索和局部阅读。
 13. **模块上下文层**：新增 `docs/context/` 保存模块级当前事实摘要，辅助 Agent 装载上下文；它不是任务日志，也不是 diff 流水。
@@ -107,7 +107,7 @@ docs/work/DYYMMDDXX-任务包标题/
 └─ runs/
    └─ RYYMMDD-HHMM-T01-执行记录.md
 
-docs/work/LW-Work/
+docs/LW-Work/
 ├─ LWYYMMDDXX-轻量任务标题-todo.md
 └─ LWYYMMDDXX-轻量任务标题.md
 ```
@@ -262,9 +262,9 @@ docs/
 │  │  └─ runs/
 │  │     └─ R260514-1530-T01-执行记录.md
 │
-│  └─ LW-Work/
-│     ├─ LW26051401-add-button-todo.md
-│     └─ LW26051401-add-button.md
+├─ LW-Work/
+│  ├─ LW26051401-add-button-todo.md
+│  └─ LW26051401-add-button.md
 │
 ├─ state/
 │  └─ snapshots/
@@ -350,7 +350,7 @@ docs/
 - Run Log 是过程记录，不是交付报告。
 - 已完成或废弃任务包默认不作为当前事实来源。
 
-`docs/work/LW-Work/` 存放轻量开发 Todo 和轻量 Git 提交记录。
+`docs/LW-Work/` 存放轻量开发 Todo 和轻量 Git 提交记录。
 
 规则：
 
@@ -780,9 +780,9 @@ docs/current-state.md
 轻量改动规则：
 
 - 不要求创建正式 Design / Todo / Feedback。
-- 开发前或首次写文件前，创建轻量 Todo：`docs/work/LW-Work/LWYYMMDDXX-轻量任务标题-todo.md`。
+- 开发前或首次写文件前，创建轻量 Todo：`docs/LW-Work/LWYYMMDDXX-轻量任务标题-todo.md`。
 - 完成后询问用户是否允许 Git commit。
-- 用户确认进入 `uth-git`，并由 `uth-git` 完成 Git commit 后，追加或创建最终 LW 记录：`docs/work/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
+- 用户确认进入 `uth-git`，并由 `uth-git` 完成 Git commit 后，追加或创建最终 LW 记录：`docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
 - 最终 LW 记录只写用户原始需求、修改摘要、验证摘要和 Git 信息。
 - 无 commit 不写最终 LW 记录。
 - LW 记录默认不更新 `docs/current-state.md`，除非影响当前阶段、阻塞、验证基线或发布判断。
@@ -1049,7 +1049,7 @@ Git Owner / Workspace Owner 状态
 
 - 轻量改动完成后，先询问用户是否允许提交。
 - 用户确认后执行 Git 写入流程。
-- commit 成功后，追加或创建对应 `docs/work/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
+- commit 成功后，追加或创建对应 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
 - LW 记录追加后是否再次纳入 Git，由本场景重新展示 diff 并等待用户确认。
 - 正式任务包的 commit / PR / tag 证据由 `uth-git` closeout 记录；正式 Feedback 不强制回写 Git 信息。
 
@@ -1365,7 +1365,7 @@ Prompt 必须说明：
 
 ### 9.6 LW-Work 定位
 
-`docs/work/LW-Work/` 保存轻量开发 Todo 和轻量 Git 提交记录。
+`docs/LW-Work/` 保存轻量开发 Todo 和轻量 Git 提交记录。
 
 LW Todo 和最终 LW 记录不是正式 Design / Todo / Feedback，不用于管理复杂任务。
 
@@ -1607,7 +1607,7 @@ Git 写入前必须展示：
 轻量 Git 记录：
 
 - 轻量改动不预先写 LW 记录。
-- 用户确认并完成 Git commit 后，追加或创建 `docs/work/LW-Work/` 下的记录。
+- 用户确认并完成 Git commit 后，追加或创建 `docs/LW-Work/` 下的记录。
 - LW 记录追加后如果需要纳入 Git，必须重新进入 Git 写入确认流程。
 
 ---
@@ -1623,7 +1623,7 @@ Git 写入前必须展示：
 3. 判断项目类型、技术栈、模块边界、启动方式、测试方式、构建方式。
 4. 创建或补齐常驻上下文层。
 5. 创建或补齐 `docs/_governance/`。
-6. 创建或补齐 `docs/context/`、`docs/work/`、`docs/work/LW-Work/`、`docs/archive/`、`docs/state/snapshots/`、`docs/decisions/`、`docs/changelogs/`。
+6. 创建或补齐 `docs/context/`、`docs/work/`、`docs/LW-Work/`、`docs/archive/`、`docs/state/snapshots/`、`docs/decisions/`、`docs/changelogs/`。
 7. 不修改业务代码。
 8. 输出新增文件、修改文件、每个文件作用、后续使用方式。
 9. 若涉及 Git 写入，进入 S7 并等待用户确认。

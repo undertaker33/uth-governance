@@ -166,7 +166,7 @@ For lightweight changes:
 4. After commit succeeds, append or create:
 
 ```text
-docs/work/LW-Work/LWYYMMDDXX-轻量任务标题.md
+docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 ```
 
 5. Record the original request, LW Todo path, commit hash, commit message, changed files summary, verification evidence summary, push/PR status, and timestamp.

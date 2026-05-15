@@ -8,7 +8,7 @@
   "allowed_writes": [
     "src/**",
     "tests/**",
-    "docs/work/LW-Work/**"
+    "docs/LW-Work/**"
   ],
   "forbidden_writes": [
     "docs/context/**",

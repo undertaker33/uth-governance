@@ -206,14 +206,14 @@ Human acceptance is usually Design-level. Todo completion is Agent self-evidence
 
 ## Light Dev Documents
 
-For `light-dev`, use only `docs/work/LW-Work/`.
+For `light-dev`, use only `docs/LW-Work/`.
 
 Do not create or update lightweight development records under `docs/archive/LW-Work/`. Archive is managed only by `uth-docs`.
 
 Create a lightweight Todo before implementation or before the first file write:
 
 ```text
-docs/work/LW-Work/LWYYMMDDXX-中文标题-todo.md
+docs/LW-Work/LWYYMMDDXX-中文标题-todo.md
 ```
 
 After implementation, do not write the final LW record yet.
@@ -228,7 +228,7 @@ The final LW record is written only after:
 Final record:
 
 ```text
-docs/work/LW-Work/LWYYMMDDXX-中文标题.md
+docs/LW-Work/LWYYMMDDXX-中文标题.md
 ```
 
 No commit means no final LW record.
@@ -342,7 +342,7 @@ docs/work/DYYMMDDXX-任务包标题/prompts/PYYMMDD-HHMM-T01-worker-任务名.md
 
 Allowed in `light-dev`:
 
-- lightweight Todo under `docs/work/LW-Work/`
+- lightweight Todo under `docs/LW-Work/`
 - directly related code
 - directly related tests
 - minimal local config only when required by the change
@@ -424,7 +424,7 @@ When resuming interrupted formal development:
 6. If the active Todo is completed, move to the next unfinished Todo.
 7. If all Todos are completed, hand off to `uth-review` for Design-level acceptance.
 
-For `light-dev`, resume from the LW Todo under `docs/work/LW-Work/`.
+For `light-dev`, resume from the LW Todo under `docs/LW-Work/`.
 
 If the only matching Todo or LW record is under `docs/archive/`, do not resume it as active work. Ask whether to create a new active task/LW Todo or route to `uth-docs` / `uth-context-trace`.
 

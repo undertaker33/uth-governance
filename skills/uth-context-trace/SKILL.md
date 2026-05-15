@@ -84,7 +84,7 @@ Allowed read targets:
 - Feedback files in the active or matching task package
 - `prompts/` worker prompt files only when related to the target
 - `runs/` records only when related to the target
-- `docs/work/LW-Work/` records only when the issue follows a lightweight committed change
+- `docs/LW-Work/` records only when the issue follows a lightweight committed change
 - `docs/archive/work/` or `docs/archive/LW-Work/` only when archive is explicitly in scope
 - ADRs only for the same decision area
 - `docs/context/*.md` only as current fact sources when relevant

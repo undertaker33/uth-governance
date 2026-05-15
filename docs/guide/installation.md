@@ -134,8 +134,8 @@ Follow these steps in order.
   - `docs/architecture.md`
   - `docs/development.md`
   - `docs/work/README.md`
-  - `docs/work/LW-Work/`
-  - `docs/work/LW-Work/README.md`
+  - `docs/LW-Work/`
+  - `docs/LW-Work/README.md`
   - `docs/context/README.md`
   - `docs/archive/README.md`
   - `docs/archive/work/`

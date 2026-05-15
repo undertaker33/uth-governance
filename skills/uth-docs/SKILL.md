@@ -46,7 +46,7 @@ Then read only what the selected mode needs:
 - context-bootstrap: `docs/context/README.md` if present, directory tree, README, build/config files, and key entry points.
 - context-sync: `docs/context/README.md`, affected module context files, user-specified commits or git range, and only the code/docs needed to verify current facts.
 - state-cleanup: `docs/current-state.md`, active task package indexes, and context README/module files as needed.
-- archive-cleanup: `docs/current-state.md`, completed `docs/work/D*` packages, and completed `docs/work/LW-Work/LW*` docs.
+- archive-cleanup: `docs/current-state.md`, completed `docs/work/D*` packages, and completed `docs/LW-Work/LW*` docs.
 - snapshot: `docs/current-state.md` and the minimum files needed to describe the snapshot.
 - migration: old source docs plus target templates.
 

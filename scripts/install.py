@@ -181,7 +181,7 @@ def project_doc_files(target: Path) -> dict[Path, str]:
 ## 3. 任务包
 
 - `work/`：正式任务包，按 `DYYMMDDXX-任务包标题/` 聚合 Design / Todo / Feedback / Prompt / Run Log。
-- `work/LW-Work/`：轻量开发 Todo 和轻量 Git 提交记录。
+- `LW-Work/`：轻量开发 Todo 和轻量 Git 提交记录。
 
 ## 4. 归档与长期记录
 
@@ -280,7 +280,7 @@ type(scope): summary
 
 ## 4. 轻量 Git 记录
 
-轻量改动完成后，先询问用户是否允许提交。commit 成功后，再追加或创建 `docs/work/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
+轻量改动完成后，先询问用户是否允许提交。commit 成功后，再追加或创建 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
 """,
         target / "docs" / "_governance" / "subagent-workflow.md": """# Subagent 协作规则
 
@@ -330,7 +330,7 @@ Feedback 是 Todo 的交付报告，不是过程日志。Git 证据由 `uth-git`
 
 ## 4. LW-Work
 
-轻量开发使用两份文档，均放在 `docs/work/LW-Work/`：
+轻量开发使用两份文档，均放在 `docs/LW-Work/`：
 
 ```text
 LWYYMMDDXX-轻量任务标题-todo.md
@@ -641,9 +641,9 @@ docs/work/DYYMMDDXX-任务包标题/
 
 ## 2. 轻量开发
 
-轻量开发记录放在 `LW-Work/`。轻量 Todo 在开发前或首次写文件前创建；最终 LW 记录只在 commit 成功后追加或创建。
+轻量开发记录放在 `docs/LW-Work/`。轻量 Todo 在开发前或首次写文件前创建；最终 LW 记录只在 commit 成功后追加或创建。
 """,
-        target / "docs" / "work" / "LW-Work" / "README.md": """# 轻量开发记录
+        target / "docs" / "LW-Work" / "README.md": """# 轻量开发记录
 
 本目录保存轻量开发 Todo 和轻量 Git 提交记录，不替代正式任务包。
 
@@ -716,7 +716,7 @@ def install_docs(target: Path, args: argparse.Namespace, report: Report) -> None
         target / "docs",
         target / "docs" / "_governance",
         target / "docs" / "work",
-        target / "docs" / "work" / "LW-Work",
+        target / "docs" / "LW-Work",
         target / "docs" / "context",
         target / "docs" / "archive",
         target / "docs" / "archive" / "work",
