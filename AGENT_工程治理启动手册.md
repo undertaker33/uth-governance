@@ -545,7 +545,19 @@ PASS / WARN / ASK / BLOCK
 - 修改治理文档、任务包 Markdown、根目录 `README.md` 或 `AGENTS.md` 时，调用 `uth-utf8-guard` 或等价检查。
 - 修改脚本文件时，至少检查 UTF-8、no-BOM 和 shebang；可用环境下运行对应语法检查，环境缺失时记录 WARN，不伪装为通过。
 
-### 6.6 文档定位辅助场景
+### 6.6 Git 收口交接判断
+
+Git 收口交接判断以人类验收口径触发，而不是以 Agent Todo 自证口径触发。
+
+规则：
+
+- `uth-dev`：轻量任务实现和验证完成后必须判断是否建议 Git 收口；正式任务包只有达到 Design 级人类验收口径时才判断，单个 Todo 完成只写 Feedback、current-state 或继续下一个 Todo。
+- `uth-debug`：只读诊断不触发；独立轻量修复完成并验证后必须判断；正式任务包内修复按 Design 级人类验收口径判断。
+- `uth-docs` / `uth-design`：由 Agent 判断是否形成稳定、可提交的治理或设计成果。
+- `uth-review` / `uth-context-trace`：默认不触发，除非用户显式要求 Git 动作。
+- 进入 `uth-git` 必须先询问用户；进入 `uth-git` 后，任何 Git 写入仍必须展示计划并等待用户确认。
+
+### 6.7 文档定位辅助场景
 
 文档定位用于查找相关 Design / Todo / Feedback / worker Prompt / Run Log / LW 记录，包括必要时查找已归档证据。
 
@@ -1052,6 +1064,7 @@ Git Owner / Workspace Owner 状态
 - commit 成功后，追加或创建对应 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
 - LW 记录追加后是否再次纳入 Git，由本场景重新展示 diff 并等待用户确认。
 - 正式任务包的 commit / PR / tag 证据由 `uth-git` closeout 记录；正式 Feedback 不强制回写 Git 信息。
+- 正式任务包的 Git 收口边界通常是 Design 级人类验收，而不是单个 Todo 完成。
 
 代码改动 Git 门槛：
 

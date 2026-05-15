@@ -187,6 +187,10 @@ End with a compact report:
 - Documents written or deliberately not written
 - UTF-8 guard result for governed Markdown writes
 - `Needs uth-docs context-sync`, if module context may need an update
-- Git status: not executed in this scene; ask whether to hand off to `uth-git` only after debug closeout
+- human acceptance boundary: read-only diagnosis / independent light repair reached / formal Design reached / formal Todo-only not reached
+- Git-closure decision: not suggested / suggested, waiting for user / user handed off to `uth-git`
+- Git status: not executed in this scene
 
 Never claim fixed, passing, or complete without fresh verification evidence. If verification was not run, say so plainly.
+
+Git closure is considered only after debug closeout. Do not suggest Git closure for read-only diagnosis. For independent light repair, evaluate Git closure after the repair is verified. For a repair inside a formal task package, use the Design-level human acceptance boundary, not the individual Todo boundary. Enter `uth-git` only after the user explicitly agrees.

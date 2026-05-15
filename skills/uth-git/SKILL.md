@@ -59,10 +59,13 @@ Start with:
 - whether this is read-only planning or confirmed execution
 - whether code/doc work appears already complete
 - whether this Git closure follows `uth-dev`, `uth-debug`, `uth-review`, `uth-docs`, or a lightweight LW Todo
+- the human acceptance boundary that triggered the handoff: light task, Design-level acceptance, explicit user Git request, docs/design stable artifact, release, or branch closure
 
 If the requested Git operation is ambiguous, ask before executing.
 
 Git write operations require explicit user confirmation after the plan is shown.
+
+Do not treat Todo completion as the default formal-task Git boundary. For formal task packages, Git closure should normally follow Design-level human acceptance or an explicit user Git request. Todo completion is Agent self-evidence and may be recorded in Feedback without entering this scene.
 
 If this scene only produces a Git plan and performs no Git writes, closeout may use `git_plan_present=true` or `plan_only=true` and must state that no Git writes were executed. User Git confirmation is required only for actual Git writes.
 
@@ -183,7 +186,7 @@ Formal Feedback does not have to wait for Git information.
 When a Git write succeeds for a formal task package:
 
 - record commit / PR / tag evidence in the `uth-git` closeout
-- mention associated task package and Todo when known
+- mention associated task package, Design, and Todo when known
 - do not reopen or rewrite Feedback only to add Git information unless the user explicitly asks
 
 ## Changelog and Tag Rules

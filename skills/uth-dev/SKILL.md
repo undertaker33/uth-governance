@@ -204,6 +204,8 @@ Split into multiple Todos only when:
 
 Human acceptance is usually Design-level. Todo completion is Agent self-evidence, recorded through Feedback.
 
+Do not trigger Git closure merely because one Todo is complete. For formal development, trigger the Git-closure decision only when the Design-level human acceptance boundary is reached: all required Todos for the accepted Design are completed or the user explicitly says the current Design/package is ready to commit. For light-dev, the lightweight task itself is the human acceptance boundary.
+
 ## Light Dev Documents
 
 For `light-dev`, use only `docs/LW-Work/`.
@@ -434,8 +436,10 @@ If the only matching Todo or LW record is under `docs/archive/`, do not resume i
 
 After development:
 
-- say whether commit is recommended
-- ask whether the user wants to enter `uth-git` for commit / PR / tag / release closure
+- always evaluate Git-closure handoff for `light-dev` after implementation and verification
+- for formal task packages, evaluate Git-closure handoff only when the Design-level human acceptance boundary is reached, not after each Todo
+- when only a Todo is complete but the Design is not yet at human acceptance, say the next Todo or review route instead of recommending Git closure
+- ask whether the user wants to enter `uth-git` only when Git closure is recommended or the user explicitly asks for Git
 - hand off to `uth-git` only after the user explicitly agrees
 - `uth-git` owns Git write planning, user confirmation, commit execution, and final lightweight LW record writeback after a successful commit
 - formal Feedback remains valid even when no Git commit has happened yet
@@ -455,8 +459,10 @@ End with:
 - worker Prompt records, if any
 - current-state update: yes/no
 - `Needs uth-docs context-sync`, if applicable
+- human acceptance boundary: light task reached / Design reached / Todo-only not reached / not applicable
+- Git-closure decision: not suggested / suggested, waiting for user / user handed off to `uth-git`
 - recommended next scene: none / `uth-review` / `uth-debug` / `uth-git` / `uth-docs`
-- Git status: not executed; ask user before `uth-git`
+- Git status: not executed in this scene
 - risk and rollback notes
 
 If no files changed, say:
