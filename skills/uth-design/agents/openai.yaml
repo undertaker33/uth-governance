@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Design"
+  short_description: "Design and evaluation context governance"
+  default_prompt: "Use uth-design to evaluate solutions, create formal task-package designs, gate ADRs, and hand off implementation without writing code."

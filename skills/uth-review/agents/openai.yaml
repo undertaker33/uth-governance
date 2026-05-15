@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Review"
+  short_description: "Review and acceptance governance"
+  default_prompt: "Use uth-review to perform read-first code review, validation, and acceptance against task boundaries without default writes or Git changes."

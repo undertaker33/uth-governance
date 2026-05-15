@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Dev"
+  short_description: "Incremental development governance"
+  default_prompt: "Use uth-dev to implement bounded changes, manage light or formal Todo documents, dispatch worker subagents, verify, and hand off Git writes safely."

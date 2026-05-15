@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Git"
+  short_description: "Git, PR, tag, and release closure governance"
+  default_prompt: "Use uth-git to inspect Git state, present a write plan, require user confirmation, and perform commit, PR, tag, release, or branch closure safely."

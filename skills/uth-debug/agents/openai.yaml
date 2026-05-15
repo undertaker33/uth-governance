@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Debug"
+  short_description: "Debug context loading and document writeback rules"
+  default_prompt: "Use uth-debug to locate debug context, run systematic debugging, verify the fix, and write back only necessary task evidence."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "UTH Context Trace"
+  short_description: "Read-only task evidence tracing"
+  default_prompt: "Use uth-context-trace to locate active or archived Design, Todo, Feedback, worker prompt, run log, LW, ADR, and current fact sources without modifying files."
