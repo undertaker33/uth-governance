@@ -4,10 +4,10 @@ Use this reference only when `uth-onboarding` creates or repairs the minimal pro
 
 ## Document Language
 
-Render generated governance docs in the selected project `document_language`
-from `.uth-governance/project.json`. The examples below are semantic templates,
-not mandatory literal English output. Preserve paths, commands, schema keys,
-code identifiers, and filenames exactly.
+Render generated governance docs and scene closeout reports in the selected
+project `document_language` from `.uth-governance/project.json`. The examples
+below are semantic templates, not mandatory literal English output. Preserve
+paths, commands, schema keys, code identifiers, and filenames exactly.
 
 ## Directory Skeleton
 

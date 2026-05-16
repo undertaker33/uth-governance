@@ -105,6 +105,7 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "closeout_report_language_applied": True,
             }
         )
 
@@ -118,6 +119,44 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "document_language_available": True,
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_selected_document_language_requires_localized_closeout_report(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-onboarding",
+                "mode": "new-project",
+                "project_marker_written": True,
+                "current_state_written": True,
+                "hook_tools_copied": True,
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "document_language_selected": True,
+                "document_language_persisted": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "closeout-report-language-missing")
+
+
+    def test_selected_document_language_accepts_localized_closeout_report(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-onboarding",
+                "mode": "new-project",
+                "project_marker_written": True,
+                "current_state_written": True,
+                "hook_tools_copied": True,
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "document_language_selected": True,
+                "document_language_persisted": True,
+                "closeout_report_language_applied": True,
             }
         )
 

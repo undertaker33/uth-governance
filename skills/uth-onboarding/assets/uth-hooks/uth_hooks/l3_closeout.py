@@ -24,6 +24,7 @@ def check_l3_closeout(ctx: dict[str, Any]) -> list[dict[str, Any]]:
 
     findings: list[dict[str, Any]] = []
     findings.extend(check_positive_claim_evidence(ctx))
+    findings.extend(check_closeout_report_language(ctx))
 
     if scene == "uth-onboarding":
         findings.extend(check_l3_onboarding(ctx))
@@ -227,3 +228,26 @@ def document_language_ready(ctx: dict[str, Any]) -> bool:
         or ctx.get("project_marker_document_language")
     )
     return selected and persisted
+
+
+def check_closeout_report_language(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    if not closeout_language_expected(ctx):
+        return []
+    if as_bool(ctx.get("closeout_report_language_applied")):
+        return []
+    return [
+        result(
+            "BLOCK",
+            "closeout-report-language-missing",
+            "Scene closeout report must be rendered in the selected project document_language.",
+        )
+    ]
+
+
+def closeout_language_expected(ctx: dict[str, Any]) -> bool:
+    return as_bool(
+        ctx.get("document_language_available")
+        or ctx.get("project_marker_document_language")
+        or ctx.get("document_language_selected")
+        or ctx.get("document_language_persisted")
+    )

@@ -177,6 +177,8 @@ Do not write documents for a pure read-only pass with no stable conclusion. Do n
 
 ## Closeout
 
+If `.uth-governance/project.json` contains `document_language`, render the closeout report in that language. For `zh-CN`, use Chinese headings and Chinese prose; preserve literal paths, commands, skill names, schema values, and code identifiers.
+
 End with a compact report:
 
 - `Scene: uth-debug`

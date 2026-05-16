@@ -72,6 +72,9 @@
     "project_marker_document_language": {
       "type": "boolean"
     },
+    "closeout_report_language_applied": {
+      "type": "boolean"
+    },
     "verification": {
       "type": "object",
       "properties": {

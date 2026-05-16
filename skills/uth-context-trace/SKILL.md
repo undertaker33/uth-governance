@@ -147,6 +147,8 @@ If the trace reveals docs are stale or missing, report `Needs uth-docs` or `Need
 
 ## Closeout
 
+If `.uth-governance/project.json` contains `document_language`, render the closeout report in that language. For `zh-CN`, use Chinese headings and Chinese prose; preserve literal paths, commands, skill names, schema values, and code identifiers.
+
 End with:
 
 ```text

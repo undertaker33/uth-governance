@@ -36,16 +36,36 @@ cd uth-governance
 python scripts/install.py --runtime codex
 ```
 
-Use one of:
+To update an existing install, give your agent this prompt:
 
-- `--runtime codex`
-- `--runtime claude`
-- `--runtime opencode`
-- `--runtime custom --skills-dir /path/to/skills`
+```text
+Update UTH Governance from GitHub:
+https://github.com/undertaker33/uth-governance.git
+
+Follow docs/guide/installation.md from that repository.
+Use runtime codex.
+Overwrite existing UTH skills with --update.
+Do not initialize the current project during update.
+```
+
+Or update manually from a fresh clone or an updated local clone:
+
+```bash
+python scripts/install.py --runtime codex --update
+```
+
+When installing for a different agent tool, keep the same install or update
+flow and change the `--runtime` value:
+
+- Codex: `--runtime codex`
+- Claude Code: `--runtime claude`
+- OpenCode: `--runtime opencode`
+- Custom or non-standard skill directory: `--runtime custom --skills-dir /path/to/skills`
 
 Optional:
 
 - `--skip-skills`
+- `--update`
 - `--force`
 - `--dry-run`
 
@@ -74,14 +94,28 @@ Follow these steps in order.
    python scripts/install.py --runtime codex --dry-run
    ```
 
-4. Run the install.
+   For an update request, use the update flag in the dry run:
+
+   ```bash
+   python scripts/install.py --runtime codex --update --dry-run
+   ```
+
+4. Run the install or update.
 
    ```bash
    python scripts/install.py --runtime codex
    ```
 
-   Use `--force` only when the user explicitly wants to overwrite existing UTH
-   skills.
+   For an update request:
+
+   ```bash
+   python scripts/install.py --runtime codex --update
+   ```
+
+   Use `--force` or `--update` only when the user explicitly wants to overwrite
+   existing UTH skills. A user request to update, refresh, or upgrade an
+   existing UTH install counts as overwrite approval for UTH skill directories
+   only.
 
 5. Verify the install.
 
@@ -99,6 +133,8 @@ Follow these steps in order.
 ## What the Installer Does
 
 - Copies `skills/uth-*` and `skills/uth-sp-*` into the selected skills directory.
+- With `--force` or `--update`, overwrites existing UTH skill directories in
+  that selected skills directory.
 
 Default directories:
 

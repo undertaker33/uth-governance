@@ -48,7 +48,7 @@
           "minLength": 1
         },
         "applies_to": {
-          "const": "governance-docs"
+          "enum": ["governance-docs-and-closeout-reports", "governance-docs"]
         }
       },
       "additionalProperties": true

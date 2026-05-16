@@ -1,3 +1,5 @@
+[English](README.md) | [中文](README.zh-CN.md)
+
 # UTH Governance
 
 UTH Governance is a lightweight engineering-governance pack for coding agents.
@@ -41,6 +43,8 @@ git clone https://github.com/undertaker33/uth-governance.git
 cd uth-governance
 python scripts/install.py --runtime codex
 ```
+
+To update an existing install, see [One-Sentence Update](#one-sentence-update).
 
 ### Step 2: Enable UTH in a project
 
@@ -119,9 +123,9 @@ generation while waiting for Git.
   hook tools globally, or create `.uth-governance/project.json`.
 - `/uth-onboarding` creates the project marker, copies project-local
   `tools/uth-hooks/`, and creates the minimal governance docs scaffold.
-- Before the first governed Markdown write, UTH asks for the project
-  documentation language and saves it in `.uth-governance/project.json` as
-  `document_language`.
+- Before the first governed Markdown write or scene closeout report, UTH asks
+  for the project documentation language and saves it in
+  `.uth-governance/project.json` as `document_language`.
 - Other `uth-*` scenes stay silent unless the project has
   `.uth-governance/project.json`, except when the user explicitly asks to enable
   UTH governance for that project.
@@ -151,15 +155,46 @@ For manual installation:
 python scripts/install.py --runtime codex
 ```
 
-Supported runtimes are `codex`, `claude`, `opencode`, and `custom`.
-Use `--runtime custom --skills-dir <path>` when the target agent loads skills
-from a non-standard directory.
+### One-Sentence Update
+
+When UTH is already installed and you want to refresh the global skills, give
+your agent this prompt:
+
+```text
+Update UTH Governance from GitHub:
+https://github.com/undertaker33/uth-governance.git
+
+Follow docs/guide/installation.md from that repository.
+Use runtime codex.
+Overwrite existing UTH skills with --update.
+Do not initialize the current project during update.
+```
+
+Or update manually from a fresh clone or an updated local clone:
+
+```bash
+python scripts/install.py --runtime codex --update
+```
+
+`--update` is an alias for `--force`. It overwrites existing UTH skill
+directories in the selected global skills directory only. It still does not run
+`uth-onboarding`, create project docs, copy hook tools into the current project,
+or create `.uth-governance/project.json`.
+
+When installing for a different agent tool, keep the same install or update
+flow and change the `--runtime` value:
+
+- Codex: `--runtime codex`
+- Claude Code: `--runtime claude`
+- OpenCode: `--runtime opencode`
+- Custom or non-standard skill directory: `--runtime custom --skills-dir <path>`
 
 Useful installer options:
 
 - `--source <path>`: install from an explicit UTH package root.
 - `--skills-dir <path>`: override the detected skill install directory.
 - `--skip-skills`: run without installing skills.
+- `--update`: update existing UTH skill directories; alias for `--force`.
 - `--force`: overwrite existing UTH skill directories.
 - `--dry-run`: print planned changes without writing files.
 
@@ -173,3 +208,27 @@ python scripts/verify.py
 
 Versioning belongs to the outer package folder or release artifact. Internal
 handbook/template filenames intentionally do not carry version suffixes.
+
+## License
+
+UTH Governance is licensed under the Apache License, Version 2.0. See
+[`LICENSE`](LICENSE).
+
+Some `uth-sp-*` method-skill materials include or adapt content from
+[Superpowers](https://github.com/obra/superpowers), which is licensed under the
+MIT License. Keep the upstream copyright and license notices when
+redistributing those materials.
+
+## Acknowledgements
+
+The UTH-SP method-skill layer is inspired by and partially adapted from
+[Superpowers](https://github.com/obra/superpowers), an agentic skills framework
+created by Jesse Vincent and the Superpowers contributors.
+
+Superpowers is licensed under the MIT License. When redistributing UTH-SP
+materials that include or adapt Superpowers content, keep the upstream
+copyright and license notices.
+
+Thanks to the Superpowers project for the method patterns behind structured
+brainstorming, systematic debugging, test-driven development, planning,
+subagent development, and verification-before-completion workflows.

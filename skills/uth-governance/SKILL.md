@@ -134,6 +134,8 @@ This skill only routes. UTH-SP trigger decisions belong to the selected child sk
 
 ## Output Discipline
 
+If `.uth-governance/project.json` contains `document_language`, render routing explanations in that language. For `zh-CN`, use Chinese prose while keeping literal scene and skill names unchanged.
+
 For casual or pure read-only requests with no UTH scene, do not output a routing table.
 
 For project action requests, output one short line before entering the child skill:

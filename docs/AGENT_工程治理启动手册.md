@@ -30,7 +30,7 @@
 19. **UTF-8 文档守卫**：修改 `docs/**/*.md`、根目录 `README.md`、`AGENTS.md` 或任务包 Markdown 时，调用 `uth-utf8-guard` 或等价检查，防止中文治理文档乱码。
 20. **显式项目接管**：安装只负责全局 skills；项目初始化必须由用户显式调用 `uth-onboarding`，由 onboarding 将 Hook 工具复制到项目本地 `tools/uth-hooks/`，并写入 `.uth-governance/project.json`。
 21. **静默机制**：当前项目根目录没有 `.uth-governance/project.json` 时，除 `uth-onboarding`、安装流程或用户显式 UTH 启用请求外，其他 `uth-*` 场景默认静默。
-22. **文档语言偏好**：首次写入治理 Markdown 前必须询问用户文档语言，并将长期偏好保存到 `.uth-governance/project.json` 的 `document_language`；后续 `uth-onboarding` / `uth-docs` 文档写入沿用该偏好。
+22. **治理输出语言偏好**：首次写入治理 Markdown 或输出场景收口报告前必须询问用户文档语言，并将长期偏好保存到 `.uth-governance/project.json` 的 `document_language`；后续治理文档和收口报告都沿用该偏好。
 
 ---
 

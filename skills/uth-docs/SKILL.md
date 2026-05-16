@@ -1,6 +1,6 @@
 ---
 name: uth-docs
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, document_language preference persistence before first docs writes, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, document_language preference persistence before first docs writes and closeout reports, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
 ---
 
 # UTH Docs
@@ -14,7 +14,7 @@ This skill governs documentation only. It does not implement code, run tests, co
 If code, tests, or build files would need changes, stop and route to the proper implementation/debug scene. `uth-docs` closeout is documentation-only.
 
 When this scene modifies governed Markdown, use `uth-utf8-guard` before and after the write.
-When this scene writes governed Markdown for the first time in a project, resolve and persist the project documentation language before writing those docs.
+When this scene writes governed Markdown or emits a scene closeout report, use the persisted project documentation language.
 
 ## Modes
 
@@ -60,11 +60,12 @@ Do not default to reading all of `docs/`, all task packages, old Design docs, ol
 
 Before writing any governed Markdown, read `.uth-governance/project.json` and check `document_language`.
 
-- If `document_language` exists, write new governance docs in that language.
+- If `document_language` exists, write new governance docs and the scene closeout report in that language.
 - If it is missing, ask one concise question before the first Markdown write:
   `Which language should UTH use for project governance docs? I will save this as the project default.`
 - Save the answer back to `.uth-governance/project.json` as `document_language` before writing other docs.
 - Preserve paths, commands, code identifiers, schema keys, and filenames exactly even when the surrounding prose is localized.
+- If the selected language is `zh-CN`, the closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Written`, or `Verification`.
 - Do not translate existing documentation wholesale unless the user explicitly requests a language migration.
 - If the user requests a one-off different language, ask whether to update the project default or only this output.
 
@@ -77,7 +78,7 @@ Use this marker shape:
     "label": "Simplified Chinese | English | bilingual | user-specified label",
     "source": "user-selected",
     "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
-    "applies_to": "governance-docs"
+    "applies_to": "governance-docs-and-closeout-reports"
   }
 }
 ```
@@ -235,7 +236,7 @@ When called from `uth-onboarding` after an existing-project handoff:
 
 ## Closeout
 
-End with:
+End with a closeout report rendered in the selected `document_language`. The field names below are semantic requirements; localize the labels and prose. For `zh-CN`, use Chinese labels and Chinese prose while keeping literal paths, commands, skill names, and schema values unchanged.
 
 ```text
 Mode:

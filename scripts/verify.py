@@ -29,6 +29,25 @@ def run_command(command: list[str], label: str) -> bool:
     return False
 
 
+def is_git_worktree() -> bool:
+    proc = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return proc.returncode == 0
+
+
+def check_git_diff() -> bool:
+    if not is_git_worktree():
+        print("==> git diff --check")
+        print("SKIP: git diff --check (not a git worktree)")
+        return True
+    return run_command(["git", "diff", "--check"], "git diff --check")
+
+
 def should_skip_compile(path: Path) -> bool:
     parts = set(path.relative_to(ROOT).parts)
     if parts & IGNORED_PARTS:
@@ -72,7 +91,7 @@ def main() -> int:
         check_python_syntax(),
     ]
     if not args.skip_git_diff_check:
-        checks.append(run_command(["git", "diff", "--check"], "git diff --check"))
+        checks.append(check_git_diff())
 
     return 0 if all(checks) else 1
 

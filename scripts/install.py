@@ -40,8 +40,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skills-dir", default=None, help="Override skill install directory.")
     parser.add_argument("--skip-skills", action="store_true", help="Do not install skills.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing UTH skill directories.")
+    parser.add_argument("--update", action="store_true", help="Update existing UTH skill directories; alias for --force.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned changes without writing files.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.update:
+        args.force = True
+    return args
 
 
 def package_root(args: argparse.Namespace) -> Path:
@@ -79,7 +83,7 @@ def copy_directory(src: Path, dst: Path, *, force: bool, dry_run: bool, report: 
         report.skip(f"source and destination are identical: {dst}")
         return
     if dst.exists() and not force:
-        report.skip(f"exists; use --force to overwrite: {dst}")
+        report.skip(f"exists; use --force or --update to overwrite: {dst}")
         return
     if dst.exists() and force:
         report.action(f"overwrite directory {dst}")
@@ -114,6 +118,7 @@ def main() -> int:
     print(f"Skills directory: {skills_dir if skills_dir is not None else '<skipped>'}")
     print("Hook tools: not installed globally; uth-onboarding copies them into the target project.")
     print("Project initialization: not performed; run /uth-onboarding in the target project.")
+    print("Update mode: yes" if args.update else "Update mode: no")
     print("Dry run: yes" if args.dry_run else "Dry run: no")
     return 0
 

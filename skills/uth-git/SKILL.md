@@ -231,6 +231,8 @@ Do not:
 
 ## Closeout
 
+If `.uth-governance/project.json` contains `document_language`, render the closeout report in that language. For `zh-CN`, use Chinese headings and Chinese prose; preserve literal paths, commands, skill names, schema values, and code identifiers.
+
 End with:
 
 - `Scene: uth-git`

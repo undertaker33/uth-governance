@@ -1,6 +1,6 @@
 ---
 name: uth-onboarding
-description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project-level .uth-governance/project.json marker, persists the document_language preference before first docs writes, creates minimal governance docs, new-project scaffold, or existing-project documentation backup and handoff snapshot. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
+description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project-level .uth-governance/project.json marker, persists the document_language preference before first docs writes and closeout reports, creates minimal governance docs, new-project scaffold, or existing-project documentation backup and handoff snapshot. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
 ---
 
 # UTH Onboarding
@@ -71,13 +71,14 @@ Do not read the full source tree. Onboarding may create only an initial `current
 
 ## Document Language Preference
 
-Before the first governed Markdown write in a project, resolve the documentation language.
+Before the first governed Markdown write in a project, resolve the documentation language. This preference applies to generated governance docs and to the user-facing scene closeout report.
 
 - If `.uth-governance/project.json` already has `document_language`, use it.
 - If `document_language` is missing, ask one concise question before writing docs:
   `Which language should UTH use for project governance docs? I will save this as the project default.`
 - Save the answer in `.uth-governance/project.json` as a long-term project fact.
-- Render generated governance docs in the selected language. Preserve paths, commands, code identifiers, schema keys, and filenames exactly.
+- Render generated governance docs and the final closeout report in the selected language. Preserve paths, commands, code identifiers, schema keys, and filenames exactly.
+- If the selected language is `zh-CN`, the closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Created/updated`, or `Current-state`.
 - Do not infer the language from the chat language or repository language on first write; ask once and persist it.
 
 Use this marker shape:
@@ -89,7 +90,7 @@ Use this marker shape:
     "label": "Simplified Chinese | English | bilingual | user-specified label",
     "source": "user-selected",
     "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
-    "applies_to": "governance-docs"
+    "applies_to": "governance-docs-and-closeout-reports"
   }
 }
 ```
@@ -116,7 +117,7 @@ Use this shape:
     "label": "Simplified Chinese | English | bilingual | user-specified label",
     "source": "user-selected",
     "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
-    "applies_to": "governance-docs"
+    "applies_to": "governance-docs-and-closeout-reports"
   },
   "entrypoints": {
     "agent": "AGENTS.md",
@@ -317,7 +318,7 @@ Do not execute Git writes.
 
 ## Closeout
 
-End with:
+End with a closeout report rendered in the selected `document_language`. The field names below are semantic requirements; localize the labels and prose. For `zh-CN`, use Chinese labels and Chinese prose while keeping literal paths, commands, skill names, and schema values unchanged.
 
 ```text
 Scene: uth-onboarding

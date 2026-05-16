@@ -49,7 +49,7 @@ flowchart TD
     J --> K["场景内执行<br/>design / dev / debug / review / docs / git"]
     K --> L["Hook L2 Tool Gate<br/>写入范围 / Git / UTF-8 / 脚本守卫"]
     L --> M["按场景写回文档<br/>Design / Todo / Feedback / LW-Work / current-state / context"]
-    M --> N["Hook L3 Closeout Gate<br/>完成证据 / 强验证 / 豁免"]
+    M --> N["Hook L3 Closeout Gate<br/>完成证据 / 强验证 / 输出语言 / 豁免"]
     N --> O{"是否达到人类验收口径<br/>并建议 Git 收口？"}
     O -- "否" --> P["场景收口"]
     O -- "是" --> Q["询问用户是否进入 uth-git"]
@@ -98,7 +98,7 @@ flowchart TD
     E0 --> E["创建最小文档骨架<br/>docs/README / current-state / context / work / LW-Work / _governance"]
     E --> F["复制项目本地 Hook<br/>tools/uth-hooks/"]
     F --> G["写 .uth-governance/project.json"]
-    G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8"]
+    G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8 + 中文收口"]
     H1 --> H["UTH 最小接管完成"]
 
     D --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
@@ -107,7 +107,7 @@ flowchart TD
     J --> K["复制项目本地 Hook<br/>tools/uth-hooks/"]
     K --> L["建立 current-state 初始索引<br/>不读全量源码，不声称全仓理解"]
     L --> M["写 .uth-governance/project.json"]
-    M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state"]
+    M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state + 输出语言"]
     M1 --> N["自动进入 uth-docs<br/>旧文档分类 / context / current-state / 归档"]
 ```
 
@@ -368,7 +368,7 @@ flowchart TD
     D --> D1["检查：文件范围 / Git 确认 / UTF-8 / 脚本 no-BOM 与语法"]
     D1 --> E["场景写回或 Git 写入"]
     E --> F["Hook L3 Closeout Gate"]
-    F --> F1["检查：完成证据 / 代码强验证 / 场景禁止事项 / 豁免记录"]
+    F --> F1["检查：完成证据 / 代码强验证 / 输出语言 / 场景禁止事项 / 豁免记录"]
     F1 --> G["最终收口"]
 ```
 

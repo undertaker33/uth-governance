@@ -26,6 +26,7 @@ class TestHookSchemas(unittest.TestCase):
         self.assertIn("active_scene", data["required"])
         self.assertIn("verification", data["properties"])
         self.assertIn("document_language_persisted", data["properties"])
+        self.assertIn("closeout_report_language_applied", data["properties"])
 
 
 if __name__ == "__main__":
