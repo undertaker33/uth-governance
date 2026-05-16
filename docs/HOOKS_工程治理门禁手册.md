@@ -686,9 +686,9 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 
 ---
 
-## 7. 最小实现优先级
+## 7. 当前实现状态
 
-第一阶段建议实现：
+当前参考 runner 已实现：
 
 ```text
 H1 scene-required-before-write
@@ -700,16 +700,28 @@ H6 no-worker-without-prompt
 H7 utf8-doc-guard
 H8 script-guard
 H9 per-scene-closeout
+Context-source closeout gate for docs/context/** changes
+Archive write-scope gate
+Archive cleanup closeout gate
+Generic positive-claim evidence gate
+Code verification evidence gate
 ```
 
-第二阶段再实现：
+仍待实现或硬化：
 
 ```text
 UTH-SP-required-evidence gate
 Archive-read gate
 Current-state-staleness gate
-Context-source gate
+Broader context-source freshness/staleness gate
 ```
+
+说明：
+
+- `Context-source` 已在 `uth-docs` L3 closeout 中实现基础门禁：修改 `docs/context/**` 时必须提供 `context_source_evidence` 或 `context_source_omitted_reason`。
+- `Archive` 目前已覆盖写入范围和归档清理收口，但没有独立的 archive-read 事件或读取门禁。
+- `Current-state` 目前只在 onboarding、dev/debug/review/docs/git 等场景中作为写入范围或收口事实检查的一部分；尚未实现 stale / length / active-index consistency 这类新鲜度门禁。
+- `UTH-SP` 目前 L1 只检查是否记录触发判断；尚未校验 hard trigger 是否对应 selected method，也未要求 UTH-SP 执行证据。
 
 UTH-SP 触发层改造完成后，再把 UTH-SP evidence gate 变成硬门槛。
 

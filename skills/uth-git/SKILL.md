@@ -204,6 +204,17 @@ If changelog is missing, stop and ask whether to create or update it before tagg
 
 Use `uth-utf8-guard` before and after appending Git baselines to LW-Work records, appending Git baselines to Feedback, writing changelog Markdown, or modifying other governed Markdown during Git closure.
 
+## Codex App Git Directives
+
+When running inside Codex Desktop and the app context requires final-response Git directives such as `::git-stage`, `::git-commit`, `::git-push`, or `::git-create-pr`:
+
+- Normalize the directive `cwd` value to forward slashes, even on Windows, for example `C:/Users/93445/Desktop/project`.
+- Do not emit Windows backslash paths such as `C:\Users\...` inside directive attributes; backslashes can be interpreted as escapes by the app renderer and may break thread display.
+- Keep directive attributes single-line.
+- Emit each directive only after the matching Git action has actually succeeded.
+
+This rule applies only to Codex App UI directives. Shell commands may still use the platform's normal path syntax.
+
 ## Forbidden
 
 Do not:
