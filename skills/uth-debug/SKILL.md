@@ -1,6 +1,6 @@
 ---
 name: uth-debug
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-debug, for bugs, failing tests, runtime errors, regressions, unexpected behavior, or defect diagnosis and repair. Routes debug work through minimal document lookup, optional uth-context-trace evidence loading, systematic debugging, verification, and narrow task-document writeback. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for feature requests, architecture redesign, broad refactors, or pure code review unless a concrete defect must be diagnosed.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for bugs, failing tests, runtime errors, regressions, unexpected behavior, or defect diagnosis and repair, including explicit uth-debug requests inside an enabled project. Routes debug work through minimal document lookup, optional uth-context-trace evidence loading, systematic debugging, verification, and narrow task-document writeback. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for feature requests, architecture redesign, broad refactors, or pure code review unless a concrete defect must be diagnosed.
 ---
 
 # uth-debug
@@ -143,7 +143,7 @@ Allowed when repair is authorized:
 - current task package runs
 - current task package worker prompts
 - `docs/current-state.md` only when current phase, blocker, baseline, or acceptance status changed
-- LW-Work Todo only when this bug repair has explicitly been routed as lightweight development; final LW Git information belongs to `uth-git` after a successful commit
+- LW-Work final record only when this bug repair has explicitly been routed as lightweight development; Git baseline append belongs to `uth-git` after a successful Git write
 
 Forbidden by default:
 

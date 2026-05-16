@@ -161,7 +161,7 @@ docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md
 Record:
 
 - onboarding time
-- Git baseline
+- repository snapshot
 - backup zip path
 - pre-onboarding docs structure
 - discovered entrypoints
@@ -182,7 +182,7 @@ Allowed content:
 
 - project name
 - onboarding status
-- Git baseline
+- repository snapshot
 - docs entrypoints
 - backup and snapshot paths
 - discovered tech-stack clues

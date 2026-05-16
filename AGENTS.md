@@ -1,5 +1,7 @@
 # UTH Governance Pack
 
+If `.superpower/` exists, first read `.superpower/using-superpowers/SKILL.md` as the local-only Superpower workflow entry for maintaining this pack.
+
 This repository is a distributable UTH engineering-governance pack, not a target project.
 
 Keep this entry short. Full rules live in:
@@ -53,7 +55,7 @@ For stdin:
 echo '{"type":"git-write","active_scene":"uth-git","commands":["git commit -m test"],"git_plan_present":true,"user_git_confirmed":true}' | python tools/uth-hooks/uth-hook.py --event -
 ```
 
-L1/L2/L3 are implemented in the reference runner:
+L0/L1/L2/L3 are implemented in the reference runner:
 
 - L1: ambiguity, scene transitions, worker Prompt dispatch, UTH-SP trigger decision.
 - L2: file write scope, Git write confirmation, UTF-8 doc guard, script guard.

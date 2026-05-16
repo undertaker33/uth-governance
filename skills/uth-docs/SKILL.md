@@ -1,6 +1,6 @@
 ---
 name: uth-docs
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-docs, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, or the automatic follow-up after uth-onboarding existing-project handoff. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
 ---
 
 # UTH Docs
@@ -123,17 +123,17 @@ Context files must not contain:
 - stale Design/Todo conclusions as current facts.
 - detailed ADR content copied into context.
 
-Every module context file should include a Git baseline:
+Module context may include source evidence when it is useful, but context sync must not block on a Git baseline:
 
 ```md
-## Git Baseline
+## Source Evidence
 
 - Commit:
-- Source: commit / git range / stable code / workspace changes
+- Source: commit / git range / stable code / workspace changes / code read
 - Updated at:
 ```
 
-If the workspace is uncommitted, or the user explicitly asks to sync from workspace changes, the baseline may be omitted or left unchanged. State this in closeout.
+If the workspace is uncommitted, or the user explicitly asks to sync from workspace changes, record the code/diff source that was actually read or omit the section. Do not delay context or report writeback waiting for a later Git commit.
 
 For `context-bootstrap`, simple or new projects may be split by technical boundary such as frontend, backend, data, and deployment. For complex projects, read enough of the repository to propose module boundaries, then wait for user confirmation before creating module files.
 
@@ -187,11 +187,10 @@ docs/archive/
 +-- work/
 |   +-- DYYMMDDXX-task-title/
 +-- LW-Work/
-    +-- LWYYMMDDXX-light-task-title-todo.md
     +-- LWYYMMDDXX-light-task-title.md
 ```
 
-Archive both LW Todo files and final LW records together when available. Before moving items, ensure `docs/current-state.md` no longer treats them as active. After moving items, update indexes and links that still point to the old location.
+Archive completed LW final records. Before moving items, ensure `docs/current-state.md` no longer treats them as active. After moving items, update indexes and links that still point to the old location.
 
 ## Onboarding Follow-up
 
@@ -216,7 +215,7 @@ Written:
 Not touched:
 UTF-8 guard:
 Current-state cleanup:
-Context baseline:
+Context source evidence:
 Archived:
 ADR/changelog boundary:
 Verification:

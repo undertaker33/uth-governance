@@ -8,6 +8,8 @@ from typing import Any
 
 from .common import as_bool, get_paths, normalize_path, result
 
+SCRIPT_SYNTAX_TIMEOUT_SECONDS = 10
+
 def find_bash() -> str | None:
     if os.name == "nt":
         roots = [os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)")]
@@ -23,8 +25,14 @@ def find_powershell() -> str | None:
     return shutil.which("pwsh") or shutil.which("powershell")
 
 
-def run_command(command: list[str]) -> tuple[int, str]:
-    proc = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+def run_command(command: list[str], timeout: int = SCRIPT_SYNTAX_TIMEOUT_SECONDS) -> tuple[int, str]:
+    try:
+        proc = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        output = exc.stdout or ""
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        return 124, f"timed out after {timeout}s. {str(output).strip()}".strip()
     return proc.returncode, proc.stdout.strip()
 
 

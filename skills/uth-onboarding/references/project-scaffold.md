@@ -82,7 +82,7 @@ Start here before reading project documentation. Read only the sections needed b
 ## Work Evidence
 
 - `work/`: formal task packages with Design, Todo, Feedback, worker Prompts, and Run Logs.
-- `LW-Work/`: lightweight development Todo and post-commit lightweight records.
+- `LW-Work/`: lightweight development final records written at task completion.
 
 ## Governance
 
@@ -105,7 +105,7 @@ Updated at: YYYY-MM-DD HH:mm
 - UTH enabled: yes
 - Mode: new-project / existing-project
 - Project marker: `.uth-governance/project.json`
-- Git baseline:
+- Repository snapshot:
 - Backup:
 - Handoff snapshot:
 
@@ -271,11 +271,10 @@ docs/work/DYYMMDDXX-task-title/
 Lightweight development records live here:
 
 ```text
-LWYYMMDDXX-light-task-todo.md
 LWYYMMDDXX-light-task.md
 ```
 
-The Todo is written before light development. The final record is written only by `uth-git` after a successful commit.
+The final record is written by `uth-dev` when the lightweight task is completed. `uth-git` appends the Git baseline after a successful Git write.
 ````
 
 ## docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md
@@ -287,7 +286,7 @@ The Todo is written before light development. The final record is written only b
 
 YYYY-MM-DD HH:mm
 
-## Git Baseline
+## Repository Snapshot
 
 -
 
@@ -342,7 +341,7 @@ Project governance rules live here. Scene routing and scene execution live in th
 - `git-workflow.md`: Git write and release rules.
 - `subagent-workflow.md`: worker/planner/evaluator coordination.
 - `writing-rules.md`: Design/Todo/Feedback/LW/context write rules.
-- `hook-gates.md`: L1/L2/L3 gates.
+- `hook-gates.md`: L0/L1/L2/L3 gates.
 - `state-rules.md`: current-state and snapshot rules.
 - `adr-release-rules.md`: ADR and changelog rules.
 ```

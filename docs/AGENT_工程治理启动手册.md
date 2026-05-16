@@ -18,12 +18,12 @@
 7. **场景触发**：Agent 先判断场景，再按场景读取和写入，避免默认全读、默认全写。
 8. **UTH Skill 分层**：`uth-governance` 负责顶层路由；各 `uth-*` 子 Skill 负责文档读写治理、场景内 UTH-SP 触发门槛和收口协议，不替代成熟研发流程。
 9. **强流程门槛**：UTH-SP 不是随意触发；命中硬触发必须完整执行，只有满足明确豁免条件才走轻量路径。场景不清由 `uth-governance` 澄清；场景内需求、范围或验收不清时，再由子 Skill 判断是否进入 `uth-sp-brainstorming`。
-10. **轻量记录**：轻量代码改动不默认创建正式任务包；开发前在 `docs/LW-Work/` 创建轻量 Todo；如用户确认提交并完成 Git commit，再追加提交级轻量记录。
+10. **轻量记录**：轻量代码改动不默认创建正式任务包；任务完成时直接写 `docs/LW-Work/` 最终记录；如用户确认提交并完成 Git 写入，再由 `uth-git` 追加 Git baseline。
 11. **Worker Prompt 留痕**：只有派发 `worker` 时，完整派发提示词必须先写入当前正式任务包 `prompts/`；同一 `worker` 返工时追加更新原 Prompt，不新建文件；有几个 `worker` 就记录几份。`planner` / `evaluator` 不记录 Prompt。
 12. **文档定位 Skill**：文档定位作为独立辅助 Skill，用于追溯 Design / Todo / Feedback / worker Prompt / Run Log 证据链，不替代代码搜索和局部阅读。
 13. **模块上下文层**：新增 `docs/context/` 保存模块级当前事实摘要，辅助 Agent 装载上下文；它不是任务日志，也不是 diff 流水。
 14. **归档隔离**：已完成且不再活跃的任务包和 LW 文档迁移到 `docs/archive/`，不再污染 current-state 和 context。
-15. **Context 基线**：模块 context 应标明 Git baseline；如根据未提交工作区改动更新，可暂不写或不更新 baseline 并在收口说明。
+15. **Context 来源**：模块 context 可标明来源证据，但不因等待 Git baseline 阻断文档报告；Git baseline 只在 `uth-git` 中追加到 LW final record 或正式 Feedback。
 16. **场景不明即停**：顶层路由无法确定场景时，只问一个澄清问题，不为了开工而继续读文档或猜场景。
 17. **Hook 门禁**：写入、派工、Git、完成声明和文档编码由 Hook 或等价门禁检查；门禁手册作为治理规则，不替代场景 Skill。
 18. **代码强验证**：`uth-dev`、`uth-debug` 以及经用户确认的 `uth-design` 小补丁，代码改动后必须编译 / 构建通过且 `0 warning / 0 exception`；首次进入 UTH 代码修改场景时不默认接受旧告警基线。
@@ -110,7 +110,6 @@ docs/work/DYYMMDDXX-任务包标题/
    └─ RYYMMDD-HHMM-T01-执行记录.md
 
 docs/LW-Work/
-├─ LWYYMMDDXX-轻量任务标题-todo.md
 └─ LWYYMMDDXX-轻量任务标题.md
 ```
 
@@ -118,7 +117,7 @@ docs/LW-Work/
 
 `prompts/` 保存 `worker` 完整派发输入，是执行证据，不是当前事实源；`planner` / `evaluator` 的只读提示词不落盘。
 
-`LW-Work/` 保存轻量开发 Todo 和已提交轻量改动的极简追溯记录，不替代正式任务包。
+`LW-Work/` 保存轻量开发完成记录，不替代正式任务包。
 
 ### 2.3 长期记录层
 
@@ -192,7 +191,7 @@ docs/_governance/hook-gates.md
   写入、派工、Git、收口和文档编码门禁规则。
 
 tools/uth-hooks/
-  项目本地 Hook runner 与 L1/L2/L3 门禁脚本。
+  项目本地 Hook runner 与 L0/L1/L2/L3 门禁脚本。
 
 skills/
   场景触发与流程执行协议。
@@ -277,7 +276,6 @@ docs/
 │  │     └─ R260514-1530-T01-执行记录.md
 │
 ├─ LW-Work/
-│  ├─ LW26051401-add-button-todo.md
 │  └─ LW26051401-add-button.md
 │
 ├─ snapshots/
@@ -291,7 +289,6 @@ docs/
 │  ├─ work/
 │  │  └─ D26051401-任务包标题/
 │  └─ LW-Work/
-│     ├─ LW26051401-add-button-todo.md
 │     └─ LW26051401-add-button.md
 │
 ├─ decisions/
@@ -369,14 +366,14 @@ docs/
 - Run Log 是过程记录，不是交付报告。
 - 已完成或废弃任务包默认不作为当前事实来源。
 
-`docs/LW-Work/` 存放轻量开发 Todo 和轻量 Git 提交记录。
+`docs/LW-Work/` 存放轻量开发最终记录。
 
 规则：
 
-- 轻量改动开发前或首次写文件前，创建轻量 Todo。
-- 轻量改动完成后，Agent 应询问用户是否允许 Git commit。
-- 用户确认并完成 Git commit 后，才追加或创建对应 LW 记录。
-- LW 记录只保存用户原始需求、修改摘要、验证摘要和 Git 信息。
+- 轻量改动不创建单独 LW Todo。
+- 轻量改动完成并验证后，创建或更新最终 LW 记录。
+- LW 记录保存用户原始需求、任务边界、修改摘要、验证摘要、风险和回滚方式。
+- Git 写入成功后，由 `uth-git` 向该 LW 记录追加 Git baseline。
 - LW 记录不进入 `current-state`，除非它影响当前阶段、阻塞、验证基线或发布判断。
 - LW 记录不是正式 Design / Todo / Feedback，不用于承载复杂任务过程。
 
@@ -398,7 +395,7 @@ docs/
 规则：
 
 - 正式任务包归档到 `docs/archive/work/`。
-- 轻量开发 Todo 和最终 LW 记录归档到 `docs/archive/LW-Work/`。
+- 轻量开发最终 LW 记录归档到 `docs/archive/LW-Work/`。
 - 归档文件不是当前事实源。
 - 归档前必须确认 current-state 不再把对应文档列为活跃项。
 
@@ -836,11 +833,10 @@ docs/current-state.md
 轻量改动规则：
 
 - 不要求创建正式 Design / Todo / Feedback。
-- 开发前或首次写文件前，创建轻量 Todo：`docs/LW-Work/LWYYMMDDXX-轻量任务标题-todo.md`。
-- 完成后询问用户是否允许 Git commit。
-- 用户确认进入 `uth-git`，并由 `uth-git` 完成 Git commit 后，追加或创建最终 LW 记录：`docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
-- 最终 LW 记录只写用户原始需求、修改摘要、验证摘要和 Git 信息。
-- 无 commit 不写最终 LW 记录。
+- 不创建单独 LW Todo。
+- 完成并验证后，创建或更新最终 LW 记录：`docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
+- 最终 LW 记录写用户原始需求、任务边界、修改摘要、验证摘要、未验证项、风险和回滚方式。
+- 无 commit 也要写最终 LW 记录；Git baseline 先标记为 `pending uth-git`。
 - LW 记录默认不更新 `docs/current-state.md`，除非影响当前阶段、阻塞、验证基线或发布判断。
 
 Subagent 规则：
@@ -861,7 +857,7 @@ Subagent 规则：
 
 文档守卫：
 
-- 写轻量 Todo、Feedback、Prompt、Run Log、current-state 等 Markdown 前后，调用 `uth-utf8-guard` 或等价检查。
+- 写 LW final record、Feedback、Prompt、Run Log、current-state 等 Markdown 前后，调用 `uth-utf8-guard` 或等价检查。
 
 按需写入：
 
@@ -884,7 +880,7 @@ docs/development.md
 收口：
 
 - 正式任务包：写 Feedback，更新 current-state。
-- 轻量改动：说明修改、验证和未验证项；如用户确认进入 `uth-git` 且 commit 成功，由 `uth-git` 追加 LW 记录。
+- 轻量改动：写最终 LW 记录，说明修改、验证和未验证项；如用户确认进入 `uth-git` 且 Git 写入成功，由 `uth-git` 追加 Git baseline。
 - 代码改动：列出编译 / 构建命令、结果、warning 数、exception 数。
 - 输出 Git / PR 建议。
 
@@ -1103,11 +1099,12 @@ Git Owner / Workspace Owner 状态
 
 轻量改动 Git 收口：
 
-- 轻量改动完成后，先询问用户是否允许提交。
+- 轻量改动完成后，应已有最终 LW 记录。
+- 先询问用户是否允许提交。
 - 用户确认后执行 Git 写入流程。
-- commit 成功后，追加或创建对应 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
-- LW 记录追加后是否再次纳入 Git，由本场景重新展示 diff 并等待用户确认。
-- 正式任务包的 commit / PR / tag 证据由 `uth-git` closeout 记录；正式 Feedback 不强制回写 Git 信息。
+- Git 写入成功后，向对应 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md` 追加 Git baseline。
+- Git baseline 追加后是否再次纳入 Git，由本场景重新展示 diff 并等待用户确认。
+- 正式任务包的 commit / PR / tag 证据由 `uth-git` closeout 记录，并追加到关联 Feedback；Feedback 不等待 Git 信息才生成。
 - 正式任务包的 Git 收口边界通常是 Design 级人类验收，而不是单个 Todo 完成。
 
 代码改动 Git 门槛：
@@ -1186,8 +1183,8 @@ onboarding-followup：老项目接管后自动承接旧文档治理。
 - 不把提交过程写成日志。
 - 不复制 Feedback / worker Prompt / Run Log。
 - 普通小 UI、文案或局部实现细节不更新 context，除非改变当前模块事实。
-- 模块 context 必须标明 Git baseline：当前事实对应的 commit、来源和更新时间。
-- 如工作区未提交，或用户明确要求根据工作区改动更新，可暂不写或不更新 baseline，并在收口说明。
+- 模块 context 可标明来源证据：commit、git range、稳定代码状态或实际读取的工作区改动。
+- 不因等待 Git baseline 阻断 context 或交付报告写回。
 
 `state-cleanup` 规则：
 
@@ -1200,7 +1197,7 @@ onboarding-followup：老项目接管后自动承接旧文档治理。
 
 - 只迁移明确确认已完成且不再活跃的任务包和 LW 文档。
 - 正式任务包迁移到 `docs/archive/work/`。
-- 轻量开发 Todo 和最终 LW 记录一起迁移到 `docs/archive/LW-Work/`。
+- 轻量开发最终 LW 记录迁移到 `docs/archive/LW-Work/`。
 - 迁移前确认 current-state 不再把这些文档列为活跃项；迁移后更新仍有效索引。
 
 ADR 边界：
@@ -1253,7 +1250,7 @@ docs/state/snapshots/
 - 输出修改理由。
 - 输出迁移影响。
 - 如果涉及 `docs/context/`，输出模块拆分或同步依据。
-- 如果涉及 `docs/context/`，输出 Git baseline 或说明为何暂不更新 baseline。
+- 如果涉及 `docs/context/`，输出实际来源证据；不要求等待 Git baseline。
 - 如果涉及归档，输出迁移前后路径。
 - 输出未运行检查 / 测试的说明。
 - 输出后续使用方式。
@@ -1424,21 +1421,19 @@ Prompt 必须说明：
 
 ### 9.6 LW-Work 定位
 
-`docs/LW-Work/` 保存轻量开发 Todo 和轻量 Git 提交记录。
+`docs/LW-Work/` 保存轻量开发最终记录。
 
-LW Todo 和最终 LW 记录不是正式 Design / Todo / Feedback，不用于管理复杂任务。
+LW 记录不是正式 Design / Todo / Feedback，不用于管理复杂任务。
 
 适合写 LW：
 
 - 轻量改动没有正式任务包。
-- 开发前或首次写文件前，需要一份轻量 Todo 约束目标、范围和验收方式。
-- 用户确认提交并完成 Git commit。
-- 需要留下用户原始需求、修改摘要、验证摘要和 Git 信息。
+- 任务完成时需要留下用户原始需求、任务边界、修改摘要、验证摘要、风险和回滚方式。
+- 后续 Git 写入成功后，需要追加 commit / PR / tag 等 Git baseline。
 
 不适合写 LW：
 
 - 只读分析。
-- 未提交的轻量改动不写最终 LW 记录，但可以已有轻量 Todo。
 - 已经归属正式任务包的 Todo。
 - 需要 Design / Todo / Feedback 的复杂任务。
 
@@ -1479,10 +1474,10 @@ docs/context/90-cross-cutting.md
 - 常见修改点。
 - 验证入口。
 - 当前风险。
-- Git baseline：该上下文对应的 commit / 来源 / 更新时间。
+- Source evidence：该上下文对应的 commit / git range / 稳定代码 / 工作区来源 / 更新时间。
 - 相关任务包 / ADR 索引。
 
-如果 context 根据未提交工作区改动更新，或用户明确要求暂按工作区改动整理，可暂不写或不更新 Git baseline，但收口必须说明。
+如果 context 根据未提交工作区改动更新，或用户明确要求暂按工作区改动整理，记录实际读取来源即可，不等待 Git baseline。
 
 ---
 
@@ -1658,16 +1653,16 @@ Git 写入前必须展示：
 - 是否需要 PR。
 - 是否需要 changelog。
 - 是否需要 tag。
-- 是否为轻量改动，以及 commit 成功后是否追加 LW 记录。
+- 是否为轻量改动，以及 Git 成功后是否追加 baseline 到 LW / Feedback。
 - Git Owner / Workspace Owner 状态。
 
 未经用户确认，不得执行 Git 写入。
 
 轻量 Git 记录：
 
-- 轻量改动不预先写 LW 记录。
-- 用户确认并完成 Git commit 后，追加或创建 `docs/LW-Work/` 下的记录。
-- LW 记录追加后如果需要纳入 Git，必须重新进入 Git 写入确认流程。
+- 轻量改动的最终 LW 记录已由 `uth-dev` 在任务完成时写好。
+- 用户确认并完成 Git 写入后，向 `docs/LW-Work/` 下的最终记录追加 Git baseline。
+- Git baseline 追加后如果需要纳入 Git，必须重新进入 Git 写入确认流程。
 
 ---
 
@@ -1731,8 +1726,8 @@ Agent 收到任务后，按以下顺序执行：
 7. 按场景执行。
 8. 写入前通过场景写入范围门禁；超范围写入先问用户。
 9. 运行必要验证；代码改动默认要求编译 / 构建通过且 `0 warning / 0 exception`。
-10. 按场景写入 Feedback / current-state / ADR / changelog / worker Prompt / Run Log；治理 Markdown 写入前后走 `uth-utf8-guard`。
-11. 轻量改动完成后询问是否提交；commit 成功后追加 LW 记录。
+10. 按场景写入 Feedback / LW final record / current-state / ADR / changelog / worker Prompt / Run Log；治理 Markdown 写入前后走 `uth-utf8-guard`。
+11. 轻量改动完成后询问是否提交；Git 写入成功后追加 Git baseline 到 LW final record 或正式 Feedback。
 12. 输出 Git / PR 建议。
 13. Git 写入前等待用户确认。
 ```

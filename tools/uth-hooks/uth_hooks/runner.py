@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .common import EXIT_CODE, final_response, load_event, load_json_path, merge_context, normalize_event_type, result
+from .l0_router import check_l0_router
 from .l1_process import check_l1_process
 from .l2_git import check_git_write
 from .l2_script_guard import check_script_guard
@@ -16,7 +17,9 @@ from .l3_closeout import check_l3_closeout
 def dispatch(event: dict[str, Any], config: dict[str, Any], state: dict[str, Any], project: Path) -> dict[str, Any]:
     event_type = normalize_event_type(event.get("type") or event.get("event_type"))
     ctx = merge_context(event, state)
-    if event_type in {"l1", "l1-process", "process"}:
+    if event_type in {"l0", "l0-router", "router", "preflight"}:
+        findings = check_l0_router(ctx, project)
+    elif event_type in {"l1", "l1-process", "process"}:
         findings = check_l1_process(ctx)
     elif event_type in {"file-write", "write", "pre-write"}:
         findings = check_file_write(ctx, config, project)
@@ -34,7 +37,7 @@ def dispatch(event: dict[str, Any], config: dict[str, Any], state: dict[str, Any
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Run UTH L1/L2/L3 hook gates.")
+    parser = argparse.ArgumentParser(description="Run UTH L0/L1/L2/L3 hook gates.")
     parser.add_argument("--event", help="Event JSON path, or '-' for stdin")
     parser.add_argument("--event-json", help="Inline event JSON")
     parser.add_argument("--config", help="Config JSON path")

@@ -5,21 +5,58 @@ from typing import Any
 
 from .common import as_bool, result
 
+READ_ONLY_PATTERNS = [
+    r"^git\s+status(\s|$)",
+    r"^git\s+diff(\s|$)",
+    r"^git\s+log(\s|$)",
+    r"^git\s+show(\s|$)",
+    r"^git\s+branch\s+--show-current\s*$",
+    r"^git\s+branch\s+(-a|--all|-r|--remotes|--list)(\s|$)",
+    r"^git\s+branch\s+(-v|-vv)(\s|$)",
+    r"^git\s+branch\s*$",
+    r"^git\s+tag\s*$",
+    r"^git\s+tag\s+(-l|--list)(\s|$)",
+    r"^git\s+worktree\s+list(\s|$)",
+    r"^gh\s+pr\s+(view|checks|status|diff)(\s|$)",
+    r"^gh\s+run\s+(view|list)(\s|$)",
+]
+
+WRITE_PATTERNS = [
+    r"^git\s+add\b",
+    r"^git\s+commit\b",
+    r"^git\s+push\b",
+    r"^git\s+tag\b",
+    r"^git\s+merge\b",
+    r"^git\s+rebase\b",
+    r"^git\s+switch\b",
+    r"^git\s+checkout\b",
+    r"^git\s+branch\s+.+",
+    r"^git\s+reset\b",
+    r"^git\s+restore\b",
+    r"^git\s+rm\b",
+    r"^git\s+mv\b",
+    r"^git\s+clean\b",
+    r"^git\s+fetch\b",
+    r"^git\s+stash\b",
+    r"^git\s+pull\b",
+    r"^git\s+cherry-pick\b",
+    r"^git\s+revert\b",
+    r"^git\s+worktree\s+(add|remove|move|prune|repair)\b",
+    r"^gh\s+pr\s+(checkout|create|merge|edit|close|reopen|ready)\b",
+    r"^gh\s+release\s+(create|delete|edit|upload)\b",
+]
+
+
+def is_read_only_git_command(command: str) -> bool:
+    text = command.strip()
+    return any(re.search(pattern, text) for pattern in READ_ONLY_PATTERNS)
+
+
 def is_git_write_command(command: str) -> bool:
     text = command.strip()
-    write_patterns = [
-        r"^git\s+add\b",
-        r"^git\s+commit\b",
-        r"^git\s+push\b",
-        r"^git\s+tag\b",
-        r"^git\s+merge\b",
-        r"^git\s+rebase\b",
-        r"^git\s+switch\b",
-        r"^git\s+checkout\b",
-        r"^git\s+branch\s+(-d|-D|-m|--delete|--move|--copy|-c|-C)\b",
-        r"^git\s+worktree\s+(add|remove|move|prune|repair)\b",
-    ]
-    return any(re.search(pattern, text) for pattern in write_patterns)
+    if is_read_only_git_command(text):
+        return False
+    return any(re.search(pattern, text) for pattern in WRITE_PATTERNS)
 
 
 def check_git_write(ctx: dict[str, Any]) -> list[dict[str, Any]]:

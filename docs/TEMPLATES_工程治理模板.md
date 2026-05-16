@@ -69,7 +69,7 @@
 
 ## 5. 新窗口开始开发时的最小动作
 
-1. 先确认当前任务属于哪个场景，以及是否已有明确任务包 / Todo / LW Todo。
+1. 先确认当前任务属于哪个场景，以及是否已有明确任务包 / Todo / LW final record。
 2. 先定位目标模块，再读该模块当前事实文档和必要代码。
 3. 如果基线不清、问题跨模块或涉及历史追溯，先进入文档定位或读取 `docs/current-state.md` 指向的活跃任务包。
 4. 修改代码前确认允许修改范围；越界文件必须先询问用户。
@@ -137,8 +137,8 @@
 ## 3. 任务包
 
 - `work/`：按任务包聚合 Design、Todo、Feedback、Prompt 和 Run Log。
-- `LW-Work/`：轻量开发 Todo 和轻量 Git 提交记录，不替代正式任务包。
-  该目录记录轻量开发约束和已提交轻量改动追溯信息，不是 current-state。
+- `LW-Work/`：轻量开发最终记录，不替代正式任务包。
+  该目录记录轻量任务完成报告；Git 写入成功后由 `uth-git` 追加 baseline，不是 current-state。
 
 ## 4. 状态快照
 
@@ -470,7 +470,7 @@ Data / Runtime / External Tools
 - 开发、Debug、Review 前按需读取相关模块文件。
 - 如果只是定位代码位置，不需要默认读取全部 context。
 - 旧任务包、Prompt、Run Log、LW 记录不能覆盖 context 中的当前事实。
-- 模块文件应标明 Git baseline；如根据未提交工作区改动更新，可暂不写或不更新 baseline，并在收口说明。
+- 模块文件可标明来源证据；不因等待 Git baseline 阻断 context 或报告写回。
 ````
 
 ---
@@ -577,6 +577,8 @@ WARN  提醒并记录
 ASK   暂停并请求用户确认
 BLOCK 阻断
 ```
+
+L0 Router Gate 的 `PASS` 还必须结合 `route_action` 判断：`silent` 表示 UTH 子场景不路由，`enter-scene` 才表示进入子场景。
 
 ## 2. L0 Router Gate
 
@@ -793,7 +795,7 @@ Git 写入前必须展示：
 - 是否需要 PR。
 - 是否需要 changelog。
 - 是否需要 tag。
-- 是否为轻量改动，以及 commit 成功后是否追加 LW 记录。
+- 是否为轻量改动，以及 Git 成功后是否追加 baseline 到 LW / Feedback。
 - 如包含代码改动，最近一次编译 / 构建结果、warning 数和 exception 数。
 
 用户确认后才能执行 Git 写入。
@@ -802,15 +804,15 @@ Git 写入前必须展示：
 
 ## 7. 轻量 Git 记录
 
-轻量改动不预先写 LW 记录。
+轻量改动在任务完成时写 LW final record，不创建单独 LW Todo。
 
 流程：
 
-1. `uth-dev` 创建轻量 Todo 并完成轻量改动。
+1. `uth-dev` 完成轻量改动、验证，并写 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
 2. 用户确认进入 `uth-git`。
 3. `uth-git` 展示 Git 写入计划并等待确认。
-4. commit 成功后，追加或创建 `docs/LW-Work/LWYYMMDDXX-轻量任务标题.md`。
-5. LW 记录追加后如需纳入 Git，必须重新展示 diff 并等待用户确认。
+4. Git 写入成功后，向现有 LW final record 追加 Git baseline。
+5. baseline 追加后如需纳入 Git，必须重新展示 diff 并等待用户确认。
 ````
 
 ---
@@ -946,7 +948,7 @@ Todo 是可执行工单，必须归属于某个 Design。
 
 Feedback 是 Todo 的交付报告，不是过程日志。
 
-Feedback 不强制记录 Git hash、PR 或 tag。Git 证据由 `uth-git` 收口记录；如果当时已经存在，可以在 Feedback 中作为可选链接补充。
+Feedback 不等待 Git hash、PR 或 tag 才生成。Git 证据由 `uth-git` 在 Git 写入成功后追加到关联 Feedback；如果当时已经存在，可以在 Feedback 中作为可选链接补充。
 
 文件命名：
 
@@ -980,18 +982,18 @@ docs/work/DYYMMDDXX-任务包标题/prompts/PYYMMDD-HHMM-T01-worker-任务名.md
 
 ## 6. LW-Work
 
-LW-Work 是轻量开发文档和轻量 Git 提交记录，不替代正式任务包。
+LW-Work 是轻量开发最终记录，不替代正式任务包。
 
 文件位置：
 
 ```text
-docs/LW-Work/LWYYMMDDXX-轻量任务标题-todo.md
 docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 ```
 
-- 轻量 Todo 在开发前或首次写文件前创建。
-- 最终 LW 记录只在轻量改动 commit 成功后追加或创建。
-- 无 commit 不写最终 LW 记录。
+- 不创建单独 LW Todo。
+- 最终 LW 记录在轻量任务完成并验证后由 `uth-dev` 创建或更新。
+- Git 写入成功后由 `uth-git` 向最终 LW 记录追加 Git baseline。
+- 无 commit 也要写最终 LW 记录，Git baseline 先标记为 `pending uth-git`。
 
 ## 7. Context
 
@@ -1005,8 +1007,8 @@ docs/context/
 
 只在模块职责、入口、依赖、边界、验证方式或仍有效风险发生变化时更新。
 
-模块 context 应标明 Git baseline：commit、来源和更新时间。  
-如根据未提交工作区改动更新，可暂不写或不更新 baseline，并在收口说明。
+模块 context 可标明来源证据：commit、git range、稳定代码状态或实际读取的工作区改动。
+不因等待 Git baseline 阻断 context 或报告写回。
 
 ## 8. 不写入原则
 
@@ -1485,53 +1487,7 @@ docs/work/DYYMMDDXX-任务包标题/prompts/PYYMMDD-HHMM-T01-worker-任务名.md
 
 ## 23. LW-Work 模板
 
-轻量 Todo 文件：
-
-```text
-docs/LW-Work/LWYYMMDDXX-轻量任务标题-todo.md
-```
-
-模板：
-
-````md
-# LWYYMMDDXX Todo：轻量任务标题
-
-## 1. 原始需求
-
-用户原话：
-
-> 
-
-## 2. 场景判定
-
-- 场景：uth-dev / light-dev
-- 不创建正式任务包原因：
-- UTH-SP 触发判断：
-
-## 3. 目标
-
-- 
-
-## 4. 范围
-
-允许修改：
-
-- 
-
-禁止修改：
-
-- 
-
-## 5. 验收方式
-
-- 
-
-## 6. 不做什么
-
-- 
-````
-
-最终 LW 记录文件：
+最终 LW 记录文件在轻量任务完成并验证后由 `uth-dev` 写入；不再创建单独 LW Todo。
 
 ```text
 docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
@@ -1561,7 +1517,13 @@ docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 - 行为变化：
 - 未涉及：
 
-## 4. 验证
+## 4. 任务边界
+
+- 允许范围：
+- 禁止范围：
+- 不做什么：
+
+## 5. 验证
 
 - 命令或方式：
 - 结果：
@@ -1569,12 +1531,19 @@ docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 - exception 数：
 - 未验证：
 
-## 5. Git 信息
+## 6. 风险和回滚
 
+- 风险：
+- 回滚方式：
+
+## 7. Git Baseline
+
+- 状态：pending uth-git
 - 分支：
 - commit：
 - PR：
 - tag：
+- 更新时间：
 ````
 
 ---
@@ -1713,12 +1682,12 @@ docs/archive/README.md
 ## 1. 目录
 
 - `work/`：正式任务包归档。
-- `LW-Work/`：轻量开发 Todo 和最终 LW 记录归档。
+- `LW-Work/`：轻量开发最终 LW 记录归档。
 
 ## 2. 归档规则
 
 - 只归档已确认完成、废弃或被替代，且不再出现在 current-state 活跃索引中的内容。
-- LW 归档时，`LW*-todo.md` 与 `LW*.md` 一起迁移；如只有 Todo，说明未提交或未生成最终记录。
+- LW 归档时迁移 `LW*.md` final record；如果旧项目仍有历史 `LW*-todo.md`，只作为历史证据随同归档，不作为新规则模板。
 - 归档后，如仍有当前事实价值，应先提炼到 `docs/context/` 或常驻上下文文件，而不是依赖归档文件。
 ````
 
@@ -1817,7 +1786,7 @@ type(scope): summary
 - 是否需要 changelog：
 - 是否需要 tag：
 - 是否为轻量改动：
-- commit 成功后是否追加 LW 记录：
+- Git 成功后是否追加 baseline 到 LW / Feedback：
 
 ## 锁状态
 

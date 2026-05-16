@@ -1,6 +1,6 @@
 ---
 name: uth-dev
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-dev, for incremental feature, UI, API, field, behavior, Todo implementation, or bounded development work. Controls light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for incremental feature, UI, API, field, behavior, Todo implementation, or bounded development work, including explicit uth-dev requests inside an enabled project. Controls light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
 ---
 
 # uth-dev
@@ -160,7 +160,7 @@ Respect the project hook gates when available:
 - declare `Scene: uth-dev` before project action
 - do not write outside the allowed development scope without user confirmation
 - do not dispatch a `worker` before its Prompt is written
-- use `uth-utf8-guard` before and after modifying governed Markdown (`AGENTS.md`, root `README.md`, `docs/**/*.md`, task-package Markdown, LW Todo, Feedback, Prompt, or Run Log)
+- use `uth-utf8-guard` before and after modifying governed Markdown (`AGENTS.md`, root `README.md`, `docs/**/*.md`, task-package Markdown, LW final record, Feedback, Prompt, or Run Log)
 - do not perform Git writes
 
 ## Code Verification Gate
@@ -212,28 +212,26 @@ For `light-dev`, use only `docs/LW-Work/`.
 
 Do not create or update lightweight development records under `docs/archive/LW-Work/`. Archive is managed only by `uth-docs`.
 
-Create a lightweight Todo before implementation or before the first file write:
+Do not create a separate LW Todo. Keep the lightweight task boundary in the scene entry and write one final LW record at task completion.
 
-```text
-docs/LW-Work/LWYYMMDDXX-中文标题-todo.md
-```
-
-After implementation, do not write the final LW record yet.
-
-The final LW record is written only after:
-
-1. implementation is done
-2. verification status is reported
-3. user authorizes Git commit
-4. `uth-git` completes the commit successfully
-
-Final record:
+After implementation and verification, write or update:
 
 ```text
 docs/LW-Work/LWYYMMDDXX-中文标题.md
 ```
 
-No commit means no final LW record.
+The final LW record must include:
+
+- original request
+- task boundary and non-goals
+- changed files
+- implementation summary
+- verification command and result
+- unverified items
+- risk and rollback notes
+- Git baseline section with `pending uth-git`
+
+Do not wait for a commit hash, PR, tag, or release before writing this record. `uth-git` appends the Git baseline later if a Git write succeeds.
 
 `light-dev` does not write:
 
@@ -344,7 +342,7 @@ docs/work/DYYMMDDXX-任务包标题/prompts/PYYMMDD-HHMM-T01-worker-任务名.md
 
 Allowed in `light-dev`:
 
-- lightweight Todo under `docs/LW-Work/`
+- final LW record under `docs/LW-Work/`
 - directly related code
 - directly related tests
 - minimal local config only when required by the change
@@ -426,9 +424,9 @@ When resuming interrupted formal development:
 6. If the active Todo is completed, move to the next unfinished Todo.
 7. If all Todos are completed, hand off to `uth-review` for Design-level acceptance.
 
-For `light-dev`, resume from the LW Todo under `docs/LW-Work/`.
+For `light-dev`, resume from the active final LW record under `docs/LW-Work/`, if one already exists; otherwise use the current user request and local diff as the task boundary.
 
-If the only matching Todo or LW record is under `docs/archive/`, do not resume it as active work. Ask whether to create a new active task/LW Todo or route to `uth-docs` / `uth-context-trace`.
+If the only matching Todo or LW record is under `docs/archive/`, do not resume it as active work. Ask whether to create a new active LW final record or route to `uth-docs` / `uth-context-trace`.
 
 ## Git Rule
 
@@ -441,7 +439,7 @@ After development:
 - when only a Todo is complete but the Design is not yet at human acceptance, say the next Todo or review route instead of recommending Git closure
 - ask whether the user wants to enter `uth-git` only when Git closure is recommended or the user explicitly asks for Git
 - hand off to `uth-git` only after the user explicitly agrees
-- `uth-git` owns Git write planning, user confirmation, commit execution, and final lightweight LW record writeback after a successful commit
+- `uth-git` owns Git write planning, user confirmation, commit execution, and Git baseline append to the existing LW final record or formal Feedback after a successful Git write
 - formal Feedback remains valid even when no Git commit has happened yet
 
 ## Closeout
@@ -455,6 +453,7 @@ End with:
 - verification command and result, including compile/build pass plus warning/exception count for code changes
 - unverified items
 - document writeback
+- LW final record written, if `light-dev`
 - UTF-8 guard result for governed Markdown writes
 - worker Prompt records, if any
 - current-state update: yes/no

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://undertaker33.github.io/uth-governance/schemas/uth-closeout-evidence.schema.json",
+  "title": "UTH closeout evidence",
+  "type": "object",
+  "required": ["active_scene"],
+  "properties": {
+    "active_scene": {
+      "enum": [
+        "uth-onboarding",
+        "uth-dev",
+        "uth-debug",
+        "uth-design",
+        "uth-review",
+        "uth-docs",
+        "uth-git",
+        "uth-context-trace"
+      ]
+    },
+    "mode": {
+      "type": "string"
+    },
+    "changed_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lw_final_record_written": {
+      "type": "boolean"
+    },
+    "lw_git_baseline_appended": {
+      "type": "boolean"
+    },
+    "feedback_git_baseline_appended": {
+      "type": "boolean"
+    },
+    "feedback_git_baseline_omitted_reason": {
+      "type": "string"
+    },
+    "context_source_evidence": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "context_source_omitted_reason": {
+      "type": "string"
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "compile_build_pass": {
+          "type": "boolean"
+        },
+        "warnings": {
+          "type": ["integer", "string", "null"]
+        },
+        "exceptions": {
+          "type": ["integer", "string", "null"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "waiver_granted": {
+          "type": "boolean"
+        },
+        "waiver_reason": {
+          "type": ["string", "null"]
+        },
+        "user_risk_confirmed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,6 +1,6 @@
 ---
 name: uth-git
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, or when the user explicitly invokes uth-git, for Git, branch, commit, push, PR, merge, rebase, tag, release, changelog, worktree cleanup, or development-branch closure. Requires reading the project git workflow, inspecting current Git state, presenting a write plan, and waiting for explicit user confirmation before any Git write. Handles lightweight commit LW-Work records after successful commits. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for implementation, debug, design, review, or docs maintenance unless the user is explicitly asking for Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for Git, branch, commit, push, PR, merge, rebase, tag, release, changelog, worktree cleanup, or development-branch closure, including explicit uth-git requests inside an enabled project. Requires reading the project git workflow, inspecting current Git state, presenting a write plan, and waiting for explicit user confirmation before any Git write. Appends Git baselines to existing lightweight LW-Work final records or formal Feedback after successful Git writes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for implementation, debug, design, review, or docs maintenance unless the user is explicitly asking for Git/release closure.
 ---
 
 # uth-git
@@ -16,8 +16,8 @@ This scene owns:
 - commit / push / PR / merge / rebase / tag / release closure
 - branch or worktree cleanup
 - changelog decision for releases
-- LW-Work record after successful lightweight commits
-- Git evidence linkage for formal task packages when a commit / PR / tag is created
+- Git baseline append to existing LW-Work final records after successful lightweight Git writes
+- Git baseline append to formal Feedback when a formal commit / PR / tag is created
 
 It does not implement code, fix bugs, review code, or redesign work.
 
@@ -58,7 +58,7 @@ Start with:
 - requested Git operation
 - whether this is read-only planning or confirmed execution
 - whether code/doc work appears already complete
-- whether this Git closure follows `uth-dev`, `uth-debug`, `uth-review`, `uth-docs`, or a lightweight LW Todo
+- whether this Git closure follows `uth-dev`, `uth-debug`, `uth-review`, `uth-docs`, or a lightweight LW final record
 - the human acceptance boundary that triggered the handoff: light task, Design-level acceptance, explicit user Git request, docs/design stable artifact, release, or branch closure
 
 If the requested Git operation is ambiguous, ask before executing.
@@ -123,7 +123,8 @@ Before any Git write, show:
 - changelog need: yes / no
 - tag need: yes / no
 - lightweight change: yes / no
-- if lightweight: whether LW-Work should be written after commit
+- if lightweight: existing LW final record path for Git baseline append
+- if formal task: Feedback path for Git baseline append
 - lock state or missing lock information
 - risks and rollback notes
 
@@ -163,21 +164,21 @@ If the evidence is missing or not clean:
 
 For lightweight changes:
 
-1. `uth-dev` creates the lightweight Todo before implementation.
-2. Do not write the final LW record before commit.
-3. Ask whether the user authorizes commit.
-4. After commit succeeds, append or create:
+1. `uth-dev` writes the final LW record at task completion before Git.
+2. Do not create a separate LW Todo.
+3. Ask whether the user authorizes Git writes.
+4. After a Git write succeeds, append the Git baseline to the existing final LW record:
 
 ```text
 docs/LW-Work/LWYYMMDDXX-轻量任务标题.md
 ```
 
-5. Record the original request, LW Todo path, commit hash, commit message, changed files summary, verification evidence summary, push/PR status, and timestamp.
-6. If the LW record itself should be included in Git, show a new diff and request a second confirmation.
+5. Record the commit hash, commit message, branch, push/PR/tag status, and timestamp.
+6. If the Git baseline append itself should be included in Git, show a new diff and request a second confirmation.
 
 LW-Work is not used for formal task-package Todo work.
 
-Do not create or update LW records under `docs/archive/LW-Work/`. If a matching LW Todo has already been archived, treat it as historical and ask whether to create a new active LW record or route to `uth-docs`.
+Do not create or update LW records under `docs/archive/LW-Work/`. If a matching LW final record has already been archived, treat it as historical and ask whether to create a new active LW final record or route to `uth-docs`.
 
 ## Formal Task Git Linkage
 
@@ -187,7 +188,8 @@ When a Git write succeeds for a formal task package:
 
 - record commit / PR / tag evidence in the `uth-git` closeout
 - mention associated task package, Design, and Todo when known
-- do not reopen or rewrite Feedback only to add Git information unless the user explicitly asks
+- append a Git baseline section to the associated Feedback when the Feedback path is known
+- if the Feedback path is not known or no Feedback exists, state the omission reason in closeout
 
 ## Changelog and Tag Rules
 
@@ -200,7 +202,7 @@ For releases:
 
 If changelog is missing, stop and ask whether to create or update it before tagging.
 
-Use `uth-utf8-guard` before and after writing LW-Work records, changelog Markdown, or other governed Markdown during Git closure.
+Use `uth-utf8-guard` before and after appending Git baselines to LW-Work records, appending Git baselines to Feedback, writing changelog Markdown, or modifying other governed Markdown during Git closure.
 
 ## Forbidden
 
@@ -228,7 +230,8 @@ End with:
 - commit hash / PR / tag / release, if created
 - associated formal task package / Todo, if known
 - changelog status
-- LW-Work status
+- LW-Work Git baseline append status
+- Feedback Git baseline append status
 - UTF-8 guard result for governed Markdown writes
 - verification evidence
 - remaining manual steps or risks

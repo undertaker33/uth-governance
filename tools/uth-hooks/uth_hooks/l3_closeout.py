@@ -82,10 +82,8 @@ def check_l3_dev(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     findings.extend(check_code_verification(ctx))
 
     if mode == "light-dev":
-        if not as_bool(ctx.get("lw_todo_written")):
-            findings.append(result("BLOCK", "lw-todo-missing", "light-dev closeout requires LW Todo written before/while developing."))
-        if as_bool(ctx.get("lw_final_record_written")):
-            findings.append(result("BLOCK", "lw-final-wrong-scene", "Final LW record belongs to uth-git after successful commit, not uth-dev."))
+        if not as_bool(ctx.get("lw_final_record_written")):
+            findings.append(result("BLOCK", "lw-final-missing", "light-dev closeout requires the final LW record at task completion."))
     elif mode in {"formal-dev", "todo-implementation"}:
         if not as_bool(ctx.get("feedback_written")) and not ctx.get("feedback_not_written_reason"):
             findings.append(result("BLOCK", "feedback-missing", "formal development closeout requires Feedback or an explicit reason."))
@@ -151,8 +149,8 @@ def check_l3_docs(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if has_markdown_doc_change(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
         findings.append(result("BLOCK", "utf8-guard-missing", "Governed Markdown changes require UTF-8/fence guard evidence."))
     context_touched = as_bool(ctx.get("context_touched")) or any(path.startswith("docs/context/") for path in get_changed_files(ctx))
-    if context_touched and not (ctx.get("context_git_baseline") or ctx.get("context_baseline_omitted_reason")):
-        findings.append(result("BLOCK", "context-baseline-missing", "docs/context changes require Git baseline or an explicit omission reason."))
+    if context_touched and not (ctx.get("context_source_evidence") or ctx.get("context_source_omitted_reason")):
+        findings.append(result("BLOCK", "context-source-missing", "docs/context changes require source evidence or an explicit omission reason."))
     archive_touched = as_bool(ctx.get("archive_touched")) or any(path.startswith("docs/archive/") for path in get_changed_files(ctx))
     if archive_touched:
         if not as_bool(ctx.get("archive_paths_listed")):
@@ -188,10 +186,14 @@ def check_l3_git(ctx: dict[str, Any]) -> list[dict[str, Any]]:
         findings.append(result("BLOCK", "tag-name-missing", "Created tag requires tag name evidence."))
     if as_bool(ctx.get("release_or_tag")) and not as_bool(ctx.get("changelog_ok")):
         findings.append(result("BLOCK", "release-changelog-missing", "Release/tag closeout requires changelog rule satisfaction."))
-    if as_bool(ctx.get("light_dev_commit")) and not as_bool(ctx.get("lw_final_record_written")):
-        findings.append(result("BLOCK", "lw-final-missing", "light-dev commit requires final LW record after commit success."))
-    if as_bool(ctx.get("lw_record_included_in_git")) and not as_bool(ctx.get("lw_second_confirmation")):
-        findings.append(result("BLOCK", "lw-second-confirmation-missing", "Including final LW record in Git requires a second shown diff and confirmation."))
+    if as_bool(ctx.get("light_dev_commit")) and not as_bool(ctx.get("lw_git_baseline_appended")):
+        findings.append(result("BLOCK", "lw-git-baseline-missing", "light-dev Git closeout must append Git baseline to the existing LW final record."))
+    if as_bool(ctx.get("formal_task_commit")) and not (
+        as_bool(ctx.get("feedback_git_baseline_appended")) or ctx.get("feedback_git_baseline_omitted_reason")
+    ):
+        findings.append(result("BLOCK", "feedback-git-baseline-missing", "formal task Git closeout must append Git baseline to Feedback or state why it was omitted."))
+    if as_bool(ctx.get("lw_record_included_in_git") or ctx.get("git_baseline_record_included_in_git")) and not as_bool(ctx.get("lw_second_confirmation") or ctx.get("baseline_second_confirmation")):
+        findings.append(result("BLOCK", "baseline-second-confirmation-missing", "Including Git-baseline record changes in Git requires a second shown diff and confirmation."))
     if as_bool(ctx.get("formal_task_commit")) and not (ctx.get("associated_task_package") or ctx.get("associated_todo")):
         findings.append(result("BLOCK", "formal-task-link-missing", "Formal task Git closeout must record associated task package or Todo when known."))
 

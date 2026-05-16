@@ -10,6 +10,7 @@ from typing import Any
 
 DECISION_RANK = {"PASS": 0, "WARN": 1, "ASK": 2, "BLOCK": 3}
 EXIT_CODE = {"PASS": 0, "WARN": 0, "ASK": 2, "BLOCK": 3}
+RESULT_SCHEMA_VERSION = "uth-hook-result/v1"
 FENCE_RE = re.compile(r"^\s*```")
 DEFAULT_MOJIBAKE = ["\ufffd", "Ã", "Â", "锟斤拷", "ï»¿"]
 CODE_CHANGING_SCENES = {"uth-dev", "uth-debug", "uth-design", "uth-review", "uth-git"}
@@ -47,6 +48,35 @@ CODE_EXTENSIONS = {
     ".yml",
 }
 POSITIVE_CLAIMS = {"complete", "completed", "fixed", "passing", "pass", "ready", "deliverable", "accepted", "mergeable"}
+POSITIVE_CLAIM_PHRASES = {
+    "完成",
+    "完成了",
+    "已完成",
+    "修好",
+    "修好了",
+    "已修复",
+    "通过",
+    "通过了",
+    "测试通过",
+    "编译通过",
+    "构建通过",
+    "可交付",
+    "可以提交",
+    "可以合并",
+}
+NEGATED_CLAIM_PHRASES = {
+    "未完成",
+    "没完成",
+    "没有完成",
+    "未修复",
+    "没修好",
+    "没有修好",
+    "未通过",
+    "没通过",
+    "没有通过",
+    "不通过",
+    "不可交付",
+}
 
 
 def load_json_path(raw: str | None, default: dict[str, Any]) -> dict[str, Any]:
@@ -84,7 +114,11 @@ def final_response(event_type: str, findings: list[dict[str, Any]]) -> dict[str,
     for item in findings:
         if DECISION_RANK[item["decision"]] > DECISION_RANK[decision]:
             decision = item["decision"]
-    return {"decision": decision, "event_type": event_type, "findings": findings}
+    response: dict[str, Any] = {"schema_version": RESULT_SCHEMA_VERSION, "decision": decision, "event_type": event_type, "findings": findings}
+    route_actions = [item["route_action"] for item in findings if item.get("route_action")]
+    if route_actions:
+        response["route_action"] = route_actions[0]
+    return response
 
 
 def as_bool(value: Any) -> bool:
@@ -252,6 +286,17 @@ def compile_build_passed(verification: dict[str, Any]) -> bool | None:
     return None
 
 
+def is_positive_claim_text(value: str) -> bool:
+    text = value.strip().lower()
+    if not text:
+        return False
+    if text in POSITIVE_CLAIMS:
+        return True
+    if any(phrase in text for phrase in NEGATED_CLAIM_PHRASES):
+        return False
+    return any(phrase in text for phrase in POSITIVE_CLAIM_PHRASES)
+
+
 def positive_claim_present(ctx: dict[str, Any]) -> bool:
     claims = {str(item).strip().lower() for item in listify(ctx.get("claims"))}
     claim = str(ctx.get("claim", "")).strip().lower()
@@ -263,7 +308,7 @@ def positive_claim_present(ctx: dict[str, Any]) -> bool:
     recommendation = str(ctx.get("recommendation", "")).strip().lower()
     if recommendation in {"pass", "accepted", "ready", "mergeable"}:
         return True
-    return bool(claims & POSITIVE_CLAIMS)
+    return any(is_positive_claim_text(item) for item in claims)
 
 
 def design_patch_authorized(ctx: dict[str, Any]) -> bool:
@@ -300,6 +345,10 @@ def check_code_verification(ctx: dict[str, Any], *, force: bool = False) -> list
 
     if warnings == 0 and exceptions == 0:
         findings.append(result("PASS", "code-verification-clean", "Compile/build evidence is clean: 0 warning, 0 exception."))
+        return findings
+
+    if positive_claim_present(ctx):
+        findings.append(result("BLOCK", "positive-claim-with-warning-exception", "Positive complete/pass/ready claims require warnings=0 and exceptions=0."))
         return findings
 
     waiver = as_bool(verification.get("waiver_granted") or ctx.get("waiver_granted"))

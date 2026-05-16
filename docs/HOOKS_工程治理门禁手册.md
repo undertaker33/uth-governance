@@ -57,6 +57,18 @@ ASK    暂停并请求用户确认，确认后放行
 BLOCK  阻断，必须补齐条件或切换场景
 ```
 
+L0 还会返回 `route_action`，用于区分 `PASS` 的路由含义：
+
+```text
+idle                 无工程动作，不触发 UTH
+silent               缺少项目 marker，其他 uth-* 子场景保持静默
+enter-onboarding    进入 uth-onboarding
+enter-scene         已声明场景，可进入对应子场景
+yield-skill-creator 让路给 skill-creator
+ask                  场景不明，问一个澄清问题
+block                缺少必需场景
+```
+
 默认规则：
 
 - 涉及 Git 写入、场景不明、硬禁区写入、虚假完成声明时使用 `BLOCK`。
@@ -180,7 +192,7 @@ Design 小补丁授权字段可使用：
 
 - 显式 `skill-creator`：`PASS`，让路。
 - 显式 `uth-onboarding` 或显式 UTH 启用 / 接管：`PASS`，进入 onboarding。
-- 缺少 `.uth-governance/project.json` 且不是 onboarding / 安装 / 显式启用：`PASS`，保持 UTH 静默，不路由其他 `uth-*` 场景。
+- 缺少 `.uth-governance/project.json` 且不是 onboarding / 安装 / 显式启用：`PASS` + `route_action=silent`，保持 UTH 静默，不路由其他 `uth-*` 场景。
 - 场景明确：`PASS`，记录一行 `Scene: uth-dev/debug/...`。
 - 多场景：`PASS`，选择第一个执行场景，后续场景收口交接。
 - 场景不明：`BLOCK`，只问一个澄清问题。
@@ -563,10 +575,9 @@ BLOCK
 - changed files 已列出。
 - 编译通过，0 warning，0 exception。
 - 其他必要验证已运行，或明确未验证且不声称完成。
-- light-dev：已创建 LW Todo。
-- light-dev：不要求最终 LW 记录；最终 LW 记录由 `uth-git` 在 commit 成功后追加或创建。
+- light-dev：任务完成时已写最终 LW 记录。
 - formal-dev：已写 Feedback，或说明为什么未写。
-- formal-dev：Feedback 不强制记录 Git 信息；Git 证据由 `uth-git` closeout 记录。
+- formal-dev：Feedback 不等待 Git 信息；Git baseline 由 `uth-git` 在 Git 写入成功后追加。
 - current-state 只在活跃任务状态变化时更新。
 - 如模块事实变化，标记 `Needs uth-docs context-sync`。
 - 未执行 Git 写入。
@@ -642,7 +653,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - mode 已说明。
 - read / written 已列出。
 - 修改 `AGENTS.md`、根 `README.md`、`docs/**/*.md` 时已通过 UTF-8 Guard。
-- context touched 时有 Git baseline，或说明为什么暂不更新 baseline。
+- context touched 时提供 `context_source_evidence`，或提供 `context_source_omitted_reason`；不因等待 Git baseline 阻断文档报告。
 - archive touched 时列出迁移前后路径，并确认 current-state 不再列为 active。
 - ADR / changelog 边界未越界。
 - verification 写明 documentation-only，没有跑检查 / 测试。
@@ -657,8 +668,8 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - 最终 branch / status 已说明。
 - commit / PR / tag / release 证据已列出。
 - release/tag 满足 changelog 规则。
-- light-dev commit 后 LW final record 已处理；如需把该记录纳入 Git，必须重新展示 diff 并再次确认。
-- formal task commit 关联的任务包 / Todo 已在 closeout 中记录；不要求回写 Feedback。
+- light-dev Git 写入成功后，已向现有 LW final record 追加 Git baseline；如需把该追加纳入 Git，必须重新展示 diff 并再次确认。
+- formal task Git 写入成功后，已向关联 Feedback 追加 Git baseline，或说明无法追加原因。
 - push/tag/merge 等结果有新鲜验证。
 - 只生成 Git plan、未执行 Git 写入时，不要求 `user_git_confirmed`，但必须有 `git_plan_present=true` 或 `plan_only=true`，并明确 no Git writes executed。
 
@@ -697,7 +708,7 @@ H9 per-scene-closeout
 UTH-SP-required-evidence gate
 Archive-read gate
 Current-state-staleness gate
-Context-baseline gate
+Context-source gate
 ```
 
 UTH-SP 触发层改造完成后，再把 UTH-SP evidence gate 变成硬门槛。

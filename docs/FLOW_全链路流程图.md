@@ -150,8 +150,8 @@ flowchart TD
     B --> C{"light-dev 还是 formal-dev？"}
 
     C -- "light-dev" --> D["读取最小上下文<br/>AGENTS / docs README / current-state / 相关代码"]
-    D --> E["创建轻量 Todo<br/>docs/LW-Work/LW*-todo.md"]
-    E --> F["Hook L2<br/>允许 docs/LW-Work/** 与相关代码"]
+    D --> E["记录轻量任务边界<br/>场景入口 + allowed scope"]
+    E --> F["Hook L2<br/>允许相关代码与 docs/LW-Work/**"]
     F --> G{"是否需要 UTH-SP？"}
     G -- "歧义" --> H["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
     G -- "行为逻辑变化" --> I["UTH-SP / Superpower<br/>uth-sp-test-driven-development"]
@@ -177,7 +177,7 @@ flowchart TD
     U --> V["UTH-SP / Superpower<br/>uth-sp-verification-before-completion"]
     V --> W["Hook L3<br/>compile/build pass<br/>warnings=0 exceptions=0 或用户豁免"]
     W --> X{"开发口径"}
-    X -- "light-dev" --> Y["轻量任务达到人类验收口径<br/>触发 Git 收口判断"]
+    X -- "light-dev" --> Y["写最终 LW 记录<br/>任务完成即生成报告<br/>触发 Git 收口判断"]
     X -- "formal-dev Todo 未完" --> Z["写 Feedback / current-state<br/>继续下一个 Todo<br/>不触发 Git 收口"]
     X -- "formal-dev Design 完成" --> AA["Design 级人类验收口径达成<br/>触发 Git 收口判断"]
     Y --> AB["询问用户是否进入 uth-git"]
@@ -305,11 +305,12 @@ flowchart TD
     J --> K
     K --> L["Hook L2 Git Gate<br/>active_scene=uth-git<br/>plan + user confirmed"]
     L --> M["执行 Git 写入<br/>add / commit / push / PR / tag"]
-    M --> N{"轻量改动 commit 成功？"}
-    N -- "是" --> O["写最终 LW 记录<br/>docs/LW-Work/LW*.md"]
-    N -- "否" --> P["不写 LW 记录"]
-    O --> Q["辅助 Skill<br/>uth-utf8-guard<br/>检查 LW / changelog"]
-    P --> R["远端或本地 Git 证据验证"]
+    M --> N{"Git 写入成功？"}
+    N -- "轻量改动" --> O["向现有 LW final record<br/>追加 Git baseline"]
+    N -- "正式任务包" --> P["向关联 Feedback<br/>追加 Git baseline"]
+    N -- "无报告目标" --> R["远端或本地 Git 证据验证"]
+    O --> Q["辅助 Skill<br/>uth-utf8-guard<br/>检查 LW / Feedback / changelog"]
+    P --> Q
     Q --> R
     R --> S["UTH-SP / Superpower<br/>uth-sp-verification-before-completion"]
     S --> T["Hook L3<br/>Git closeout evidence"]

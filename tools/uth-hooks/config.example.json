@@ -29,10 +29,13 @@
       "lib/**",
       "tests/**",
       "test/**",
-      "docs/work/**"
+      "docs/work/**",
+      "docs/LW-Work/**",
+      "docs/current-state.md"
     ],
     "uth-review": [
-      "docs/work/**"
+      "docs/work/**",
+      "docs/current-state.md"
     ],
     "uth-docs": [
       "AGENTS.md",
@@ -41,7 +44,8 @@
     ],
     "uth-git": [
       "docs/changelogs/**",
-      "docs/LW-Work/**"
+      "docs/LW-Work/**",
+      "docs/work/**"
     ]
   },
   "extra_hard_forbidden": [],
