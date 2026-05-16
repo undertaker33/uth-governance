@@ -66,13 +66,13 @@ python scripts/install.py --runtime codex
 
 | 命令 | 适用场景 |
 | --- | --- |
-| `/uth-onboarding` | 在新项目或已有项目中启用 UTH。 |
+| `/uth-onboarding` | 在新项目中启用 UTH，在已有项目中只做 enable-only 启用，或在用户明确要求时编排完整的老项目接管。 |
 | `/uth-governance` | 让代理判断一个不明确的工程请求应该进入哪个 UTH 场景。 |
 | `/uth-design` | 评估架构、比较方案，或写入已接受的 Design。 |
 | `/uth-dev` | 实现清晰、边界明确的变更或正式 Todo。 |
 | `/uth-debug` | 诊断并修复 bug、失败测试、构建错误或回归。 |
 | `/uth-review` | 做代码审查、验证、验收或就绪检查。 |
-| `/uth-docs` | 同步 current-state、上下文、归档、快照或治理文档。 |
+| `/uth-docs` | 基于代码事实治理项目文档：全项目基线、范围同步、模块拆分、onboarding follow-up、current-state、context、归档、快照和迁移。 |
 | `/uth-git` | 提交、推送、开 PR、合并 PR、打 tag、发布或关闭分支。 |
 | `/uth-context-trace` | 查找 Design/Todo/Feedback/Prompt/Run/LW/ADR 等证据。 |
 | `/uth-utf8-guard` | 检查治理 Markdown 的 UTF-8、乱码风险和代码围栏平衡。 |
@@ -112,6 +112,14 @@ Git baseline 信息属于 `uth-git` 场景。Git 写入成功后，`uth-git` 会
 - `/uth-onboarding` 创建项目 marker，复制项目本地 `tools/uth-hooks/`，并创建最小治理文档脚手架。
 - 在首次写入治理 Markdown 或生成场景收口报告前，UTH 会询问项目文档语言，并保存到 `.uth-governance/project.json` 的 `document_language` 中。
 - 除非项目已经有 `.uth-governance/project.json`，其他 `uth-*` 场景会保持静默；用户显式要求启用 UTH 治理时除外。
+
+## 老项目接管与文档基线
+
+当用户要求 UTH 接管老项目时，`/uth-onboarding` 是编排者。它先完成安全前置流程，再路由到 `/uth-docs onboarding-followup` 做完整文档治理，最后回到 `/uth-onboarding` 做总收口。
+
+`/uth-docs` 是基于代码事实的文档治理窗口。只有已有可信全项目基线时，才允许对指定 diff、range、版本、模块或文件范围输出 `scoped-docs-complete`。只有 `full-project-docs-complete` 才能支撑“项目完整文档治理完成”的声明。
+
+项目过大时，`/uth-docs` 可以进入 `module-split`。它先写入 context 模块索引和拆分报告，停下来等待用户确认，然后逐模块治理。上下文过长时，它必须写轻量 final record，并给出新窗口续跑提示词，让下一个窗口从该记录继续。
 
 ## 包内容
 

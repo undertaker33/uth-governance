@@ -194,7 +194,7 @@ Forbidden by default:
 - Git commit, tag, push, merge, branch, or release changes
 - historical Design/Feedback/runs/worker prompts
 
-`docs/context/` is read-only here. If the design implies module-context changes, mark `Needs uth-docs context-sync` in closeout.
+`docs/context/` is read-only here. If the design implies module-context changes, mark `Needs uth-docs scoped-sync` in closeout.
 
 Use `uth-utf8-guard` before and after modifying governed Markdown (`docs/**/*.md`, Design, ADR, current-state, root `README.md`, or `AGENTS.md`).
 
@@ -316,7 +316,7 @@ If design work reveals a concrete defect:
 
 If design work reveals context drift:
 
-- mark `Needs uth-docs context-sync`
+- mark `Needs uth-docs scoped-sync`
 
 ## Closeout
 
@@ -334,7 +334,7 @@ End with:
 - ADR status: none / proposed / written
 - current-state update: yes / no
 - UTF-8 guard result for governed Markdown writes
-- `Needs uth-docs context-sync`, if applicable
+- `Needs uth-docs scoped-sync`, if applicable
 - next scene: none / `uth-dev` / `uth-review` / `uth-docs` / `uth-debug`
 
 If no files were changed, say `read-only, no files modified`.

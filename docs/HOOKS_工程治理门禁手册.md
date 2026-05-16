@@ -554,6 +554,7 @@ BLOCK
 检查：
 
 - mode 是 `new-project` 或 `existing-project`。
+- `existing-project` 必须提供 `takeover_scope=enable-only` 或 `takeover_scope=full-takeover`；`takeover_final_closeout=true` 只能表示 `full-takeover` 总收口。
 - 已创建 `.uth-governance/project.json`。
 - 已复制项目本地 `tools/uth-hooks/`。
 - 已创建或更新 `docs/current-state.md` 初始索引。
@@ -563,12 +564,24 @@ BLOCK
 - 没有修改业务源码或测试。
 - 没有执行 Git 写入。
 
-`existing-project` 还必须检查：
+以上 baseline onboarding 检查适用于 `new-project` 和 `existing-project enable-only`。`enable-only` 只表示 UTH 已启用，不要求备份 zip、handoff snapshot 或 `uth-docs` 路由，也不能声称完整接管完成。
 
+`existing-project full-takeover` preflight 还必须检查：
+
+- `takeover_scope=full-takeover`。
 - 已创建 `docs/ONBYYMMDDXX-pre-uth-docs-backup.zip`。
 - 已创建 `docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md`。
-- 已标记旧文档、未确认事实和 `uth-docs` 待处理事项。
-- 下一场景是 `uth-docs`，除非用户明确暂停。
+- 已显式提供旧文档分类 marker/count/list。
+- 已显式提供未读、未确认或未解决事实 marker/count/list。
+- 下一场景是 `/uth-docs onboarding-followup`，例如 `next_scene="uth-docs onboarding-followup"`，或 `next_scene="uth-docs"` 且 `next_mode="onboarding-followup"`；除非用户明确暂停或当前存在 blocker。
+
+`existing-project full-takeover` final closeout 必须检查：
+
+- `takeover_final_closeout=true`。
+- `docs_followup_completed=true`。
+- `docs_completion_level=full-project-docs-complete`。
+- `return_to_onboarding=true`。
+- 已向用户报告备份压缩包路径。
 
 ### 6.4 uth-dev closeout
 
@@ -581,7 +594,7 @@ BLOCK
 - formal-dev：已写 Feedback，或说明为什么未写。
 - formal-dev：Feedback 不等待 Git 信息；Git baseline 由 `uth-git` 在 Git 写入成功后追加。
 - current-state 只在活跃任务状态变化时更新。
-- 如模块事实变化，标记 `Needs uth-docs context-sync`。
+- 如模块事实变化，标记 `Needs uth-docs scoped-sync`。
 - 未执行 Git 写入。
 
 ### 6.5 uth-debug closeout
@@ -594,7 +607,7 @@ BLOCK
 - 复现 / 验证证据已列出。
 - formal debug 必要时写 Feedback / Run Log。
 - blocker / baseline 变化时更新 current-state。
-- 如模块事实变化，标记 `Needs uth-docs context-sync`。
+- 如模块事实变化，标记 `Needs uth-docs scoped-sync`。
 
 ### 6.6 uth-design closeout
 
@@ -662,6 +675,60 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 - ADR / changelog 边界未越界。
 - verification 写明 documentation-only，没有跑检查 / 测试。
 - 如需 Git，路由到 `uth-git`。
+
+新增文档基线 / 老项目接管证据字段：
+
+```text
+docs_completion_level
+full_project_baseline_completed
+baseline_source_scope
+baseline_excluded_paths
+baseline_still_trusted
+trusted_full_project_baseline
+scoped_source_scope
+scoped_impact_traced
+module_split_confirmed_by_user
+module_split_report_written
+module_context_index_written
+module_queue
+module_completed
+module_pause_after_each_completed
+lw_final_record_written
+handoff_prompt_for_new_window
+cleanup_paths_verified_in_backup_zip
+takeover_final_closeout
+docs_followup_completed
+return_to_onboarding
+backup_zip_reported_to_user
+takeover_scope
+next_mode
+```
+
+字段含义：
+
+- `docs_completion_level`：文档治理完成级别，只能用于区分 `full-project-docs-complete`、`scoped-docs-complete`、`blocked`、`partial/paused`。
+- `full_project_baseline_completed`：已基于代码事实完成全项目文档基线；老项目 `onboarding-followup` 必须为 true。
+- `baseline_source_scope`：全项目基线实际读取的源码、构建、脚本、入口、测试、README、AGENTS、docs 或旧文档范围。
+- `baseline_excluded_paths`：全项目基线明确排除的路径，例如 `.git`、构建产物、依赖缓存或二进制输出。
+- `baseline_still_trusted`：范围同步后，既有全项目基线仍可信。
+- `trusted_full_project_baseline`：执行 `scoped-sync` 或输出 `scoped-docs-complete` 前，已存在可信全项目基线。
+- `scoped_source_scope`：本次范围同步的指定 diff、range、版本、模块或文件范围。
+- `scoped_impact_traced`：已追踪指定范围对 current-state、context、归档、规则或模块文档的影响。
+- `module_split_confirmed_by_user`：大型项目拆分方案已经用户确认。
+- `module_split_report_written`：已写入模块拆分报告。
+- `module_context_index_written`：已写入 `docs/context/README.md` 模块索引。
+- `module_queue`：待治理模块队列。
+- `module_completed`：本轮已完成治理的模块列表。
+- `module_pause_after_each_completed`：每完成一个模块后已暂停并等待用户确认是否继续。
+- `lw_final_record_written`：上下文过长或跨窗口接续时，已写入 `docs/LW-Work/LW*.md` 轻量 final record。
+- `handoff_prompt_for_new_window`：已提供新窗口续跑提示词，要求下一窗口先读 LW final record。
+- `cleanup_paths_verified_in_backup_zip`：清理、移动或删除旧文档前，已确认原路径存在于 onboarding 备份压缩包。
+- `takeover_final_closeout`：`uth-onboarding` 正在做老项目 full-takeover 最终收口，而不是 preflight 或 enable-only。
+- `docs_followup_completed`：`uth-docs onboarding-followup` 已完成并返回证据。
+- `return_to_onboarding`：`uth-docs` 已把 takeover 结果返回 `uth-onboarding` 做总收口。
+- `backup_zip_reported_to_user`：最终接管报告已向用户报告备份压缩包路径。
+- `takeover_scope`：`existing-project` onboarding 的接管范围，取值为 `enable-only` 或 `full-takeover`。
+- `next_mode`：当 `next_scene="uth-docs"` 时，用 `next_mode="onboarding-followup"` 表示完整接管的 docs follow-up 路由。
 
 ### 6.9 uth-git closeout
 

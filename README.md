@@ -69,13 +69,13 @@ Use the scene command that matches the work:
 
 | Command | Use when |
 | --- | --- |
-| `/uth-onboarding` | Enable UTH in a new or existing project. |
+| `/uth-onboarding` | Enable UTH in a new project, enable-only in an existing project, or orchestrate full existing-project takeover when explicitly requested. |
 | `/uth-governance` | Ask the agent to classify an unclear engineering request. |
 | `/uth-design` | Evaluate architecture, compare options, or write an accepted Design. |
 | `/uth-dev` | Implement a clear bounded change or formal Todo. |
 | `/uth-debug` | Diagnose and repair a bug, failing test, build error, or regression. |
 | `/uth-review` | Review, validate, accept, or run readiness checks. |
-| `/uth-docs` | Sync current-state, context, archive, snapshots, or governance docs. |
+| `/uth-docs` | Govern project documentation from code facts: full-project baseline, scoped sync, module split, onboarding follow-up, current-state, context, archive, snapshots, and migrations. |
 | `/uth-git` | Commit, push, open/merge PRs, tag, release, or close a branch. |
 | `/uth-context-trace` | Locate Design/Todo/Feedback/Prompt/Run/LW/ADR evidence. |
 | `/uth-utf8-guard` | Check governed Markdown for UTF-8, mojibake, and fence balance. |
@@ -129,6 +129,14 @@ generation while waiting for Git.
 - Other `uth-*` scenes stay silent unless the project has
   `.uth-governance/project.json`, except when the user explicitly asks to enable
   UTH governance for that project.
+
+## Existing Project Takeover And Docs Baselines
+
+When the user asks UTH to take over an existing project, `/uth-onboarding` is the orchestrator. It performs preflight safety work, routes to `/uth-docs onboarding-followup` for full documentation governance, then resumes for final takeover closeout.
+
+`/uth-docs` is the code-fact documentation governance window. It may report `scoped-docs-complete` for a specified diff, range, version, module, or file scope only when a trusted full-project baseline already exists. Only `full-project-docs-complete` supports the claim that project documentation governance is complete.
+
+For large projects, `/uth-docs` may enter `module-split`. It writes the context module index and split report, pauses for user confirmation, then governs modules one by one. If the context becomes too long, it writes a lightweight final record and gives the user a new-window prompt so the next window can resume from that record.
 
 ## Package Contents
 

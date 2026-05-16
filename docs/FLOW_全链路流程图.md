@@ -26,9 +26,13 @@ flowchart TD
     A["用户提出工程任务"] --> A1{"显式 uth-onboarding<br/>或 UTH 启用/接管？"}
     A1 -- "是" --> A2["uth-onboarding<br/>项目启用 / 新项目初始化 / 老项目接管"]
     A2 --> A3{"existing-project？"}
-    A3 -- "是" --> A4["自动接上 uth-docs<br/>旧文档治理 / context / current-state"]
-    A3 -- "否" --> A5["最小接管收口"]
-    A4 --> A5
+    A3 -- "是" --> A3a{"enable-only<br/>还是 full-takeover？"}
+    A3a -- "enable-only" --> A8["最小启用收口"]
+    A3a -- "full-takeover" --> A4["uth-docs onboarding-followup<br/>full-project-baseline / 旧文档分类 / context"]
+    A4 --> A5{"full-project-docs-complete?"}
+    A5 -- "是" --> A6["回到 uth-onboarding<br/>最终接管收口"]
+    A5 -- "否" --> A7["blocked / module-split<br/>暂停或 handoff"]
+    A3 -- "否" --> A8
     A1 -- "否" --> B["uth-governance<br/>顶层场景路由"]
     B --> B0{"是否存在<br/>.uth-governance/project.json？"}
     B0 -- "否" --> B1["UTH 静默<br/>按普通 Codex 行为"]
@@ -99,16 +103,21 @@ flowchart TD
     E --> F["复制项目本地 Hook<br/>tools/uth-hooks/"]
     F --> G["写 .uth-governance/project.json"]
     G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8 + 中文收口"]
-    H1 --> H["UTH 最小接管完成"]
+    H1 --> H["UTH 最小启用完成"]
 
-    D --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
+    D --> D1{"enable-only<br/>还是 full-takeover？"}
+    D1 -- "enable-only" --> E0
+    D1 -- "full-takeover" --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
     I --> I0["询问文档语言<br/>写入 project.json document_language"]
     I0 --> J["创建接管快照<br/>docs/snapshots/ONB*-existing-project-handoff.md"]
     J --> K["复制项目本地 Hook<br/>tools/uth-hooks/"]
-    K --> L["建立 current-state 初始索引<br/>不读全量源码，不声称全仓理解"]
+    K --> L["existing-project preflight<br/>建立 current-state 初始索引"]
     L --> M["写 .uth-governance/project.json"]
     M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state + 输出语言"]
-    M1 --> N["自动进入 uth-docs<br/>旧文档分类 / context / current-state / 归档"]
+    M1 --> N["handoff to uth-docs onboarding-followup"]
+    N --> O{"docs_completion_level = full-project-docs-complete?"}
+    O -- "yes" --> P["return to uth-onboarding final closeout"]
+    O -- "blocked or module split" --> Q["pause for user confirmation or next-window handoff"]
 ```
 
 ## 3. uth-design 方案评估 / 架构设计
@@ -261,32 +270,38 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A["用户要求文档治理 / context 同步 / current-state 清理 / 归档"] --> B["Scene: uth-docs"]
-    B --> C["选择模式<br/>rules / context / state / archive / snapshot / migration"]
-    C --> D["读取最小文档入口<br/>AGENTS / docs README / current-state / _governance README"]
-    D --> E{"是否涉及代码事实同步？"}
-    E -- "是" --> F["只读代码 / git diff / git log<br/>提炼当前事实"]
-    E -- "否" --> G["只处理目标文档"]
-    F --> H["不跑测试 / 不改代码"]
-    G --> H
+    A["用户要求文档治理 / onboarding-followup / context 同步 / current-state 清理 / 归档"] --> B["Scene: uth-docs"]
+    B --> C{"选择模式"}
+    C -- "full-project-baseline" --> D["从代码事实建立全项目文档基线"]
+    C -- "scoped-sync" --> E["确认 trusted_full_project_baseline<br/>读取指定 diff / range / version / module / file scope"]
+    C -- "module-split" --> F["写 module split report<br/>写 docs/context/README.md 模块索引"]
+    C -- "module-governance" --> G["按已确认模块逐个治理<br/>每完成一个模块暂停"]
+    C -- "state/archive/snapshot/migration/rules" --> H["只处理目标文档治理范围"]
 
-    H --> I{"是否要写治理 Markdown？"}
-    I -- "是" --> I0{"project.json 是否已有<br/>document_language？"}
-    I0 -- "否" --> I1["询问用户文档语言<br/>持久化到 project.json"]
-    I0 -- "是" --> J["辅助 Skill<br/>uth-utf8-guard<br/>写前 UTF-8 / fence 检查"]
-    I1 --> J
-    I -- "否" --> K["只读输出"]
-    J --> L["Hook L2<br/>docs/** / AGENTS.md / README.md 写入范围"]
-    L --> M["更新 docs/_governance / current-state / context / archive / snapshots"]
-    M --> N["辅助 Skill<br/>uth-utf8-guard<br/>写后检查"]
-    N --> O["Hook L3<br/>文档场景收口<br/>不声称代码验证"]
-    K --> O
-    O --> P{"是否形成稳定可提交的治理成果？"}
-    P -- "是" --> Q["建议 Git 收口<br/>询问用户是否进入 uth-git"]
-    Q --> S{"用户确认？"}
-    S -- "是" --> T["交给 uth-git"]
-    S -- "否" --> R["收口：写了什么 / 没碰什么 / baseline / 归档影响"]
-    P -- "否" --> R
+    D --> I["只读代码事实 / 构建声明 / 入口 / 测试入口 / 旧文档"]
+    E --> I
+    F --> J["pause for user confirmation"]
+    J --> G
+    G --> K{"上下文是否过长？"}
+    K -- "是" --> L["写 LW final record<br/>给出新窗口 handoff prompt"]
+    K -- "否" --> M["写模块 context report"]
+    H --> N["不跑测试 / 不改代码 / 不执行 Git 写入"]
+    I --> N
+    M --> N
+    L --> N
+
+    N --> O{"是否要写治理 Markdown？"}
+    O -- "是" --> P["uth-utf8-guard<br/>写前检查"]
+    P --> Q["Hook L2<br/>docs/** / AGENTS.md / README.md 写入范围"]
+    Q --> R["写回 current-state / context / archive / snapshots / 规则文档"]
+    R --> S["uth-utf8-guard<br/>写后检查"]
+    O -- "否" --> T["只读输出"]
+    S --> U{"completion level"}
+    T --> U
+    U -- "full-project-docs-complete" --> V["可声明项目完整文档治理完成"]
+    U -- "scoped-docs-complete" --> W["只声明指定范围文档治理完成"]
+    U -- "blocked" --> X["列出 blocker 和下一路由"]
+    U -- "partial/paused" --> Y["暂停 / 等确认 / 新窗口接续"]
 ```
 
 说明：`uth-docs` 通常不调用 UTH-SP / Superpower；若文档治理目标、范围或验收不清，可以由场景内判断进入 `uth-sp-brainstorming`。

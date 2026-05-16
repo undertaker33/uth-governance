@@ -20,6 +20,18 @@
     "mode": {
       "type": "string"
     },
+    "takeover_scope": {
+      "enum": [
+        "enable-only",
+        "full-takeover"
+      ]
+    },
+    "next_scene": {
+      "type": "string"
+    },
+    "next_mode": {
+      "type": "string"
+    },
     "changed_files": {
       "type": "array",
       "items": {
@@ -74,6 +86,199 @@
     },
     "closeout_report_language_applied": {
       "type": "boolean"
+    },
+    "docs_completion_level": {
+      "enum": [
+        "full-project-docs-complete",
+        "scoped-docs-complete",
+        "blocked",
+        "partial/paused"
+      ]
+    },
+    "full_project_baseline_completed": {
+      "type": "boolean"
+    },
+    "baseline_source_scope": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "baseline_excluded_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "baseline_excluded_reason": {
+      "type": "string"
+    },
+    "baseline_still_trusted": {
+      "type": "boolean"
+    },
+    "trusted_full_project_baseline": {
+      "type": "boolean"
+    },
+    "scoped_source_scope": {
+      "type": ["string", "null"]
+    },
+    "scoped_impact_traced": {
+      "type": "boolean"
+    },
+    "takeover_final_closeout": {
+      "type": "boolean"
+    },
+    "docs_followup_completed": {
+      "type": "boolean"
+    },
+    "return_to_onboarding": {
+      "type": "boolean"
+    },
+    "backup_zip_reported_to_user": {
+      "type": "boolean"
+    },
+    "old_docs_unclassified_count": {
+      "type": ["integer", "string", "null"]
+    },
+    "old_docs_unclassified": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "old_docs_unclassified_list": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "active_takeover_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "current_state_cleaned": {
+      "type": "boolean"
+    },
+    "context_rebuilt_or_confirmed": {
+      "type": "boolean"
+    },
+    "cleanup_paths_modified": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cleanup_paths_verified_in_backup_zip": {
+      "type": "boolean"
+    },
+    "module_split_required": {
+      "type": "boolean"
+    },
+    "module_split_confirmed_by_user": {
+      "type": "boolean"
+    },
+    "module_split_report_written": {
+      "type": "boolean"
+    },
+    "module_context_index_written": {
+      "type": "boolean"
+    },
+    "module_queue": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "module_current": {
+      "type": "string"
+    },
+    "module_completed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "module_context_report_written": {
+      "type": "boolean"
+    },
+    "module_source_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "module_pause_after_each_completed": {
+      "type": "boolean"
+    },
+    "paused_for_user_confirmation": {
+      "type": "boolean"
+    },
+    "context_too_long": {
+      "type": "boolean"
+    },
+    "handoff_prompt_for_new_window": {
+      "type": "string"
+    },
+    "resumed_from_new_window": {
+      "type": "boolean"
+    },
+    "read_lw_final_record": {
+      "type": "boolean"
+    },
+    "module_scope": {
+      "type": ["string", "null"]
+    },
+    "git_range": {
+      "type": ["string", "null"]
+    },
+    "commit": {
+      "type": ["string", "null"]
+    },
+    "tag": {
+      "type": ["string", "null"]
+    },
+    "unread_critical_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unconfirmed_entrypoint_count": {
+      "type": ["integer", "string", "null"]
+    },
+    "unconfirmed_entrypoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unconfirmed_verification_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unresolved_doc_conflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "verification": {
       "type": "object",

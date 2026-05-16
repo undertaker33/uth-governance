@@ -682,7 +682,7 @@ docs/changelogs/README.md
 收口：
 
 - 输出新增文件、修改文件、备份、快照、项目标记、未确认事实和后续场景。
-- 老项目接管完成后自动接上 `uth-docs`。
+- 老项目 full-takeover preflight 后接上 `uth-docs onboarding-followup`；只有返回 `full-project-docs-complete` 后才允许最终接管收口。
 - 不执行 Git 写入。
 
 ### 7.2 S1 只读分析 / 方案评估
@@ -1160,24 +1160,41 @@ docs/context/README.md
 `uth-docs` 可包含以下模式：
 
 ```text
-rules-maintenance：更新 AGENTS.md、docs/_governance/、模板。
-context-bootstrap：为新项目或复杂项目建立 docs/context/。
-context-sync：根据用户指定 commit / git range / 稳定代码 / 工作区改动同步模块当前事实。
+full-project-baseline：基于代码事实建立或重新确认全项目文档基线。
+scoped-sync：在已有可信全项目基线时，按指定 diff / range / 版本 / 模块 / 文件范围同步文档。
+module-split：为大型项目拆分文档治理模块，写入拆分报告和 context 索引后暂停等待用户确认。
+module-governance：在用户确认拆分后逐模块治理，每完成一个模块都暂停确认。
+onboarding-followup：老项目完整接管事务中，承接 `uth-onboarding` handoff 并完成全项目文档治理。
 state-cleanup：清理 docs/current-state.md 的旧事实和旧索引。
 archive-cleanup：归档已确认完成的正式任务包和 LW 文档。
+rules-maintenance：更新 AGENTS.md、docs/_governance/、模板。
 snapshot：保存历史状态快照。
 migration：迁移旧 Design / Todo / Feedback / Run Log。
-onboarding-followup：老项目接管后自动承接旧文档治理。
 ```
 
-`context-bootstrap` 规则：
+文档治理以当前代码事实为准，来源包括一方源码、构建和 workspace 声明、运行入口、测试入口、脚本、README、AGENTS、现有 docs 和旧治理文档。文档与代码事实冲突时，以代码事实为准，旧文档只能作为待分类证据。
+
+全项目基线规则：
+
+- 首次文档治理、老项目接管、缺少可信基线或基线已失效时，必须执行 `full-project-baseline`。
+- 老项目 full-takeover 只有在 `uth-docs onboarding-followup` 返回 `full-project-docs-complete` 后，才允许 `uth-onboarding` 声明接管完成。
+- `scoped-docs-complete` 只表示指定范围文档治理完成，不等价于全项目完成。
+
+大型项目规则：
+
+- 项目过大时进入 `module-split`，先写 `docs/context/README.md`、模块拆分报告和模块队列。
+- 拆分后必须等用户确认，确认后再进入 `module-governance` 逐模块处理。
+- 每完成一个模块都暂停，让用户确认是否继续下一个模块。
+- 上下文过长时，写入 `docs/LW-Work/LW*.md` 轻量 final record，并给出新窗口 handoff prompt；新窗口必须先读该 final record 再续跑。
+
+`full-project-baseline` / `module-split` 规则：
 
 - 新项目或简单项目可先按前端、后端、数据、部署等技术边界拆分。
 - 复杂项目不要直接强拆；先读取入口文档、目录结构、构建配置和关键入口，提出模块拆分建议。
 - 模块拆分建议经用户确认后，再创建 `docs/context/README.md` 和模块文件。
 - 拆分优先考虑业务/领域边界，其次考虑运行时职责、架构层、协作边界和验证边界。
 
-`context-sync` 规则：
+`scoped-sync` 规则：
 
 - 根据用户指定 commit、git range、稳定代码状态或工作区改动判断影响哪些模块。
 - 只更新模块职责、入口、依赖、边界、验证方式和仍有效风险。
@@ -1693,7 +1710,7 @@ Git 写入前必须展示：
 
 老项目接管必须由用户显式调用 `uth-onboarding` 或明确要求 UTH 接管。
 
-老项目不要一上来重构，也不要一上来读全量源码。先保护旧文档，建立最小治理入口，再自动交给 `uth-docs` 深化。
+老项目不要一上来重构，也不要一上来读全量源码。先保护旧文档并建立安全入口；如果用户只要求 enable-only，则到最小启用即可停止。如果用户明确要求 full-takeover，`uth-onboarding` 必须把接管当作一个事务编排，而不是把最小入口创建说成最终完成。
 
 步骤：
 
@@ -1707,9 +1724,18 @@ Git 写入前必须展示：
 8. 创建 `.uth-governance/project.json`。
 9. 不修改业务代码。
 10. 不把旧 Design、旧 Todo、旧 Feedback、旧 Run Log 或 Prompt 当成当前事实。
-11. 自动进入 `uth-docs`，继续旧文档分类、context 重建、current-state 深化和归档处理。
+11. full-takeover 必须路由到 `uth-docs onboarding-followup`，由 `uth-docs` 基于代码事实执行 `full-project-baseline`、旧文档分类、context 重建、current-state 清理和归档处理。
+12. `uth-docs` 返回 `full-project-docs-complete` 后，再回到 `uth-onboarding` 做最终接管收口。
 
 老项目接管阶段的 `current-state.md` 只能是初始索引。没有读到足够代码事实时，写“待 `uth-docs` 根据代码事实深化确认”，不要写成已确认事实。
+
+接管完成边界：
+
+- `uth-onboarding` full-takeover 是事务，不是最小启用完成。
+- `uth-docs full-project-baseline` 是 full-takeover 完成的必需条件。
+- `scoped-docs-complete` 允许用于指定 diff、range、版本、模块或文件范围，但不能支撑“老项目接管完成”。
+- 大型项目必须先 `module-split`，写 context 报告和模块队列；用户确认拆分后逐模块治理，每个模块完成后再次确认。
+- 上下文过长时，必须写 `docs/LW-Work/LW*.md` 轻量 final record，并提供新窗口续跑提示词，保证跨窗口接续。
 
 ---
 

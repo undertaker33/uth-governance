@@ -178,7 +178,7 @@ Forbidden by default:
 - Git writes
 - unrelated docs
 
-If review finds module context drift, mark `Needs uth-docs context-sync`; do not update `docs/context/`.
+If review finds module context drift, mark `Needs uth-docs scoped-sync`; do not update `docs/context/`.
 
 ## Review Output Rules
 
@@ -214,7 +214,7 @@ End with:
 - recommendation: pass / fail / pass with risk / needs follow-up
 - documents written or not written
 - UTF-8 guard result for governed Markdown writes
-- `Needs uth-docs context-sync`, if applicable
+- `Needs uth-docs scoped-sync`, if applicable
 - next scene: none / `uth-debug` / `uth-dev` / `uth-docs` / `uth-git`
 
 Never claim accepted, passing, complete, or ready without fresh verification evidence, unless the output explicitly says it is a static review only.

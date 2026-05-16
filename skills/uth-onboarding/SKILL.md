@@ -1,6 +1,6 @@
 ---
 name: uth-onboarding
-description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project-level .uth-governance/project.json marker, persists the document_language preference before first docs writes and closeout reports, creates minimal governance docs, new-project scaffold, or existing-project documentation backup and handoff snapshot. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
+description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project marker, persists document_language, creates minimal governance docs, copies hook tools, and orchestrates existing-project takeover when requested. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
 ---
 
 # UTH Onboarding
@@ -9,7 +9,11 @@ description: Use only when the user explicitly asks to initialize, enable, or ta
 
 Use `uth-onboarding` to make a target project UTH-enabled.
 
-This skill owns only the first project-level handoff into UTH:
+This skill owns project enablement and, when the user asks to take over an existing project, the complete takeover transaction orchestration.
+
+For `existing-project`, `uth-onboarding` performs preflight safety work, routes to `uth-docs onboarding-followup` for full documentation governance, then resumes for final takeover closeout. It must not duplicate full documentation governance inside onboarding.
+
+Core responsibilities:
 
 - choose `new-project` or `existing-project`
 - create `.uth-governance/project.json`
@@ -18,7 +22,8 @@ This skill owns only the first project-level handoff into UTH:
 - resolve and persist the project documentation language before the first governed Markdown write
 - protect existing project documentation before changing it
 - create an existing-project handoff snapshot
-- hand existing projects to `uth-docs` for deeper documentation governance
+- hand existing-project takeover to `uth-docs onboarding-followup` for documentation governance
+- complete final existing-project takeover closeout only after `uth-docs` returns full-project completion evidence
 
 Do not use this skill automatically. It must be triggered by the user explicitly, or by an installation flow that explicitly says it is initializing a target project.
 
@@ -30,6 +35,11 @@ State one mode before writing:
 - `existing-project`: project already has code, docs, an `AGENTS.md`, old task documents, or historical governance material.
 
 If the mode is unclear, ask one concise question. Do not create files until the mode is clear.
+
+## Existing Project Outcomes
+
+- `enable-only`: user asked only to enable UTH. Stop after marker, hook tools, and initial docs scaffold. Backup zip, handoff snapshot, and `uth-docs` route are not required. The closeout must say that UTH enablement is complete and existing-project takeover is not complete.
+- `full-takeover`: user asked to take over an existing project. Complete onboarding preflight, route to `uth-docs onboarding-followup`, then resume for final takeover closeout after full-project docs completion evidence.
 
 ## Entry Conditions
 
@@ -167,7 +177,7 @@ Do not create a formal task package during new-project onboarding unless the use
 
 ## Existing Project Backup
 
-For `existing-project`, before any onboarding or docs-governance write, create a documentation backup zip under `docs/`:
+For `existing-project full-takeover`, before any documentation-class file write or old-doc cleanup, migration, or classification write, create a documentation backup zip under `docs/`:
 
 ```text
 docs/ONBYYMMDDXX-pre-uth-docs-backup.zip
@@ -187,7 +197,7 @@ Do not include `.git/`, dependency folders, build outputs, caches, or ordinary s
 
 ## Existing Project Snapshot
 
-For `existing-project`, create a one-time handoff snapshot:
+For `existing-project full-takeover`, create a one-time handoff snapshot:
 
 ```text
 docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md
@@ -219,7 +229,7 @@ Allowed content:
 - onboarding status
 - repository snapshot
 - docs entrypoints
-- backup and snapshot paths
+- backup and snapshot paths, when created
 - discovered tech-stack clues
 - discovered module-boundary clues
 - active unknowns
@@ -233,30 +243,33 @@ Use this wording when the fact needs deeper docs governance:
 Needs uth-docs confirmation from code facts.
 ```
 
-## Existing Project Handoff To uth-docs
+## Existing Project Takeover Transaction
 
-After `existing-project` minimal onboarding succeeds, automatically continue into `uth-docs`.
+For `existing-project`, first set `takeover_scope` to `enable-only` or `full-takeover`.
 
-The handoff condition is:
+Preflight:
 
-- backup zip created
-- handoff snapshot created
-- `.uth-governance/project.json` created
-- `document_language` selected and persisted in `.uth-governance/project.json`
-- `tools/uth-hooks/` copied from bundled assets
-- `docs/current-state.md` created or updated as an initial index
-- old docs and unknown facts marked for follow-up
+1. Select `document_language`; persist it before the first governed Markdown write.
+2. Create `.uth-governance/project.json` with the selected `document_language`.
+3. Copy project-local hook tools.
+4. Create the complete docs skeleton and initial current-state index.
+5. For `full-takeover`, create the backup zip before writing docs, `AGENTS.md`, `README*`, `docs/current-state.md`, snapshots, migrations, or old-doc cleanup/classification records.
+6. For `full-takeover`, create the handoff snapshot.
+7. For `full-takeover`, route to `uth-docs onboarding-followup` with `origin_scene=uth-onboarding`, `origin_mode=existing-project`, `handoff_type=existing-project-takeover`, `takeover_session_id=ONBYYMMDDXX`, and `return_to=uth-onboarding`.
 
-Then route to `uth-docs` for:
+For `enable-only`, stop after preflight. The report may say UTH enablement is complete, but must also say existing-project takeover is not complete.
 
-- old docs classification
-- context bootstrap or sync
-- current-state cleanup
-- archive cleanup
-- migration of old task documents
-- extraction of stable old `AGENTS.md` rules
+For `full-takeover`, do not ask the user to manually start `uth-docs` unless they explicitly pause onboarding. The `uth-docs onboarding-followup` route owns old docs classification, full-project documentation baseline governance, current-state cleanup, context rebuild or confirmation, archive or migration handling, and extraction of stable old `AGENTS.md` rules.
 
-Do not ask the user to manually start `uth-docs` unless they explicitly pause onboarding.
+Final closeout:
+
+1. Read `uth-docs` takeover completion evidence.
+2. Require `docs_completion_level=full-project-docs-complete`.
+3. Require old docs classified, current-state cleaned, context rebuilt or confirmed, and no active takeover blockers.
+4. Report the backup zip path to the user.
+5. Only then say existing-project takeover is complete.
+
+Final old-project takeover closeout is allowed only after `uth-docs onboarding-followup` returns full-project completion evidence. Existing-project minimal onboarding alone is not full takeover.
 
 ## Write Scope
 
@@ -323,6 +336,8 @@ End with a closeout report rendered in the selected `document_language`. The fie
 ```text
 Scene: uth-onboarding
 Mode:
+Takeover scope: enable-only | full-takeover
+Takeover phase: preflight | final
 Read:
 Created/updated:
 Hook tools:
@@ -332,6 +347,13 @@ Project marker:
 Document language:
 Current-state:
 Unconfirmed facts:
+Docs follow-up:
+Docs completion level:
+Old docs classified:
+Current-state cleanup:
+Context baseline:
+Backup zip reported:
+Takeover blockers:
 UTF-8 guard:
 Git writes: none
 Next route:
@@ -339,6 +361,10 @@ Next route:
 
 For `new-project`, `Next route` is usually `none` or `uth-docs` if more documentation governance was requested.
 
-For `existing-project`, `Next route` must be `uth-docs` unless the user explicitly paused after minimal onboarding.
+For `existing-project enable-only`, `Next route` is usually `none`; the report must say UTH enablement is complete and existing-project takeover is not complete.
 
-Never claim full project understanding from onboarding alone. Say `UTH minimal onboarding complete`.
+For `existing-project full-takeover` preflight, `Next route` must be `uth-docs onboarding-followup` unless the user explicitly paused after preflight.
+
+For `existing-project full-takeover` final closeout, `Next route` is usually `none` only after docs follow-up returned `docs_completion_level=full-project-docs-complete`, old docs are classified, current-state is cleaned, context is rebuilt or confirmed, no active takeover blockers remain, and the backup zip path is reported.
+
+Never claim full project understanding from onboarding alone. Say `UTH minimal onboarding complete` only for `enable-only` or preflight. The final old-project report may say existing-project takeover is complete only after docs follow-up returns full-project completion evidence.

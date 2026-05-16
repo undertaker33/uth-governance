@@ -373,7 +373,7 @@ Forbidden by default:
 If module responsibilities, entrypoints, dependencies, boundaries, verification methods, or long-lived risks change, mark:
 
 ```text
-Needs uth-docs context-sync
+Needs uth-docs scoped-sync
 ```
 
 Do not update `docs/context/` here.
@@ -459,7 +459,7 @@ End with:
 - UTF-8 guard result for governed Markdown writes
 - worker Prompt records, if any
 - current-state update: yes/no
-- `Needs uth-docs context-sync`, if applicable
+- `Needs uth-docs scoped-sync`, if applicable
 - human acceptance boundary: light task reached / Design reached / Todo-only not reached / not applicable
 - Git-closure decision: not suggested / suggested, waiting for user / user handed off to `uth-git`
 - recommended next scene: none / `uth-review` / `uth-debug` / `uth-git` / `uth-docs`

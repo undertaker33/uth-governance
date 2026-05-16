@@ -27,6 +27,14 @@ class TestHookSchemas(unittest.TestCase):
         self.assertIn("verification", data["properties"])
         self.assertIn("document_language_persisted", data["properties"])
         self.assertIn("closeout_report_language_applied", data["properties"])
+        self.assertIn("takeover_scope", data["properties"])
+        self.assertIn("next_mode", data["properties"])
+        self.assertIn("docs_completion_level", data["properties"])
+        self.assertIn("full_project_baseline_completed", data["properties"])
+        self.assertIn("module_split_report_written", data["properties"])
+        self.assertIn("cleanup_paths_verified_in_backup_zip", data["properties"])
+        self.assertIn("lw_final_record_written", data["properties"])
+        self.assertIn("read_lw_final_record", data["properties"])
 
 
 if __name__ == "__main__":

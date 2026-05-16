@@ -157,7 +157,7 @@ Forbidden by default:
 - `docs/archive/`
 - opportunistic refactors
 
-If the fix changes module responsibilities, public entrypoints, dependencies, boundaries, verification methods, or long-lived risks, do not update `docs/context/` here. Mark `Needs uth-docs context-sync` in the closeout.
+If the fix changes module responsibilities, public entrypoints, dependencies, boundaries, verification methods, or long-lived risks, do not update `docs/context/` here. Mark `Needs uth-docs scoped-sync` in the closeout.
 
 ## Writeback Rules
 
@@ -188,7 +188,7 @@ End with a compact report:
 - Verification run and result, including compile/build pass plus warning/exception count for code repairs
 - Documents written or deliberately not written
 - UTF-8 guard result for governed Markdown writes
-- `Needs uth-docs context-sync`, if module context may need an update
+- `Needs uth-docs scoped-sync`, if module context may need an update
 - human acceptance boundary: read-only diagnosis / independent light repair reached / formal Design reached / formal Todo-only not reached
 - Git-closure decision: not suggested / suggested, waiting for user / user handed off to `uth-git`
 - Git status: not executed in this scene

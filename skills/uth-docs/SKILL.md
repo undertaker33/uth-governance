@@ -1,35 +1,45 @@
 ---
 name: uth-docs
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, document_language preference persistence before first docs writes and closeout reports, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
+description: "Use in a UTH-enabled project, identified by .uth-governance/project.json, for project documentation governance based on code facts, including full-project baseline, scoped diff/range/version/module docs sync, module-split governance, onboarding-followup after existing-project takeover, current-state/context/archive/snapshot/migration/rules maintenance. Docs-only; no code edits, tests, Git writes, or skill changes. Stay silent without the UTH marker unless the user asks to enable UTH first."
 ---
 
 # UTH Docs
 
 ## Purpose
 
-Use `uth-docs` for a dedicated documentation-governance window. Optimize what docs are read and written, keep current facts clean, and prevent task logs from becoming permanent context.
+Use `uth-docs` as the dedicated documentation-governance window for a UTH-enabled project.
 
-This skill governs documentation only. It does not implement code, run tests, commit, push, tag, release, or edit `skills/`.
+`uth-docs` is not a lightweight index generator. Its authority is the current codebase:
 
-If code, tests, or build files would need changes, stop and route to the proper implementation/debug scene. `uth-docs` closeout is documentation-only.
+- first-party source code
+- build, dependency, workspace, and module declarations
+- application/runtime entrypoints
+- test and verification entrypoints
+- scripts and local development commands
+- existing README, AGENTS, docs, and old governance docs
 
-When this scene modifies governed Markdown, use `uth-utf8-guard` before and after the write.
-When this scene writes governed Markdown or emits a scene closeout report, use the persisted project documentation language.
+Project documents are supporting evidence. When documents conflict with code facts, code facts win and docs must be corrected, archived, or marked blocked.
+
+This skill governs documentation only. It does not modify source code, tests, build files, Git state, or `skills/`. If documentation governance reveals a code, test, ADR-content, release, or Git problem, route to the proper scene instead of fixing it here.
+
+When this scene modifies governed Markdown, use `uth-utf8-guard` before and after the write. When this scene writes governed Markdown or emits closeout, use the persisted project documentation language.
 
 ## Modes
 
 Choose one mode before reading broadly:
 
+- `full-project-baseline`: build or re-confirm the full project documentation baseline from code facts.
+- `scoped-sync`: sync docs from a specified git diff, git range, commit, tag, version, module, or file scope when a trusted full-project baseline already exists.
+- `module-split`: split a large project into confirmed documentation-governance modules, write the context index/report, then pause for user confirmation.
+- `module-governance`: govern one confirmed module at a time after module split; pause after each completed module.
+- `onboarding-followup`: continue from `uth-onboarding existing-project` takeover handoff and complete full-project documentation governance.
+- `state-cleanup`: clean `docs/current-state.md` without pretending unconfirmed facts are confirmed.
+- `archive-cleanup`: archive explicitly completed task packages and LW documents.
 - `rules-maintenance`: update `AGENTS.md`, `docs/_governance/`, or templates.
-- `context-bootstrap`: create the initial `docs/context/` structure.
-- `context-sync`: update module context from user-specified commits, git ranges, stable code, or workspace changes.
-- `state-cleanup`: clean `docs/current-state.md` by removing stale facts and stale indexes.
-- `archive-cleanup`: move explicitly completed task packages and LW documents into archive.
 - `snapshot`: save a historical state snapshot.
-- `migration`: move old Design/Todo/Feedback/run docs into the current UTH layout.
-- `onboarding-followup`: continue from an `uth-onboarding` existing-project handoff snapshot.
+- `migration`: move specified old Design/Todo/Feedback/run docs into the current UTH layout.
 
-If the mode is unclear, do read-only analysis first and ask before writing.
+If the mode is unclear, do read-only analysis and ask one concise question before writing.
 
 ## Read Protocol
 
@@ -43,29 +53,96 @@ docs/current-state.md
 docs/_governance/README.md
 ```
 
+If `.uth-governance/project.json` is missing, stay silent unless the user explicitly asks to enable UTH first.
+
 Then read only what the selected mode needs:
 
-- rules-maintenance: relevant files under `docs/_governance/`, templates, and user-specified files.
-- context-bootstrap: `docs/context/README.md` if present, directory tree, README, build/config files, and key entry points.
-- context-sync: `docs/context/README.md`, affected module context files, user-specified commits or git range, and only the code/docs needed to verify current facts.
-- state-cleanup: `docs/current-state.md`, active task package indexes, and context README/module files as needed.
+- full-project-baseline: first-party source, build/dependency/workspace/module declarations, runtime entrypoints, test and verification entrypoints, scripts/local commands, README, AGENTS, docs, old governance docs, and module-local README or architecture docs.
+- scoped-sync: existing trusted baseline evidence, `docs/context/README.md`, affected module context files, the explicit diff/range/commit/tag/version/module/file scope, and code/docs needed to trace the impact.
+- module-split: directory structure, build configuration, module declarations, entrypoint files, existing docs, and enough source to identify candidate module boundaries.
+- module-governance: confirmed module split report, module queue, current module source/config/entrypoints/tests/scripts/docs, and cross-module dependency evidence.
+- onboarding-followup: onboarding handoff snapshot, backup zip record, old docs named by the snapshot, full-project baseline sources, `docs/context/`, and `docs/current-state.md`.
+- state-cleanup: `docs/current-state.md`, active package indexes, and current context files as needed.
 - archive-cleanup: `docs/current-state.md`, completed `docs/work/D*` packages, and completed `docs/LW-Work/LW*` docs.
-- snapshot: `docs/current-state.md` and the minimum files needed to describe the snapshot.
-- migration: old source docs plus target templates.
-- onboarding-followup: `docs/snapshots/ONB*-existing-project-handoff.md`, `docs/current-state.md`, old docs named by the snapshot, and only the code/config needed to confirm current facts.
+- rules-maintenance: relevant `AGENTS.md`, `docs/_governance/`, templates, and user-specified files.
+- snapshot: `docs/current-state.md` plus minimum source documents needed to describe the snapshot.
+- migration: old source docs, target templates, and enough code facts to avoid migrating stale facts as current truth.
 
-Do not default to reading all of `docs/`, all task packages, old Design docs, old Feedback, run logs, worker Prompts, or LW records.
+Full-project baseline reads exclude `.git/`, dependency folders, build outputs, caches, generated artifacts, and binary assets unless a binary asset is itself the documentation object under governance.
+
+Do not default to reading all task packages, old Feedback, run logs, worker Prompts, or LW records unless the selected mode makes them in scope.
+
+## Full-Project Baseline
+
+Use `full-project-baseline` for first documentation governance, existing-project takeover, missing baseline, invalidated baseline, or any request that claims project-wide documentation governance.
+
+Build a trustworthy baseline from code facts:
+
+- source/build/module/runtime/test/script evidence read
+- module responsibilities and non-responsibilities
+- application and local-development entrypoints
+- verification entrypoints
+- documentation conflicts and stale facts
+- current `docs/context/` and `docs/current-state.md` status
+
+Old documents are evidence, not authority. Keep facts only when current code evidence supports them. If a full baseline cannot be completed in the current window, return `blocked` or enter `module-split` after user confirmation.
+
+## Scoped Sync
+
+Use `scoped-sync` only when all of these are true:
+
+- a trusted full-project documentation baseline already exists
+- the user or task names an explicit diff, git range, commit, tag, version, module, or file scope
+- the impact can be traced to affected modules, entrypoints, dependencies, tests, scripts, and docs
+- after updates, the baseline is still trusted
+
+If any condition is missing, first run `full-project-baseline` or pause with `blocked`. A scoped result must not be reported as full project documentation governance.
+
+## Large Project Module Split
+
+When the project is too large to establish a full baseline reliably in one window, explain the blocker and ask whether the user allows module split.
+
+After the user allows module split:
+
+1. Read enough structure, build config, module declarations, entrypoints, and docs to identify candidate module boundaries.
+2. Write or update `docs/context/README.md`, the module index, split rationale, and necessary context report.
+3. Report module list, responsibility assumptions, primary entrypoints, dependency traces, open confirmation questions, and recommended governance order.
+4. Pause for user confirmation.
+
+After confirmation, use `module-governance` one module at a time. For each module:
+
+- write its module context report
+- record code-fact source scope and excluded paths
+- update `module_completed`, `module_current`, and `module_queue`
+- note cross-module dependencies that still need later confirmation
+- pause for user confirmation before the next module
+
+If context is too long, write a `docs/LW-Work/LW*.md` final record and provide a new-window prompt. The final record must include the original request, current goal, confirmed split, completed modules and context files, unfinished module queue, current module status, and next-step prompt. The new window must read that LW final record first before continuing.
+
+## Completion Levels
+
+Use exactly these completion levels:
+
+- `full-project-docs-complete`: a full-project documentation baseline is established or re-confirmed.
+- `scoped-docs-complete`: the specified diff/range/version/module/file scope is synced and the existing full-project baseline remains trusted.
+- `blocked`: user choice, missing code facts, project size, unverified old-doc cleanup, or out-of-scene writes prevent completion.
+- `partial/paused`: the user explicitly paused or asked only for a local maintenance slice.
+
+Only `full-project-docs-complete` supports the statement `项目完整文档治理完成`.
+
+`scoped-docs-complete` must be reported as `指定范围文档治理完成`. Do not shorten it to "complete" in a way that implies the whole project is governed.
+
+When the user asks whether documentation governance is complete, default to the full-project interpretation unless the user explicitly asks about a named diff, range, version, module, or file scope.
 
 ## Document Language Preference
 
 Before writing any governed Markdown, read `.uth-governance/project.json` and check `document_language`.
 
-- If `document_language` exists, write new governance docs and the scene closeout report in that language.
-- If it is missing, ask one concise question before the first Markdown write:
-  `Which language should UTH use for project governance docs? I will save this as the project default.`
+- If `document_language` exists, write new governance docs and closeout reports in that language.
+- If it is missing, ask one concise question before the first Markdown write: `Which language should UTH use for project governance docs? I will save this as the project default.`
 - Save the answer back to `.uth-governance/project.json` as `document_language` before writing other docs.
-- Preserve paths, commands, code identifiers, schema keys, and filenames exactly even when the surrounding prose is localized.
-- If the selected language is `zh-CN`, the closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Written`, or `Verification`.
+- Preserve paths, commands, code identifiers, schema keys, and filenames exactly even when surrounding prose is localized.
+- If the selected language is `zh-CN`, closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Written`, or `Verification`.
 - Do not translate existing documentation wholesale unless the user explicitly requests a language migration.
 - If the user requests a one-off different language, ask whether to update the project default or only this output.
 
@@ -95,6 +172,7 @@ docs/README.md
 docs/_governance/
 docs/current-state.md
 docs/context/
+docs/LW-Work/          # module-split handoff final records only
 docs/work/              # migration or archive preparation only
 docs/archive/
 docs/state/snapshots/
@@ -107,6 +185,7 @@ Forbidden writes:
 ```text
 source code
 tests
+build files
 build outputs
 source/test/build edits of any kind
 skills/
@@ -138,36 +217,22 @@ The guard must check UTF-8 decoding, obvious mojibake, and Markdown fence balanc
 
 Context files may contain:
 
-- module responsibility and non-responsibility.
-- key entry points, dependencies, boundaries, and verification entry points.
-- stable risks that remain true in the current code.
-- short links to relevant ADRs.
-- major task-package links only when they have long-term impact.
+- module responsibility and non-responsibility
+- key entrypoints, dependencies, boundaries, and verification entrypoints
+- stable risks that remain true in current code
+- short links to relevant ADRs
+- major task-package links only when they have long-term impact
 
 Context files must not contain:
 
-- diff logs.
-- worker Prompt text.
-- Feedback or Run Log copies.
-- routine LW records.
-- stale Design/Todo conclusions as current facts.
-- detailed ADR content copied into context.
+- diff logs
+- worker Prompt text
+- Feedback or Run Log copies
+- routine LW records
+- stale Design/Todo conclusions as current facts
+- detailed ADR content copied into context
 
-Module context may include source evidence when it is useful, but context sync must not block on a Git baseline:
-
-```md
-## Source Evidence
-
-- Commit:
-- Source: commit / git range / stable code / workspace changes / code read
-- Updated at:
-```
-
-If the workspace is uncommitted, or the user explicitly asks to sync from workspace changes, record the code/diff source that was actually read or omit the section. Do not delay context or report writeback waiting for a later Git commit.
-
-For `context-bootstrap`, simple or new projects may be split by technical boundary such as frontend, backend, data, and deployment. For complex projects, read enough of the repository to propose module boundaries, then wait for user confirmation before creating module files.
-
-For `context-sync`, update only facts that changed: responsibilities, entry points, dependencies, boundaries, verification routes, or still-valid risks. Do not write a commit-by-commit narrative.
+Context reports must identify source evidence and excluded paths when they support a baseline, scoped sync, or module governance claim.
 
 ## Current-State Rules
 
@@ -176,11 +241,10 @@ For `context-sync`, update only facts that changed: responsibilities, entry poin
 When cleaning it:
 
 - keep only active phase, active task packages, active Todo items, current blockers, recent high-signal changes, latest verification evidence, next step, and current fact sources.
-- remove completed, abandoned, superseded, or stale task indexes unless they are still needed for active routing.
-- replace old facts with current facts from `docs/context/` or stable docs.
+- remove completed, abandoned, superseded, or stale task indexes unless still needed for active routing.
+- replace old facts with current facts from code-backed context or stable docs.
 - do not paste old Feedback, Run Logs, or commit narratives.
-
-Because `uth-docs` is usually called when code is stable, old current-state indexes may be cleaned aggressively when the evidence is clear.
+- never turn `Needs uth-docs confirmation from code facts` into confirmed fact without code evidence.
 
 ## AGENTS.md Rules
 
@@ -224,34 +288,57 @@ Archive completed LW final records. Before moving items, ensure `docs/current-st
 
 ## Onboarding Follow-up
 
-When called from `uth-onboarding` after an existing-project handoff:
+When called from `uth-onboarding existing-project`, `uth-docs onboarding-followup` is the documentation-governance executor for the existing-project takeover transaction.
 
-- read the onboarding snapshot first
-- verify the backup zip path is recorded before migrating old docs
-- classify old docs as current candidate, historical evidence, archive candidate, or discard candidate
-- rebuild or propose `docs/context/` from code facts, not from old task logs alone
-- clean `docs/current-state.md` so old facts do not remain active by accident
-- extract only stable repeated rules from old `AGENTS.md`; do not copy the whole old file into the new one
-- keep the onboarding snapshot as historical handoff evidence
+Required behavior:
+
+1. Read the onboarding handoff snapshot.
+2. Verify the backup zip path is recorded.
+3. Execute full-project baseline from code facts.
+4. Classify every discovered old doc as current candidate, historical evidence, archive candidate, or discard candidate.
+5. Migrate usable old docs into the current UTH layout.
+6. Archive or remove unusable old docs only when the original path exists in the backup zip.
+7. Rebuild or confirm `docs/context/`.
+8. Clean `docs/current-state.md`.
+9. Return takeover completion evidence to `uth-onboarding`.
+
+It must not claim full project documentation governance is complete while old docs remain unclassified, current-state still contains takeover-scope unconfirmed facts, module queues remain unfinished, or active takeover blockers exist.
+
+普通 `uth-docs` modes do not return to `uth-onboarding`. Return completion evidence only when the handoff fields identify an existing-project takeover: `origin_scene=uth-onboarding`, `origin_mode=existing-project`, `handoff_type=existing-project-takeover`, `takeover_session_id=ONBYYMMDDXX`, and `return_to=uth-onboarding`.
 
 ## Closeout
 
-End with a closeout report rendered in the selected `document_language`. The field names below are semantic requirements; localize the labels and prose. For `zh-CN`, use Chinese labels and Chinese prose while keeping literal paths, commands, skill names, and schema values unchanged.
+End with a closeout report rendered in the selected `document_language`. The field names below are semantic requirements; localize labels and prose while preserving literal paths, commands, skill names, and schema values.
 
 ```text
 Mode:
-Read:
-Written:
-Not touched:
+Completion level:
+Code-fact source scope:
+Excluded paths:
+Baseline status:
+Scoped source:
+Impact trace:
+Module split:
+Module current:
+Module completed:
+Module queue:
+Old docs classified:
+Cleanup backup verification:
+Current-state cleanup:
+Context reports:
 UTF-8 guard:
 Document language:
-Current-state cleanup:
-Context source evidence:
-Archived:
-ADR/changelog boundary:
 Verification:
 Next route:
 ```
+
+`Completion level: full-project-docs-complete` is required before saying `项目完整文档治理完成`.
+
+`Completion level: scoped-docs-complete` must be reported as `指定范围文档治理完成`.
+
+For onboarding follow-up, include old-doc classification status, cleanup backup verification, current-state cleanup, context rebuild/confirmation, active takeover blockers, and the evidence returned to `uth-onboarding`.
+
+For module split or module governance, include module split status, current module, completed modules, remaining queue, pause status, and any `docs/LW-Work/LW*.md` handoff record.
 
 `Verification` should normally say documentation-only, no tests/checks run. If Git closure is needed, set `Next route` to `uth-git` and wait for user confirmation.
 

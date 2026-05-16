@@ -143,7 +143,7 @@ Forbidden:
 - creating task packages
 - marking anything complete
 
-If the trace reveals docs are stale or missing, report `Needs uth-docs` or `Needs uth-docs context-sync`; do not fix it here.
+If the trace reveals docs are stale or missing, report `Needs uth-docs` or `Needs uth-docs scoped-sync`; do not fix it here.
 
 ## Closeout
 
