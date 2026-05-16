@@ -1,6 +1,6 @@
 ---
 name: uth-docs
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for standalone documentation governance, documentation cleanup, AGENTS.md or docs/_governance maintenance, current-state cleanup, docs/context bootstrap or sync from commits, git ranges, stable code, or workspace changes, archive cleanup, snapshots, documentation migration, document_language preference persistence before first docs writes, or the automatic follow-up after uth-onboarding existing-project handoff, including explicit uth-docs requests inside an enabled project. Maintains current facts and documentation structure without code edits, tests, Git writes, or skill changes. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for normal development Feedback, debugging fixes, architecture decision content, code review, or Git/release closure.
 ---
 
 # UTH Docs
@@ -14,6 +14,7 @@ This skill governs documentation only. It does not implement code, run tests, co
 If code, tests, or build files would need changes, stop and route to the proper implementation/debug scene. `uth-docs` closeout is documentation-only.
 
 When this scene modifies governed Markdown, use `uth-utf8-guard` before and after the write.
+When this scene writes governed Markdown for the first time in a project, resolve and persist the project documentation language before writing those docs.
 
 ## Modes
 
@@ -36,6 +37,7 @@ Always start with the minimum routing context:
 
 ```text
 AGENTS.md
+.uth-governance/project.json
 docs/README.md
 docs/current-state.md
 docs/_governance/README.md
@@ -54,11 +56,38 @@ Then read only what the selected mode needs:
 
 Do not default to reading all of `docs/`, all task packages, old Design docs, old Feedback, run logs, worker Prompts, or LW records.
 
+## Document Language Preference
+
+Before writing any governed Markdown, read `.uth-governance/project.json` and check `document_language`.
+
+- If `document_language` exists, write new governance docs in that language.
+- If it is missing, ask one concise question before the first Markdown write:
+  `Which language should UTH use for project governance docs? I will save this as the project default.`
+- Save the answer back to `.uth-governance/project.json` as `document_language` before writing other docs.
+- Preserve paths, commands, code identifiers, schema keys, and filenames exactly even when the surrounding prose is localized.
+- Do not translate existing documentation wholesale unless the user explicitly requests a language migration.
+- If the user requests a one-off different language, ask whether to update the project default or only this output.
+
+Use this marker shape:
+
+```json
+{
+  "document_language": {
+    "code": "zh-CN | en-US | bilingual | custom",
+    "label": "Simplified Chinese | English | bilingual | user-specified label",
+    "source": "user-selected",
+    "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
+    "applies_to": "governance-docs"
+  }
+}
+```
+
 ## Write Rules
 
 Allowed writes:
 
 ```text
+.uth-governance/project.json   # document_language only
 AGENTS.md
 README.md
 docs/README.md
@@ -214,6 +243,7 @@ Read:
 Written:
 Not touched:
 UTF-8 guard:
+Document language:
 Current-state cleanup:
 Context source evidence:
 Archived:

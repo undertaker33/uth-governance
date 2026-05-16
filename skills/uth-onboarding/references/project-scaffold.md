@@ -2,6 +2,13 @@
 
 Use this reference only when `uth-onboarding` creates or repairs the minimal project governance scaffold.
 
+## Document Language
+
+Render generated governance docs in the selected project `document_language`
+from `.uth-governance/project.json`. The examples below are semantic templates,
+not mandatory literal English output. Preserve paths, commands, schema keys,
+code identifiers, and filenames exactly.
+
 ## Directory Skeleton
 
 ```text

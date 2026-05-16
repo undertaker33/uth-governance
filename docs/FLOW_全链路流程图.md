@@ -94,14 +94,16 @@ flowchart TD
     B -- "new-project" --> C["读取最小入口<br/>AGENTS / README / docs / 构建配置 / 目录树"]
     B -- "existing-project" --> D["读取最小入口<br/>旧文档结构 / README / 配置 / 少量 git 基线"]
 
-    C --> E["创建最小文档骨架<br/>docs/README / current-state / context / work / LW-Work / _governance"]
+    C --> E0["询问文档语言<br/>写入 project.json document_language"]
+    E0 --> E["创建最小文档骨架<br/>docs/README / current-state / context / work / LW-Work / _governance"]
     E --> F["复制项目本地 Hook<br/>tools/uth-hooks/"]
     F --> G["写 .uth-governance/project.json"]
     G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8"]
     H1 --> H["UTH 最小接管完成"]
 
     D --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
-    I --> J["创建接管快照<br/>docs/snapshots/ONB*-existing-project-handoff.md"]
+    I --> I0["询问文档语言<br/>写入 project.json document_language"]
+    I0 --> J["创建接管快照<br/>docs/snapshots/ONB*-existing-project-handoff.md"]
     J --> K["复制项目本地 Hook<br/>tools/uth-hooks/"]
     K --> L["建立 current-state 初始索引<br/>不读全量源码，不声称全仓理解"]
     L --> M["写 .uth-governance/project.json"]
@@ -269,7 +271,10 @@ flowchart TD
     G --> H
 
     H --> I{"是否要写治理 Markdown？"}
-    I -- "是" --> J["辅助 Skill<br/>uth-utf8-guard<br/>写前 UTF-8 / fence 检查"]
+    I -- "是" --> I0{"project.json 是否已有<br/>document_language？"}
+    I0 -- "否" --> I1["询问用户文档语言<br/>持久化到 project.json"]
+    I0 -- "是" --> J["辅助 Skill<br/>uth-utf8-guard<br/>写前 UTF-8 / fence 检查"]
+    I1 --> J
     I -- "否" --> K["只读输出"]
     J --> L["Hook L2<br/>docs/** / AGENTS.md / README.md 写入范围"]
     L --> M["更新 docs/_governance / current-state / context / archive / snapshots"]

@@ -18,12 +18,14 @@ class TestHookSchemas(unittest.TestCase):
 
         self.assertEqual(data["properties"]["schema"]["const"], "uth-governance-project/v1")
         self.assertIn("entrypoints", data["required"])
+        self.assertIn("document_language", data["properties"])
 
     def test_closeout_evidence_schema_exists(self):
         data = json.loads((HOOK_ROOT / "schemas" / "closeout-evidence.schema.json").read_text(encoding="utf-8"))
 
         self.assertIn("active_scene", data["required"])
         self.assertIn("verification", data["properties"])
+        self.assertIn("document_language_persisted", data["properties"])
 
 
 if __name__ == "__main__":

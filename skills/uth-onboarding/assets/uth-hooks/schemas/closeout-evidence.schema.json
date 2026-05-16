@@ -60,6 +60,18 @@
     "context_source_omitted_reason": {
       "type": "string"
     },
+    "document_language_selected": {
+      "type": "boolean"
+    },
+    "document_language_persisted": {
+      "type": "boolean"
+    },
+    "document_language_available": {
+      "type": "boolean"
+    },
+    "project_marker_document_language": {
+      "type": "boolean"
+    },
     "verification": {
       "type": "object",
       "properties": {

@@ -56,6 +56,8 @@ def check_l3_onboarding(ctx: dict[str, Any]) -> list[dict[str, Any]]:
         findings.append(result("BLOCK", "initial-current-state-missing", "uth-onboarding closeout requires initial docs/current-state.md."))
     if not as_bool(ctx.get("hook_tools_copied")):
         findings.append(result("BLOCK", "hook-tools-missing", "uth-onboarding closeout requires project-local tools/uth-hooks copied."))
+    if has_markdown_doc_change(ctx) and not document_language_ready(ctx):
+        findings.append(result("BLOCK", "document-language-missing", "First governed Markdown writes require a selected and persisted project document_language."))
     if has_markdown_doc_change(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
         findings.append(result("BLOCK", "utf8-guard-missing", "Governed Markdown changes require UTF-8/fence guard evidence."))
     if mode == "existing-project":
@@ -146,6 +148,8 @@ def check_l3_docs(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     if has_code_change(ctx) or as_bool(ctx.get("code_files_modified")):
         findings.append(result("BLOCK", "code-write-in-docs", "uth-docs is documentation-only; route code changes to implementation/debug scenes."))
+    if has_markdown_doc_change(ctx) and not document_language_ready(ctx):
+        findings.append(result("BLOCK", "document-language-missing", "uth-docs Markdown writes require a selected and persisted project document_language."))
     if has_markdown_doc_change(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
         findings.append(result("BLOCK", "utf8-guard-missing", "Governed Markdown changes require UTF-8/fence guard evidence."))
     context_touched = as_bool(ctx.get("context_touched")) or any(path.startswith("docs/context/") for path in get_changed_files(ctx))
@@ -211,3 +215,15 @@ def check_l3_context_trace(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if not ctx.get("recommended_next_scene"):
         findings.append(result("BLOCK", "next-scene-missing", "Context trace should recommend the next scene or state none."))
     return findings
+
+
+def document_language_ready(ctx: dict[str, Any]) -> bool:
+    available = as_bool(ctx.get("document_language_available") or ctx.get("project_marker_document_language"))
+    if available:
+        return True
+    selected = as_bool(ctx.get("document_language_selected"))
+    persisted = as_bool(
+        ctx.get("document_language_persisted")
+        or ctx.get("project_marker_document_language")
+    )
+    return selected and persisted

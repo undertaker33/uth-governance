@@ -557,6 +557,7 @@ BLOCK
 - 已创建 `.uth-governance/project.json`。
 - 已复制项目本地 `tools/uth-hooks/`。
 - 已创建或更新 `docs/current-state.md` 初始索引。
+- 已选择并持久化 `document_language` 到 `.uth-governance/project.json`。
 - 修改治理 Markdown 时已通过 UTF-8 Guard。
 - 没有修改业务源码或测试。
 - 没有执行 Git 写入。
@@ -652,6 +653,7 @@ BLOCK -> 切换 uth-dev 或 uth-debug
 
 - mode 已说明。
 - read / written 已列出。
+- 修改治理 Markdown 前，项目已有 `document_language`，或本次已询问用户并持久化到 `.uth-governance/project.json`。
 - 修改 `AGENTS.md`、根 `README.md`、`docs/**/*.md` 时已通过 UTF-8 Guard。
 - context touched 时提供 `context_source_evidence`，或提供 `context_source_omitted_reason`；不因等待 Git baseline 阻断文档报告。
 - archive touched 时列出迁移前后路径，并确认 current-state 不再列为 active。

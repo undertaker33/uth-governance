@@ -1,6 +1,6 @@
 ---
 name: uth-onboarding
-description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project-level .uth-governance/project.json marker, minimal governance docs, new-project scaffold, or existing-project documentation backup and handoff snapshot. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
+description: Use only when the user explicitly asks to initialize, enable, or take over a project with UTH governance, or when an installation flow explicitly calls project onboarding. Creates the project-level .uth-governance/project.json marker, persists the document_language preference before first docs writes, creates minimal governance docs, new-project scaffold, or existing-project documentation backup and handoff snapshot. Do not use for ordinary development, debugging, review, Git, standalone docs cleanup, or automatic routing in projects that have not been explicitly onboarded.
 ---
 
 # UTH Onboarding
@@ -15,6 +15,7 @@ This skill owns only the first project-level handoff into UTH:
 - create `.uth-governance/project.json`
 - create the minimal docs structure
 - copy bundled hook tools into the target project
+- resolve and persist the project documentation language before the first governed Markdown write
 - protect existing project documentation before changing it
 - create an existing-project handoff snapshot
 - hand existing projects to `uth-docs` for deeper documentation governance
@@ -68,6 +69,31 @@ top-level directory tree
 
 Do not read the full source tree. Onboarding may create only an initial `current-state.md` index; it must not claim full source understanding.
 
+## Document Language Preference
+
+Before the first governed Markdown write in a project, resolve the documentation language.
+
+- If `.uth-governance/project.json` already has `document_language`, use it.
+- If `document_language` is missing, ask one concise question before writing docs:
+  `Which language should UTH use for project governance docs? I will save this as the project default.`
+- Save the answer in `.uth-governance/project.json` as a long-term project fact.
+- Render generated governance docs in the selected language. Preserve paths, commands, code identifiers, schema keys, and filenames exactly.
+- Do not infer the language from the chat language or repository language on first write; ask once and persist it.
+
+Use this marker shape:
+
+```json
+{
+  "document_language": {
+    "code": "zh-CN | en-US | bilingual | custom",
+    "label": "Simplified Chinese | English | bilingual | user-specified label",
+    "source": "user-selected",
+    "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
+    "applies_to": "governance-docs"
+  }
+}
+```
+
 ## Project Marker
 
 After the minimal project handoff succeeds, create:
@@ -85,6 +111,13 @@ Use this shape:
   "onboarded_at": "YYYY-MM-DDTHH:mm:ss+08:00",
   "onboarding_mode": "new-project | existing-project",
   "docs_root": "docs",
+  "document_language": {
+    "code": "zh-CN | en-US | bilingual | custom",
+    "label": "Simplified Chinese | English | bilingual | user-specified label",
+    "source": "user-selected",
+    "selected_at": "YYYY-MM-DDTHH:mm:ss+08:00",
+    "applies_to": "governance-docs"
+  },
   "entrypoints": {
     "agent": "AGENTS.md",
     "docs": "docs/README.md",
@@ -120,13 +153,14 @@ tools/uth-hooks/uth-hook.py
 
 For `new-project`:
 
-1. Create the minimal UTH docs scaffold from `references/project-scaffold.md`.
-2. Copy `assets/uth-hooks/` to target project `tools/uth-hooks/`.
-3. Create a lightweight root `AGENTS.md` only if missing, or append only the minimal project entry if the user allows updating an existing one.
-4. Create `.uth-governance/project.json`.
-5. Create `docs/current-state.md` as an initial index.
-6. Do not invent tech stack, module boundaries, commands, or architecture facts.
-7. Mark unknown facts as `TBD` or `Needs uth-docs`.
+1. Resolve and persist `document_language`.
+2. Create `.uth-governance/project.json` with the selected `document_language`.
+3. Create the minimal UTH docs scaffold from `references/project-scaffold.md`, rendered in the selected language.
+4. Copy `assets/uth-hooks/` to target project `tools/uth-hooks/`.
+5. Create a lightweight root `AGENTS.md` only if missing, or append only the minimal project entry if the user allows updating an existing one.
+6. Create `docs/current-state.md` as an initial index.
+7. Do not invent tech stack, module boundaries, commands, or architecture facts.
+8. Mark unknown facts as `TBD` or `Needs uth-docs`.
 
 Do not create a formal task package during new-project onboarding unless the user explicitly asks.
 
@@ -207,6 +241,7 @@ The handoff condition is:
 - backup zip created
 - handoff snapshot created
 - `.uth-governance/project.json` created
+- `document_language` selected and persisted in `.uth-governance/project.json`
 - `tools/uth-hooks/` copied from bundled assets
 - `docs/current-state.md` created or updated as an initial index
 - old docs and unknown facts marked for follow-up
@@ -293,6 +328,7 @@ Hook tools:
 Backup:
 Snapshot:
 Project marker:
+Document language:
 Current-state:
 Unconfirmed facts:
 UTF-8 guard:

@@ -119,6 +119,9 @@ generation while waiting for Git.
   hook tools globally, or create `.uth-governance/project.json`.
 - `/uth-onboarding` creates the project marker, copies project-local
   `tools/uth-hooks/`, and creates the minimal governance docs scaffold.
+- Before the first governed Markdown write, UTH asks for the project
+  documentation language and saves it in `.uth-governance/project.json` as
+  `document_language`.
 - Other `uth-*` scenes stay silent unless the project has
   `.uth-governance/project.json`, except when the user explicitly asks to enable
   UTH governance for that project.

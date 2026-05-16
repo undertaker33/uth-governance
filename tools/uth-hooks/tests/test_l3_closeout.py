@@ -70,6 +70,60 @@ class TestL3Closeout(unittest.TestCase):
         assert_has(findings, "BLOCK", "lw-final-missing")
 
 
+    def test_onboarding_markdown_requires_document_language(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-onboarding",
+                "mode": "new-project",
+                "project_marker_written": True,
+                "current_state_written": True,
+                "hook_tools_copied": True,
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "document-language-missing")
+
+
+    def test_docs_markdown_requires_document_language(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "document-language-missing")
+
+
+    def test_docs_markdown_accepts_persisted_document_language(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_docs_markdown_accepts_available_document_language(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "document_language_available": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
     def test_light_dev_commit_requires_git_baseline_append(self):
         findings = check_l3_closeout(
             {
