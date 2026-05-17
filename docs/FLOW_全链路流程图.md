@@ -28,8 +28,8 @@ flowchart TD
     A2 --> A3{"existing-project？"}
     A3 -- "是" --> A3a{"enable-only<br/>还是 full-takeover？"}
     A3a -- "enable-only" --> A8["最小启用收口"]
-    A3a -- "full-takeover" --> A4["uth-docs onboarding-followup<br/>full-project-baseline / 旧文档分类 / context"]
-    A4 --> A5{"full-project-docs-complete?"}
+    A3a -- "full-takeover" --> A4["route to uth-docs onboarding-followup<br/>独立 docs 场景执行 baseline / 旧文档分类 / context"]
+    A4 --> A5{"full-project-docs-complete<br/>+ docs scene evidence?"}
     A5 -- "是" --> A6["回到 uth-onboarding<br/>最终接管收口"]
     A5 -- "否" --> A7["blocked / module-split<br/>暂停或 handoff"]
     A3 -- "否" --> A8
@@ -114,8 +114,8 @@ flowchart TD
     K --> L["existing-project preflight<br/>建立 current-state 初始索引"]
     L --> M["写 .uth-governance/project.json"]
     M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state + 输出语言"]
-    M1 --> N["handoff to uth-docs onboarding-followup"]
-    N --> O{"docs_completion_level = full-project-docs-complete?"}
+    M1 --> N["handoff to uth-docs onboarding-followup<br/>stop onboarding preflight"]
+    N --> O{"docs_completion_level = full-project-docs-complete<br/>and docs_scene evidence?"}
     O -- "yes" --> P["return to uth-onboarding final closeout"]
     O -- "blocked or module split" --> Q["pause for user confirmation or next-window handoff"]
 ```
@@ -274,20 +274,22 @@ flowchart TD
     B --> C{"选择模式"}
     C -- "full-project-baseline" --> D["从代码事实建立全项目文档基线"]
     C -- "scoped-sync" --> E["确认 trusted_full_project_baseline<br/>读取指定 diff / range / version / module / file scope"]
-    C -- "module-split" --> F["写 module split report<br/>写 docs/context/README.md 模块索引"]
-    C -- "module-governance" --> G["按已确认模块逐个治理<br/>每完成一个模块暂停"]
+    C -- "module-split" --> F["写 docs/context/00-本地化拆分计划.md<br/>写 docs/context/README.md 模块索引"]
+    C -- "module-governance" --> G["按 00-...md 顺序<br/>连续治理 01-...md 模块"]
     C -- "state/archive/snapshot/migration/rules" --> H["只处理目标文档治理范围"]
 
     D --> I["只读代码事实 / 构建声明 / 入口 / 测试入口 / 旧文档"]
     E --> I
     F --> J["pause for user confirmation"]
     J --> G
-    G --> K{"上下文是否过长？"}
-    K -- "是" --> L["写 LW final record<br/>给出新窗口 handoff prompt"]
-    K -- "否" --> M["写模块 context report"]
+    G --> K{"上下文是否过长<br/>或出现 blocker？"}
+    K -- "上下文过长" --> L["写 LW final record<br/>给出新窗口 handoff prompt"]
+    K -- "可继续" --> M["写模块 context report<br/>更新 module_completed / module_queue"]
+    M --> M2{"module_queue empty?"}
+    M2 -- "否" --> G
+    M2 -- "是" --> N
     H --> N["不跑测试 / 不改代码 / 不执行 Git 写入"]
     I --> N
-    M --> N
     L --> N
 
     N --> O{"是否要写治理 Markdown？"}

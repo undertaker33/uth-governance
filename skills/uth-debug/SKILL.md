@@ -31,7 +31,7 @@ First find the documentation structure entrypoint:
 
 1. Read the repository agent entry, usually `AGENTS.md`, if it exists.
 2. Read the docs entry README, usually `docs/README.md` or another README that explains the docs structure.
-3. Read the current-state index only after the docs entrypoint confirms where it lives, usually `docs/current-state.md`.
+3. Read the current-state index only after `.uth-governance/project.json` `entrypoints.current_state` confirms where it lives.
 4. Follow those entrypoints to the relevant active task package, Design, Todo, Feedback, worker prompts, runs, LW-Work record, ADR, changelog, or context file.
 
 Do not enter `docs/archive/` by default. Use archive only when the user explicitly asks for historical evidence, a task id or LW id is known to be archived, or `uth-context-trace` identifies an archived item as relevant to the bug.
@@ -66,7 +66,7 @@ Default to not reading:
 - unrelated ADRs or changelogs
 - unrelated modules
 
-Historical docs and archived docs are clues, not current facts. They do not override `docs/current-state.md`, `docs/context/`, or stable project docs.
+Historical docs and archived docs are clues, not current facts. They do not override the localized current-state entrypoint, `docs/context/`, or stable project docs.
 
 ## UTH-SP Flow
 
@@ -142,7 +142,7 @@ Allowed when repair is authorized:
 - current task package Todo
 - current task package runs
 - current task package worker prompts
-- `docs/current-state.md` only when current phase, blocker, baseline, or acceptance status changed
+- localized current-state entrypoint only when current phase, blocker, baseline, or acceptance status changed
 - LW-Work final record only when this bug repair has explicitly been routed as lightweight development; Git baseline append belongs to `uth-git` after a successful Git write
 
 Forbidden by default:

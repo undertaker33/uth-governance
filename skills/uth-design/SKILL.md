@@ -92,7 +92,7 @@ First locate the documentation structure:
 
 1. Read the repository agent entry, usually `AGENTS.md`, if it exists.
 2. Read the docs entry README, usually `docs/README.md` or another README that explains the docs structure.
-3. Read the current-state index only after the docs entrypoint confirms where it lives, usually `docs/current-state.md`.
+3. Read the current-state index only after `.uth-governance/project.json` `entrypoints.current_state` confirms where it lives.
 4. Follow those entrypoints to active task packages, Design files, ADRs, context files, or governance writing rules.
 
 Do not enter `docs/archive/` by default. Archived Designs, Todos, Feedback, runs, and LW records are historical evidence only; read them only when the user explicitly asks for prior evidence, the design depends on a known archived task, or `uth-context-trace` identifies a narrow archived source.
@@ -112,7 +112,7 @@ Prefer the smallest useful context set:
 - current-state index
 - active Design/Todo only when continuing an existing task
 - relevant `docs/context/*.md` when the module is clear or linked
-- relevant `docs/architecture.md`, `docs/project-overview.md`, or `docs/development.md` when needed
+- relevant localized architecture, project-overview, or development docs when needed
 - relevant ADRs only for the same decision area
 - archived task evidence only when a known historical decision or design needs comparison
 - related code only when needed to confirm current architecture or risk
@@ -131,7 +131,7 @@ Default to not reading:
 - unrelated changelogs
 - unrelated modules
 
-Historical and archived docs are clues, not current facts. They do not override `docs/current-state.md`, `docs/context/`, accepted ADR status, or stable project docs.
+Historical and archived docs are clues, not current facts. They do not override the localized current-state entrypoint, `docs/context/`, accepted ADR status, or stable project docs.
 
 ## UTH-SP Flow
 
@@ -173,12 +173,12 @@ Do not write prompt files for `planner` or `evaluator`. Worker prompts are a dev
 Allowed in `design-authoring`:
 
 - `docs/work/DYYMMDDXX-任务包标题/00-DYYMMDDXX-design.md`
-- `docs/current-state.md` only as an index update for active task package, active Design, or decision status
+- localized current-state entrypoint only as an index update for active task package, active Design, or decision status
 
 Allowed in `decision-recording`:
 
 - `docs/decisions/ADR-XXXX-中文标题.md`, only after a durable decision is accepted
-- `docs/current-state.md` only as an index update
+- localized current-state entrypoint only as an index update
 
 Forbidden by default:
 
@@ -286,7 +286,7 @@ ADR is decision evidence, not the current fact source.
 
 ## Current-State Rules
 
-Update `docs/current-state.md` only as an index:
+Update the localized current-state entrypoint only as an index:
 
 - active task package changed
 - active Design pointer changed

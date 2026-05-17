@@ -81,6 +81,18 @@
     "document_language_available": {
       "type": "boolean"
     },
+    "document_language_code": {
+      "type": "string"
+    },
+    "project_document_language_code": {
+      "type": "string"
+    },
+    "localized_doc_filenames_applied": {
+      "type": "boolean"
+    },
+    "localized_doc_filenames_omitted_reason": {
+      "type": "string"
+    },
     "project_marker_document_language": {
       "type": "boolean"
     },
@@ -137,6 +149,21 @@
     },
     "docs_followup_completed": {
       "type": "boolean"
+    },
+    "docs_scene_final_record": {
+      "type": "string"
+    },
+    "docs_scene_run_id": {
+      "type": "string"
+    },
+    "docs_followup_final_record": {
+      "type": "string"
+    },
+    "docs_scene_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "return_to_onboarding": {
       "type": "boolean"
@@ -217,14 +244,23 @@
     "module_context_report_written": {
       "type": "boolean"
     },
-    "module_source_evidence": {
+    "module_context_files": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "module_pause_after_each_completed": {
+    "module_split_plan_path": {
+      "type": "string"
+    },
+    "module_order_followed": {
       "type": "boolean"
+    },
+    "module_source_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "paused_for_user_confirmation": {
       "type": "boolean"

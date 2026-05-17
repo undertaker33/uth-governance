@@ -15,8 +15,15 @@ PYTHON_DIRS = [
     ROOT / "tools" / "uth-hooks",
     ROOT / "skills" / "uth-onboarding" / "assets" / "uth-hooks",
 ]
+NO_BOM_GLOBS = [
+    "docs/**/*.md",
+    "skills/**/*.md",
+    "tools/**/*.py",
+    "scripts/**/*.py",
+]
 IGNORED_PARTS = {"__pycache__", ".pytest_cache"}
 IGNORED_FIXTURE_PARTS = {"tests", "fixtures"}
+BOM_UTF8 = b"\xef\xbb\xbf"
 
 
 def run_command(command: list[str], label: str) -> bool:
@@ -55,6 +62,63 @@ def should_skip_compile(path: Path) -> bool:
     return IGNORED_FIXTURE_PARTS <= parts
 
 
+def should_skip_no_bom(path: Path, root: Path = ROOT) -> bool:
+    try:
+        parts = set(path.relative_to(root).parts)
+    except ValueError:
+        parts = set(path.parts)
+    return bool(parts & IGNORED_PARTS)
+
+
+def iter_no_bom_paths(root: Path = ROOT) -> list[Path]:
+    paths: list[Path] = []
+    seen: set[Path] = set()
+    root = root.resolve()
+
+    for raw in (root / "README.md", root / "AGENTS.md"):
+        if raw.exists() and raw.is_file() and not should_skip_no_bom(raw, root):
+            resolved = raw.resolve()
+            paths.append(resolved)
+            seen.add(resolved)
+
+    for pattern in NO_BOM_GLOBS:
+        for path in root.glob(pattern):
+            if not path.is_file() or should_skip_no_bom(path, root):
+                continue
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            paths.append(resolved)
+    return paths
+
+
+def find_bom_files(root: Path = ROOT) -> list[Path]:
+    failures: list[Path] = []
+    for path in iter_no_bom_paths(root):
+        try:
+            if path.read_bytes().startswith(BOM_UTF8):
+                failures.append(path)
+        except OSError:
+            failures.append(path)
+    return failures
+
+
+def check_no_bom() -> bool:
+    print("==> UTF-8 no BOM")
+    failures = find_bom_files(ROOT)
+    if failures:
+        for path in failures:
+            try:
+                display = path.relative_to(ROOT)
+            except ValueError:
+                display = path
+            print(f"FAIL: {display}: UTF-8 BOM is not allowed")
+        return False
+    print(f"PASS: UTF-8 no BOM ({len(iter_no_bom_paths(ROOT))} files)")
+    return True
+
+
 def check_python_syntax() -> bool:
     print("==> Python syntax")
     failures: list[tuple[Path, str]] = []
@@ -89,6 +153,7 @@ def main() -> int:
         run_command([sys.executable, "-m", "unittest", "discover", "-s", "tools/uth-hooks/tests", "-p", "test_*.py"], "hook unit tests"),
         run_command([sys.executable, "scripts/check_assets_sync.py"], "onboarding hook asset sync"),
         check_python_syntax(),
+        check_no_bom(),
     ]
     if not args.skip_git_diff_check:
         checks.append(check_git_diff())

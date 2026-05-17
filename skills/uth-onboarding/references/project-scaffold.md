@@ -7,7 +7,51 @@ Use this reference only when `uth-onboarding` creates or repairs the minimal pro
 Render generated governance docs and scene closeout reports in the selected
 project `document_language` from `.uth-governance/project.json`. The examples
 below are semantic templates, not mandatory literal English output. Preserve
-paths, commands, schema keys, code identifiers, and filenames exactly.
+commands, schema keys, and code identifiers exactly.
+
+Filename policy:
+
+- Keep hard entry filenames in English: `AGENTS.md` and every `README.md`.
+- Keep stable directory names for tooling: `docs/`, `docs/context/`,
+  `docs/work/`, `docs/LW-Work/`, `docs/archive/`, `docs/_governance/`.
+- Name all other generated Markdown files in the selected language.
+- Record actual localized paths in `.uth-governance/project.json`
+  `entrypoints`.
+- Number module context Markdown with two digits: `00-...md`, `01-...md`,
+  ..., `09-...md`, `10-...md`.
+- Do not create `docs/context/00-<localized-module-split>.md` during minimal
+  onboarding. That file is created only by `uth-docs module-split` for a large
+  project after the user allows module splitting.
+
+Examples:
+
+```text
+en-US:
+docs/current-state.md
+docs/project-overview.md
+docs/architecture.md
+docs/development.md
+docs/api-contract.md
+docs/data-model.md
+docs/domain-glossary.md
+docs/ui-guidelines.md
+docs/deployment.md
+docs/context/00-module-split.md
+docs/context/01-backend.md
+
+zh-CN:
+docs/当前状态.md
+docs/项目概览.md
+docs/架构.md
+docs/开发.md
+docs/API契约.md
+docs/数据模型.md
+docs/领域术语.md
+docs/界面规则.md
+docs/部署.md
+docs/context/00-模块拆分.md
+docs/context/01-后端.md
+```
 
 ## Directory Skeleton
 
@@ -17,10 +61,10 @@ tools/
 └─ uth-hooks/
 docs/
 ├─ README.md
-├─ current-state.md
-├─ project-overview.md
-├─ architecture.md
-├─ development.md
+├─ <localized-current-state>.md
+├─ <localized-project-overview>.md
+├─ <localized-architecture>.md
+├─ <localized-development>.md
 ├─ context/
 │  └─ README.md
 ├─ work/
@@ -59,13 +103,13 @@ This file is the repository-level Agent entry. Keep it short.
 - This project is UTH-enabled. Project marker: `.uth-governance/project.json`.
 - For engineering work, use `uth-governance` to route to the correct `uth-*` scene.
 - If the user explicitly invokes `skill-creator`, yield to `skill-creator`.
-- Do not scan all docs by default. Start from `docs/README.md` and `docs/current-state.md`.
+- Do not scan all docs by default. Start from `docs/README.md` and the `entrypoints.current_state` path.
 - Do not perform Git writes unless `uth-git` is active and the user has confirmed the Git plan.
 
 ## Entry Points
 
 - Docs entry: `docs/README.md`
-- Current state: `docs/current-state.md`
+- Current state: `<entrypoints.current_state>`
 - Context index: `docs/context/README.md`
 - Governance rules: `docs/_governance/README.md`
 - Hook runner: `tools/uth-hooks/uth-hook.py`
@@ -80,10 +124,10 @@ Start here before reading project documentation. Read only the sections needed b
 
 ## Current Facts
 
-- `current-state.md`: current state index, not a log.
-- `project-overview.md`: project purpose, stack clues, and high-level boundaries.
-- `architecture.md`: current architecture and module boundaries.
-- `development.md`: local setup, run, build, and verification commands.
+- `<localized-current-state>.md`: current state index, not a log.
+- `<localized-project-overview>.md`: project purpose, stack clues, and high-level boundaries.
+- `<localized-architecture>.md`: current architecture and module boundaries.
+- `<localized-development>.md`: local setup, run, build, and verification commands.
 - `context/`: module-level current facts.
 
 ## Work Evidence
@@ -100,7 +144,7 @@ Start here before reading project documentation. Read only the sections needed b
 - `changelogs/`: release changelogs.
 ```
 
-## docs/current-state.md
+## docs/<localized-current-state>.md
 
 ```md
 # Current Project State
@@ -143,9 +187,9 @@ Updated at: YYYY-MM-DD HH:mm
 ## Current Fact Sources
 
 - `docs/README.md`
-- `docs/project-overview.md`
-- `docs/architecture.md`
-- `docs/development.md`
+- `docs/<localized-project-overview>.md`
+- `docs/<localized-architecture>.md`
+- `docs/<localized-development>.md`
 - `docs/context/README.md`
 
 ## Needs uth-docs
@@ -154,7 +198,7 @@ Updated at: YYYY-MM-DD HH:mm
 - Build or update module context.
 ```
 
-## docs/project-overview.md
+## docs/<localized-project-overview>.md
 
 ```md
 # Project Overview
@@ -184,7 +228,7 @@ TBD
 - TBD
 ```
 
-## docs/architecture.md
+## docs/<localized-architecture>.md
 
 ```md
 # Architecture
@@ -204,7 +248,7 @@ Needs uth-docs confirmation from code facts.
 - TBD
 ```
 
-## docs/development.md
+## docs/<localized-development>.md
 
 ````md
 # Development
@@ -241,6 +285,11 @@ TBD
 `docs/context/` contains module-level current facts.
 
 Do not treat old Design, Feedback, Run Logs, worker Prompts, LW records, archived docs, or ADR bodies as current facts.
+
+Module context files use two-digit prefixes. Reserve `00-...md` for the module
+split plan or context overview; use `01-...md`, `02-...md`, ..., `10-...md`
+for module reports in governance order. Localize the filename text after the
+prefix.
 
 ## Module Map
 
@@ -391,7 +440,7 @@ Use L1 for process, L2 for write/tool scope, and L3 for closeout evidence. Hooks
 ```md
 # State Rules
 
-`docs/current-state.md` is an index, not a log. Keep stale facts out of it.
+The localized current-state entrypoint is an index, not a log. Keep stale facts out of it.
 ```
 
 ```md

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from .common import as_bool, get_paths, match_pattern, matches_any, normalize_path, result
+from .doc_policy import can_govern_global_docs, is_global_docs_markdown_path
 
 def scene_allowed_patterns(ctx: dict[str, Any], config: dict[str, Any]) -> list[str]:
     active_scene = ctx.get("active_scene")
@@ -66,6 +67,9 @@ def check_hard_forbidden(path: str, ctx: dict[str, Any]) -> dict[str, Any] | Non
 
     if match_pattern(path, "docs/archive/**") and active_scene not in {"uth-docs", "uth-onboarding"}:
         return result("BLOCK", "archive-write-blocked", "docs/archive/** is writable only in uth-docs or uth-onboarding.", path)
+
+    if is_global_docs_markdown_path(path) and not can_govern_global_docs(active_scene):
+        return result("BLOCK", "global-doc-write-blocked", "Global docs/*.md governance writes require uth-docs or uth-onboarding.", path)
 
     if match_pattern(path, "docs/decisions/ADR-*.md") and active_scene != "uth-design":
         return result("BLOCK", "adr-write-blocked", "ADR body/status writes require uth-design.", path)

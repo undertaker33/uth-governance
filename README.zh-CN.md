@@ -111,15 +111,16 @@ Git baseline 信息属于 `uth-git` 场景。Git 写入成功后，`uth-git` 会
 - 安装器不会编辑当前项目、创建项目文档、全局安装 hook 工具，也不会创建 `.uth-governance/project.json`。
 - `/uth-onboarding` 创建项目 marker，复制项目本地 `tools/uth-hooks/`，并创建最小治理文档脚手架。
 - 在首次写入治理 Markdown 或生成场景收口报告前，UTH 会询问项目文档语言，并保存到 `.uth-governance/project.json` 的 `document_language` 中。
+- `AGENTS.md` 和每级目录入口 `README.md` 是硬入口文件名，保持英文；其他生成的治理 Markdown 文件名跟随初始化时选择的 `document_language`，并写入 `.uth-governance/project.json` 的 `entrypoints`。
 - 除非项目已经有 `.uth-governance/project.json`，其他 `uth-*` 场景会保持静默；用户显式要求启用 UTH 治理时除外。
 
 ## 老项目接管与文档基线
 
-当用户要求 UTH 接管老项目时，`/uth-onboarding` 是编排者。它先完成安全前置流程，再路由到 `/uth-docs onboarding-followup` 做完整文档治理，最后回到 `/uth-onboarding` 做总收口。
+当用户要求 UTH 接管老项目时，`/uth-onboarding` 是编排者。它先完成安全前置流程，再把控制权路由到独立的 `/uth-docs onboarding-followup` 文档场景并停止 preflight；只有 docs 场景返回完成证据后，才回到 `/uth-onboarding` 做总收口。
 
 `/uth-docs` 是基于代码事实的文档治理窗口。只有已有可信全项目基线时，才允许对指定 diff、range、版本、模块或文件范围输出 `scoped-docs-complete`。只有 `full-project-docs-complete` 才能支撑“项目完整文档治理完成”的声明。
 
-项目过大时，`/uth-docs` 可以进入 `module-split`。它先写入 context 模块索引和拆分报告，停下来等待用户确认，然后逐模块治理。上下文过长时，它必须写轻量 final record，并给出新窗口续跑提示词，让下一个窗口从该记录继续。
+项目过大时，`/uth-docs` 先询问是否允许拆分；用户允许后才进入 `module-split`。它写入带编号的拆分计划，例如 `docs/context/00-module-split.md` 或 `docs/context/00-模块拆分.md`，以及 context 模块索引，停下来等待用户确认；确认后按该顺序连续治理模块，并使用带编号的模块上下文文件（`01-...md`、...、`09-...md`、`10-...md`），模块之间不再暂停确认。上下文过长时，它必须写轻量 final record，并给出新窗口续跑提示词，让下一个窗口从该记录继续。
 
 ## 包内容
 

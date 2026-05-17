@@ -70,15 +70,15 @@ Read:
 
 1. repository agent entry, usually `AGENTS.md`, if it exists
 2. docs structure README, usually `docs/README.md`, if present
-3. current-state index, usually `docs/current-state.md`, if referenced by the docs entrypoint or needed for active task pointers
+3. localized current-state entrypoint, if referenced by `.uth-governance/project.json` or needed for active task pointers
 4. current Todo when reviewing a Todo
 5. diff or user-specified files
 
 Read on demand:
 
 - current Design
-- `docs/architecture.md`
-- `docs/development.md`
+- localized architecture docs
+- localized development docs
 - related `docs/context/*.md`
 - verification instructions from the active task
 - `uth-context-trace` output for Design/Todo/Feedback/worker Prompt/Run/LW evidence chains
@@ -95,7 +95,7 @@ Default to not reading:
 - unrelated ADRs or changelogs
 - unrelated modules
 
-Use historical and archived evidence only to understand task boundary, worker instruction, or delivery evidence. It does not override `docs/current-state.md`, `docs/context/`, or stable project docs.
+Use historical and archived evidence only to understand task boundary, worker instruction, or delivery evidence. It does not override the localized current-state entrypoint, `docs/context/`, or stable project docs.
 
 ## UTH-SP Flow
 
@@ -161,7 +161,7 @@ Source code and test writes are forbidden in `uth-review`, even when a defect is
 Allowed only when explicitly requested or when closing a formal Todo:
 
 - Feedback file, if the user asks to write or supplement delivery feedback
-- `docs/current-state.md`, only when Todo acceptance, blocker, active task state, or verification baseline changed
+- localized current-state entrypoint, only when Todo acceptance, blocker, active task state, or verification baseline changed
 - Run Log, only when verification evidence is important and the current task package needs it
 
 Forbidden by default:

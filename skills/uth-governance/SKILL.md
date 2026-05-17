@@ -119,10 +119,10 @@ For routing, prefer no file reads. If project entry context is necessary, read a
 ```text
 AGENTS.md
 docs/README.md
-docs/current-state.md
+entrypoints.current_state
 ```
 
-Read `docs/current-state.md` only when active task pointers affect routing. Do not read `docs/context/`, old Design/Feedback/Run/Prompt files, `docs/archive/`, ADRs, changelogs, source files, or tests for routing.
+Read the localized current-state entrypoint only when active task pointers affect routing. Do not read `docs/context/`, old Design/Feedback/Run/Prompt files, `docs/archive/`, ADRs, changelogs, source files, or tests for routing.
 
 The selected child skill owns further document loading.
 

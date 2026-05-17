@@ -85,7 +85,7 @@ Also inspect:
 - `git status`
 - diff summary
 - staged vs unstaged changes
-- docs entry README and `docs/current-state.md` only when needed to locate active LW/task/changelog pointers
+- docs entry README and the localized current-state entrypoint only when needed to locate active LW/task/changelog pointers
 - relevant remote and upstream state when push/PR/release is requested
 - changelog/tag state when release or tag is requested
 - lock files if the project defines Git Owner or Workspace Owner locks

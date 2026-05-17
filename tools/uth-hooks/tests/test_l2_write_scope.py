@@ -27,6 +27,32 @@ class TestL2WriteScope(unittest.TestCase):
         assert_has(findings, "BLOCK", "context-write-blocked")
 
 
+    def test_non_docs_scenes_do_not_pass_global_docs_markdown_writes(self):
+        for scene in ("uth-design", "uth-debug", "uth-review"):
+            with self.subTest(scene=scene):
+                findings = check_file_write(
+                    {"active_scene": scene, "paths": ["docs/current-state.md"]},
+                    load_config(),
+                    REPO_ROOT,
+                )
+
+                self.assertFalse(
+                    any(item.get("decision") == "PASS" for item in findings),
+                    findings,
+                )
+                assert_has(findings, "BLOCK", "global-doc-write-blocked")
+
+
+    def test_uth_docs_can_write_global_docs_markdown(self):
+        findings = check_file_write(
+            {"active_scene": "uth-docs", "paths": ["docs/current-state.md"]},
+            load_config(),
+            REPO_ROOT,
+        )
+
+        assert_has(findings, "PASS", "write-allowed")
+
+
     def test_forbidden_writes_override_allowed_writes(self):
         findings = check_file_write(
             {

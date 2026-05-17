@@ -105,6 +105,7 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
@@ -119,6 +120,36 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "document_language_available": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_docs_markdown_requires_concrete_document_language_code_for_filename_policy(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "document-language-code-missing")
+
+
+    def test_en_document_language_allows_default_english_governance_filename(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
@@ -156,7 +187,119 @@ class TestL3Closeout(unittest.TestCase):
                 "utf8_guard_passed": True,
                 "document_language_selected": True,
                 "document_language_persisted": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_zh_document_language_requires_localized_non_entry_doc_filenames(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "localized-doc-filenames-missing")
+
+
+    def test_zh_document_language_blocks_default_english_even_when_applied_flag_true(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "localized_doc_filenames_applied": True,
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "localized-doc-filenames-missing")
+
+
+    def test_zh_document_language_blocks_default_english_module_split_name(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/context/00-module-split.md"],
+                "module_context_files": ["docs/context/00-module-split.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["module split source evidence"],
+            }
+        )
+
+        assert_has(findings, "BLOCK", "localized-doc-filenames-missing")
+
+
+    def test_zh_document_language_allows_hard_entry_filenames(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["AGENTS.md", "docs/README.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_zh_document_language_accepts_localized_non_entry_doc_filenames(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/当前状态.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "localized_doc_filenames_applied": True,
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_zh_document_language_accepts_current_state_localized_filename_without_flag(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/\u5f53\u524d\u72b6\u6001.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+
+    def test_docs_context_numbered_english_module_slug_passes_for_zh_language(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/context/01-backend.md"],
+                "module_context_files": ["docs/context/01-backend.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "zh-CN",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["backend module source"],
             }
         )
 
@@ -202,12 +345,27 @@ class TestL3Closeout(unittest.TestCase):
         findings = check_l3_closeout(
             {
                 "active_scene": "uth-docs",
-                "changed_files": ["docs/context/backend.md"],
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
             }
         )
 
         assert_has(findings, "BLOCK", "context-source-missing")
+
+
+    def test_docs_context_module_files_require_two_digit_numbering(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "changed_files": ["docs/context/backend.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["backend module source"],
+            }
+        )
+
+        assert_has(findings, "BLOCK", "module-context-filename-numbering-invalid")
 
 
     def test_uth_git_plan_only_passes(self):
@@ -234,6 +392,7 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
@@ -252,6 +411,7 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
@@ -298,11 +458,39 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
 
         assert_has(findings, "PASS", "l3-closeout-pass")
+
+    def test_existing_project_full_takeover_preflight_blocks_inline_docs_followup_completion(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-onboarding",
+                "mode": "existing-project",
+                "takeover_scope": "full-takeover",
+                "project_marker_written": True,
+                "current_state_written": True,
+                "hook_tools_copied": True,
+                "backup_zip_created": True,
+                "handoff_snapshot_created": True,
+                "old_docs_unclassified_count": 0,
+                "unconfirmed_entrypoint_count": 0,
+                "next_scene": "uth-docs",
+                "next_mode": "onboarding-followup",
+                "docs_followup_completed": True,
+                "docs_completion_level": "full-project-docs-complete",
+                "return_to_onboarding": True,
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "onboarding-inline-docs-followup")
 
     def test_docs_project_completion_claim_requires_full_project_completion_level(self):
         for claim in (
@@ -407,6 +595,7 @@ class TestL3Closeout(unittest.TestCase):
                         "changed_files": ["docs/context/README.md"],
                         "utf8_guard_passed": True,
                         "project_marker_document_language": True,
+                        "document_language_code": "en-US",
                         "closeout_report_language_applied": True,
                         "context_source_evidence": ["full-project baseline"],
                         **fields,
@@ -496,9 +685,10 @@ class TestL3Closeout(unittest.TestCase):
                 "scoped_source_scope": "git diff HEAD~1..HEAD",
                 "scoped_impact_traced": True,
                 "baseline_still_trusted": True,
-                "changed_files": ["docs/context/backend.md"],
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
                 "context_source_evidence": ["git diff HEAD~1..HEAD"],
             }
@@ -516,9 +706,10 @@ class TestL3Closeout(unittest.TestCase):
                 "scoped_source_scope": "git diff HEAD~1..HEAD",
                 "scoped_impact_traced": True,
                 "baseline_still_trusted": True,
-                "changed_files": ["docs/context/backend.md"],
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
                 "context_source_evidence": ["git diff HEAD~1..HEAD"],
             }
@@ -539,7 +730,7 @@ class TestL3Closeout(unittest.TestCase):
                 "tag": None,
                 "scoped_impact_traced": True,
                 "baseline_still_trusted": True,
-                "changed_files": ["docs/context/backend.md"],
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
                 "closeout_report_language_applied": True,
@@ -571,7 +762,29 @@ class TestL3Closeout(unittest.TestCase):
         assert_has(findings, "BLOCK", "module-context-index-missing")
         assert_has(findings, "BLOCK", "module-split-pause-missing")
 
-    def test_docs_module_governance_requires_pause_after_each_module(self):
+    def test_docs_module_split_allows_zero_prefixed_split_plan(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "mode": "module-split",
+                "module_split_confirmed_by_user": True,
+                "module_split_report_written": True,
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_context_index_written": True,
+                "module_queue": ["backend", "frontend"],
+                "paused_for_user_confirmation": True,
+                "changed_files": ["docs/context/00-module-split.md", "docs/context/README.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["directory tree and build config"],
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+    def test_docs_module_governance_blocks_zero_prefixed_module_context(self):
         findings = check_l3_closeout(
             {
                 "active_scene": "uth-docs",
@@ -581,16 +794,86 @@ class TestL3Closeout(unittest.TestCase):
                 "module_queue": ["frontend"],
                 "module_context_report_written": True,
                 "module_source_evidence": ["backend/src", "backend/pom.xml"],
-                "module_pause_after_each_completed": False,
-                "changed_files": ["docs/context/backend.md"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_order_followed": True,
+                "changed_files": ["docs/context/00-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
                 "context_source_evidence": ["backend module source"],
             }
         )
 
-        assert_has(findings, "BLOCK", "module-governance-pause-missing")
+        assert_has(findings, "BLOCK", "module-context-zero-prefix-reserved")
+
+    def test_docs_module_governance_allows_one_prefixed_module_context(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "mode": "module-governance",
+                "module_current": "backend",
+                "module_completed": ["backend"],
+                "module_queue": ["frontend"],
+                "module_context_report_written": True,
+                "module_source_evidence": ["backend/src", "backend/pom.xml"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_order_followed": True,
+                "changed_files": ["docs/context/01-backend.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["backend module source"],
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+    def test_docs_module_governance_requires_module_split_order_evidence(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "mode": "module-governance",
+                "module_current": "backend",
+                "module_completed": ["backend"],
+                "module_queue": ["frontend"],
+                "module_context_report_written": True,
+                "module_source_evidence": ["backend/src", "backend/pom.xml"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "changed_files": ["docs/context/01-backend.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["backend module source"],
+            }
+        )
+
+        assert_has(findings, "BLOCK", "module-order-evidence-missing")
+
+    def test_docs_module_governance_does_not_pause_between_modules_when_order_followed(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-docs",
+                "mode": "module-governance",
+                "module_current": "backend",
+                "module_completed": ["backend"],
+                "module_queue": ["frontend"],
+                "module_context_report_written": True,
+                "module_source_evidence": ["backend/src", "backend/pom.xml"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_order_followed": True,
+                "changed_files": ["docs/context/01-backend.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+                "context_source_evidence": ["backend module source"],
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
 
     def test_docs_module_governance_requires_completed_state_for_written_report(self):
         findings = check_l3_closeout(
@@ -601,8 +884,9 @@ class TestL3Closeout(unittest.TestCase):
                 "module_queue": ["frontend"],
                 "module_context_report_written": True,
                 "module_source_evidence": ["backend/src", "backend/pom.xml"],
-                "module_pause_after_each_completed": True,
-                "changed_files": ["docs/context/backend.md"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_order_followed": True,
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
                 "closeout_report_language_applied": True,
@@ -621,8 +905,9 @@ class TestL3Closeout(unittest.TestCase):
                 "module_completed": ["backend"],
                 "module_context_report_written": True,
                 "module_source_evidence": ["backend/src", "backend/pom.xml"],
-                "module_pause_after_each_completed": True,
-                "changed_files": ["docs/context/backend.md"],
+                "module_split_plan_path": "docs/context/00-module-split.md",
+                "module_order_followed": True,
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
                 "closeout_report_language_applied": True,
@@ -658,7 +943,7 @@ class TestL3Closeout(unittest.TestCase):
                 "mode": "module-governance",
                 "resumed_from_new_window": True,
                 "read_lw_final_record": False,
-                "changed_files": ["docs/context/backend.md"],
+                "changed_files": ["docs/context/01-backend.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
                 "closeout_report_language_applied": True,
@@ -686,6 +971,7 @@ class TestL3Closeout(unittest.TestCase):
                 "changed_files": ["docs/current-state.md"],
                 "utf8_guard_passed": True,
                 "project_marker_document_language": True,
+                "document_language_code": "en-US",
                 "closeout_report_language_applied": True,
             }
         )
@@ -707,6 +993,35 @@ class TestL3Closeout(unittest.TestCase):
                 "next_scene": "uth-docs",
                 "docs_followup_completed": True,
                 "docs_completion_level": "full-project-docs-complete",
+                "docs_scene_final_record": "docs/LW-Work/LW26051701-docs-takeover.md",
+                "return_to_onboarding": True,
+                "backup_zip_reported_to_user": True,
+                "old_docs_unclassified_count": 0,
+                "active_takeover_blockers": [],
+                "current_state_cleaned": True,
+                "context_rebuilt_or_confirmed": True,
+                "changed_files": ["docs/current-state.md"],
+                "utf8_guard_passed": True,
+                "project_marker_document_language": True,
+                "document_language_code": "en-US",
+                "closeout_report_language_applied": True,
+            }
+        )
+
+        assert_has(findings, "PASS", "l3-closeout-pass")
+
+    def test_onboarding_final_takeover_requires_docs_scene_evidence(self):
+        findings = check_l3_closeout(
+            {
+                "active_scene": "uth-onboarding",
+                "mode": "existing-project",
+                "takeover_scope": "full-takeover",
+                "takeover_final_closeout": True,
+                "project_marker_written": True,
+                "current_state_written": True,
+                "hook_tools_copied": True,
+                "docs_followup_completed": True,
+                "docs_completion_level": "full-project-docs-complete",
                 "return_to_onboarding": True,
                 "backup_zip_reported_to_user": True,
                 "old_docs_unclassified_count": 0,
@@ -720,7 +1035,7 @@ class TestL3Closeout(unittest.TestCase):
             }
         )
 
-        assert_has(findings, "PASS", "l3-closeout-pass")
+        assert_has(findings, "BLOCK", "takeover-docs-scene-evidence-missing")
 
     def test_onboarding_final_takeover_requires_full_takeover_scope(self):
         findings = check_l3_closeout(

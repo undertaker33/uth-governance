@@ -16,6 +16,18 @@ from .common import (
     parse_int,
     result,
 )
+from .doc_policy import (
+    is_default_english_governance_filename,
+    is_context_overview_path,
+    is_governed_markdown_path,
+    is_module_split_plan_context_path,
+    is_module_context_markdown_path,
+    is_non_english_document_language,
+    is_reserved_zero_module_context_path,
+    module_context_filename_numbered,
+    normalize_policy_path,
+    path_basename,
+)
 
 DOCS_COMPLETION_LEVELS = {
     "full-project-docs-complete",
@@ -84,7 +96,6 @@ PROJECT_DOCS_COMPLETION_PHRASES = (
     "\u5168\u9879\u76ee\u6587\u6863\u6cbb\u7406\u5b8c\u6210",
 )
 
-
 def check_l3_closeout(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     scene = ctx.get("active_scene")
     if scene not in L3_SCENES:
@@ -92,7 +103,9 @@ def check_l3_closeout(ctx: dict[str, Any]) -> list[dict[str, Any]]:
 
     findings: list[dict[str, Any]] = []
     findings.extend(check_positive_claim_evidence(ctx))
+    findings.extend(check_document_language_code(ctx))
     findings.extend(check_closeout_report_language(ctx))
+    findings.extend(check_document_filename_language(ctx))
 
     if scene == "uth-onboarding":
         findings.extend(check_l3_onboarding(ctx))
@@ -122,12 +135,12 @@ def check_l3_onboarding(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if not as_bool(ctx.get("project_marker_written")):
         findings.append(result("BLOCK", "project-marker-missing", "uth-onboarding closeout requires .uth-governance/project.json."))
     if not as_bool(ctx.get("current_state_written")):
-        findings.append(result("BLOCK", "initial-current-state-missing", "uth-onboarding closeout requires initial docs/current-state.md."))
+        findings.append(result("BLOCK", "initial-current-state-missing", "uth-onboarding closeout requires initial localized current-state entrypoint evidence."))
     if not as_bool(ctx.get("hook_tools_copied")):
         findings.append(result("BLOCK", "hook-tools-missing", "uth-onboarding closeout requires project-local tools/uth-hooks copied."))
-    if has_markdown_doc_change(ctx) and not document_language_ready(ctx):
+    if has_governed_markdown_write(ctx) and not document_language_ready(ctx):
         findings.append(result("BLOCK", "document-language-missing", "First governed Markdown writes require a selected and persisted project document_language."))
-    if has_markdown_doc_change(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
+    if has_governed_markdown_write(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
         findings.append(result("BLOCK", "utf8-guard-missing", "Governed Markdown changes require UTF-8/fence guard evidence."))
     if mode == "existing-project":
         findings.extend(check_existing_project_takeover_scope(ctx))
@@ -174,6 +187,8 @@ def check_onboarding_full_takeover_preflight(ctx: dict[str, Any]) -> list[dict[s
         findings.append(result("BLOCK", "critical-fact-evidence-missing", "existing-project full-takeover preflight requires explicit unread/unconfirmed/unresolved fact marker/count/list."))
     if not takeover_handoff_paused_or_blocked(ctx) and not is_onboarding_followup_route(ctx):
         findings.append(result("BLOCK", "onboarding-docs-handoff-missing", "existing-project full-takeover preflight must hand off to uth-docs onboarding-followup unless paused or blocked."))
+    if onboarding_inline_docs_followup_claimed(ctx):
+        findings.append(result("BLOCK", "onboarding-inline-docs-followup", "existing-project full-takeover preflight must stop after routing to uth-docs onboarding-followup; docs completion and return evidence must come from the docs scene."))
     return findings
 
 
@@ -184,6 +199,8 @@ def check_onboarding_takeover_final(ctx: dict[str, Any]) -> list[dict[str, Any]]
     findings: list[dict[str, Any]] = []
     if not as_bool(ctx.get("docs_followup_completed")):
         findings.append(result("BLOCK", "takeover-docs-followup-missing", "Final existing-project takeover requires completed uth-docs onboarding-followup evidence."))
+    elif not docs_scene_evidence_present(ctx):
+        findings.append(result("BLOCK", "takeover-docs-scene-evidence-missing", "Final existing-project takeover requires independent uth-docs closeout evidence, such as docs_scene_final_record or docs_scene_run_id."))
     if docs_completion_level(ctx) != "full-project-docs-complete":
         findings.append(result("BLOCK", "takeover-full-docs-completion-missing", "Final existing-project takeover requires docs_completion_level=full-project-docs-complete."))
     if not as_bool(ctx.get("return_to_onboarding")):
@@ -197,7 +214,7 @@ def check_onboarding_takeover_final(ctx: dict[str, Any]) -> list[dict[str, Any]]
     if non_empty_list(ctx, "active_takeover_blockers"):
         findings.append(result("BLOCK", "takeover-active-blockers", "Final existing-project takeover cannot have active takeover blockers."))
     if not as_bool(ctx.get("current_state_cleaned")):
-        findings.append(result("BLOCK", "takeover-current-state-not-cleaned", "Final existing-project takeover requires cleaned docs/current-state.md evidence."))
+        findings.append(result("BLOCK", "takeover-current-state-not-cleaned", "Final existing-project takeover requires cleaned localized current-state entrypoint evidence."))
     if not as_bool(ctx.get("context_rebuilt_or_confirmed")):
         findings.append(result("BLOCK", "takeover-context-not-rebuilt", "Final existing-project takeover requires rebuilt or confirmed docs/context/ evidence."))
     return findings
@@ -277,13 +294,15 @@ def check_l3_docs(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     if has_code_change(ctx) or as_bool(ctx.get("code_files_modified")):
         findings.append(result("BLOCK", "code-write-in-docs", "uth-docs is documentation-only; route code changes to implementation/debug scenes."))
-    if has_markdown_doc_change(ctx) and not document_language_ready(ctx):
+    if has_governed_markdown_write(ctx) and not document_language_ready(ctx):
         findings.append(result("BLOCK", "document-language-missing", "uth-docs Markdown writes require a selected and persisted project document_language."))
-    if has_markdown_doc_change(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
+    if has_governed_markdown_write(ctx) and not as_bool(ctx.get("utf8_guard_passed")):
         findings.append(result("BLOCK", "utf8-guard-missing", "Governed Markdown changes require UTF-8/fence guard evidence."))
     context_touched = as_bool(ctx.get("context_touched")) or any(path.startswith("docs/context/") for path in get_changed_files(ctx))
     if context_touched and not (ctx.get("context_source_evidence") or ctx.get("context_source_omitted_reason")):
         findings.append(result("BLOCK", "context-source-missing", "docs/context changes require source evidence or an explicit omission reason."))
+    findings.extend(check_module_context_filename_numbering(ctx))
+    findings.extend(check_module_context_zero_prefix_reserved(ctx))
     archive_touched = as_bool(ctx.get("archive_touched")) or any(path.startswith("docs/archive/") for path in get_changed_files(ctx))
     if archive_touched:
         if not as_bool(ctx.get("archive_paths_listed")):
@@ -332,7 +351,7 @@ def check_docs_onboarding_followup(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if non_empty_list(ctx, "active_takeover_blockers"):
         findings.append(result("BLOCK", "active-takeover-blockers", "uth-docs onboarding-followup cannot close with active takeover blockers."))
     if not as_bool(ctx.get("current_state_cleaned")):
-        findings.append(result("BLOCK", "takeover-current-state-not-cleaned", "uth-docs onboarding-followup requires cleaned docs/current-state.md."))
+        findings.append(result("BLOCK", "takeover-current-state-not-cleaned", "uth-docs onboarding-followup requires cleaned localized current-state entrypoint."))
     if not as_bool(ctx.get("context_rebuilt_or_confirmed")):
         findings.append(result("BLOCK", "takeover-context-not-rebuilt", "uth-docs onboarding-followup requires rebuilt or confirmed docs/context/."))
     return findings
@@ -372,6 +391,11 @@ def check_docs_module_split(ctx: dict[str, Any]) -> list[dict[str, Any]]:
         findings.append(result("ASK", "module-split-confirmation-missing", "module-split requires user confirmation before proceeding."))
     if not as_bool(ctx.get("module_split_report_written")):
         findings.append(result("BLOCK", "module-split-report-missing", "module-split requires a written split report."))
+    if as_bool(ctx.get("module_split_report_written")) and not text_value(ctx, "module_split_plan_path"):
+        findings.append(result("BLOCK", "module-split-plan-missing", "module-split requires a numbered module split plan path."))
+    split_plan_path = text_value(ctx, "module_split_plan_path")
+    if split_plan_path and not path_basename(split_plan_path).startswith("00-"):
+        findings.append(result("BLOCK", "module-split-plan-numbering-invalid", "module split plan must be numbered with 00-."))
     if not as_bool(ctx.get("module_context_index_written")):
         findings.append(result("BLOCK", "module-context-index-missing", "module-split requires a written module context index."))
     if not non_empty_list(ctx, "module_queue"):
@@ -390,8 +414,11 @@ def check_docs_module_governance(ctx: dict[str, Any]) -> list[dict[str, Any]]:
             findings.append(result("BLOCK", "module-completed-missing", "module context reports require updated module_completed."))
         if "module_queue" not in ctx:
             findings.append(result("BLOCK", "module-queue-state-missing", "module context reports require updated module_queue state."))
-    if non_empty_list(ctx, "module_completed") and not as_bool(ctx.get("module_pause_after_each_completed")):
-        findings.append(result("BLOCK", "module-governance-pause-missing", "module governance must pause after each completed module."))
+    if non_empty_list(ctx, "module_completed") or as_bool(ctx.get("module_context_report_written")):
+        if not text_value(ctx, "module_split_plan_path"):
+            findings.append(result("BLOCK", "module-split-plan-missing", "module governance requires the confirmed numbered module split plan path."))
+        if not as_bool(ctx.get("module_order_followed")):
+            findings.append(result("BLOCK", "module-order-evidence-missing", "module governance must follow the confirmed numbered module split plan order."))
     if as_bool(ctx.get("context_too_long")):
         if not as_bool(ctx.get("lw_final_record_written")):
             findings.append(result("BLOCK", "lw-final-record-missing", "Long-context module governance requires an LW final record."))
@@ -509,6 +536,151 @@ def is_onboarding_followup_route(ctx: dict[str, Any]) -> bool:
     next_scene = text_value(ctx, "next_scene")
     next_mode = text_value(ctx, "next_mode")
     return next_scene == "uth-docs onboarding-followup" or (next_scene == "uth-docs" and next_mode == "onboarding-followup")
+
+
+def onboarding_inline_docs_followup_claimed(ctx: dict[str, Any]) -> bool:
+    return (
+        as_bool(ctx.get("docs_followup_completed"))
+        or as_bool(ctx.get("return_to_onboarding"))
+        or docs_completion_level(ctx) == "full-project-docs-complete"
+        or as_bool(ctx.get("full_project_baseline_completed"))
+        or as_bool(ctx.get("current_state_cleaned"))
+        or as_bool(ctx.get("context_rebuilt_or_confirmed"))
+    )
+
+
+def docs_scene_evidence_present(ctx: dict[str, Any]) -> bool:
+    return (
+        bool(text_value(ctx, "docs_scene_final_record"))
+        or bool(text_value(ctx, "docs_scene_run_id"))
+        or bool(text_value(ctx, "docs_followup_final_record"))
+        or non_empty_list(ctx, "docs_scene_evidence")
+    )
+
+
+def check_document_filename_language(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    if not is_non_english_document_language(document_language_code(ctx)):
+        return []
+    invalid = [
+        path
+        for path in governed_markdown_paths(ctx)
+        if is_default_english_governance_filename(path)
+    ]
+    if not invalid:
+        return []
+    return [
+        result(
+            "BLOCK",
+            "localized-doc-filenames-missing",
+            "Non-entry default English governance Markdown filenames are forbidden for non-English project document_language; AGENTS.md and README.md are the hard filename exceptions.",
+        )
+    ]
+
+
+def check_document_language_code(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    if not has_governed_markdown_write(ctx):
+        return []
+    if document_language_code(ctx):
+        return []
+    return [
+        result(
+            "BLOCK",
+            "document-language-code-missing",
+            "Governed Markdown filename and closeout language enforcement requires a concrete document_language code.",
+        )
+    ]
+
+
+def check_module_context_filename_numbering(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    invalid = [
+        path
+        for path in module_context_markdown_paths(ctx)
+        if not module_context_filename_numbered(path)
+    ]
+    if not invalid:
+        return []
+    return [
+        result(
+            "BLOCK",
+            "module-context-filename-numbering-invalid",
+            "Module context Markdown files must use a two-digit prefix such as 00-, 01-, ..., 09-, 10-.",
+        )
+    ]
+
+
+def check_module_context_zero_prefix_reserved(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    invalid = [
+        path
+        for path in ordinary_module_context_markdown_paths(ctx)
+        if is_reserved_zero_module_context_path(path) and not zero_prefix_context_path_allowed(ctx, path)
+    ]
+    if not invalid:
+        return []
+    return [
+        result(
+            "BLOCK",
+            "module-context-zero-prefix-reserved",
+            "docs/context/00-*.md is reserved for the module split plan or context overview; ordinary module context files must start at 01-.",
+            invalid[0],
+        )
+    ]
+
+
+def zero_prefix_context_path_allowed(ctx: dict[str, Any], path: str) -> bool:
+    if is_context_overview_path(path):
+        return True
+    return (
+        text_value(ctx, "mode") == "module-split"
+        and is_module_split_plan_context_path(path)
+        and normalize_policy_path(path) == normalize_policy_path(text_value(ctx, "module_split_plan_path"))
+    )
+
+
+def document_language_code(ctx: dict[str, Any]) -> str:
+    return text_value(ctx, "document_language_code") or text_value(ctx, "project_document_language_code")
+
+
+def has_governed_markdown_write(ctx: dict[str, Any]) -> bool:
+    return has_markdown_doc_change(ctx) or bool(governed_markdown_paths(ctx))
+
+
+def governed_markdown_paths(ctx: dict[str, Any]) -> list[str]:
+    paths: list[str] = []
+    paths.extend(get_changed_files(ctx))
+    paths.extend(str(path) for path in listify(ctx.get("module_context_files")))
+    split_plan_path = text_value(ctx, "module_split_plan_path")
+    if split_plan_path:
+        paths.append(split_plan_path)
+    return unique_policy_paths(path for path in paths if is_governed_markdown_path(path))
+
+
+def module_context_markdown_paths(ctx: dict[str, Any]) -> list[str]:
+    paths: list[str] = []
+    paths.extend(get_changed_files(ctx))
+    paths.extend(str(path) for path in listify(ctx.get("module_context_files")))
+    split_plan_path = text_value(ctx, "module_split_plan_path")
+    if split_plan_path:
+        paths.append(split_plan_path)
+    return unique_policy_paths(path for path in paths if is_module_context_markdown_path(path))
+
+
+def ordinary_module_context_markdown_paths(ctx: dict[str, Any]) -> list[str]:
+    paths: list[str] = []
+    paths.extend(get_changed_files(ctx))
+    paths.extend(str(path) for path in listify(ctx.get("module_context_files")))
+    return unique_policy_paths(path for path in paths if is_module_context_markdown_path(path))
+
+
+def unique_policy_paths(paths: Any) -> list[str]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        normalized = normalize_policy_path(str(path))
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        unique.append(normalized)
+    return unique
 
 
 def project_docs_completion_claimed(ctx: dict[str, Any]) -> bool:

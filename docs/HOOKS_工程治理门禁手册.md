@@ -557,9 +557,10 @@ BLOCK
 - `existing-project` 必须提供 `takeover_scope=enable-only` 或 `takeover_scope=full-takeover`；`takeover_final_closeout=true` 只能表示 `full-takeover` 总收口。
 - 已创建 `.uth-governance/project.json`。
 - 已复制项目本地 `tools/uth-hooks/`。
-- 已创建或更新 `docs/current-state.md` 初始索引。
+- 已创建或更新 `entrypoints.current_state` 指向的初始索引。
 - 已选择并持久化 `document_language` 到 `.uth-governance/project.json`。
 - 收口报告已按 `document_language` 输出；选择中文时不得使用英文收口字段标签。
+- 已提供真实 `document_language_code` 或 `project_document_language_code`。`localized_doc_filenames_applied` 只是报告字段，不是放行条件；实际文件名是否可接受由文档语言字段、写入路径和例外原因共同解释。
 - 修改治理 Markdown 时已通过 UTF-8 Guard。
 - 没有修改业务源码或测试。
 - 没有执行 Git 写入。
@@ -574,12 +575,14 @@ BLOCK
 - 已显式提供旧文档分类 marker/count/list。
 - 已显式提供未读、未确认或未解决事实 marker/count/list。
 - 下一场景是 `/uth-docs onboarding-followup`，例如 `next_scene="uth-docs onboarding-followup"`，或 `next_scene="uth-docs"` 且 `next_mode="onboarding-followup"`；除非用户明确暂停或当前存在 blocker。
+- 不得同时提供 `docs_followup_completed=true`、`docs_completion_level=full-project-docs-complete`、`return_to_onboarding=true` 或等价 docs 完成证据；preflight 必须在路由到 docs 场景后停止，不能内联执行 docs follow-up。
 
 `existing-project full-takeover` final closeout 必须检查：
 
 - `takeover_final_closeout=true`。
 - `docs_followup_completed=true`。
 - `docs_completion_level=full-project-docs-complete`。
+- 已提供独立 docs 场景证据，例如 `docs_scene_final_record` 或 `docs_scene_run_id`。
 - `return_to_onboarding=true`。
 - 已向用户报告备份压缩包路径。
 
@@ -690,14 +693,22 @@ scoped_impact_traced
 module_split_confirmed_by_user
 module_split_report_written
 module_context_index_written
+module_context_files
+module_split_plan_path
+module_order_followed
 module_queue
 module_completed
-module_pause_after_each_completed
 lw_final_record_written
 handoff_prompt_for_new_window
 cleanup_paths_verified_in_backup_zip
 takeover_final_closeout
 docs_followup_completed
+docs_scene_final_record
+docs_scene_run_id
+document_language_code
+project_document_language_code
+localized_doc_filenames_applied
+localized_doc_filenames_omitted_reason
 return_to_onboarding
 backup_zip_reported_to_user
 takeover_scope
@@ -715,16 +726,22 @@ next_mode
 - `scoped_source_scope`：本次范围同步的指定 diff、range、版本、模块或文件范围。
 - `scoped_impact_traced`：已追踪指定范围对 current-state、context、归档、规则或模块文档的影响。
 - `module_split_confirmed_by_user`：大型项目拆分方案已经用户确认。
-- `module_split_report_written`：已写入模块拆分报告。
+- `module_split_report_written`：已写入带编号和本地化文件名的模块拆分报告，例如 `docs/context/00-module-split.md` 或 `docs/context/00-模块拆分.md`。
 - `module_context_index_written`：已写入 `docs/context/README.md` 模块索引。
+- `module_context_files`：本次写入或更新的模块上下文文件；除 `README.md` 外必须使用两位数字前缀。
+- `module_split_plan_path`：已确认的模块拆分计划路径；必须用 `00-` 前缀。
+- `module_order_followed`：`module-governance` 已按带编号的模块拆分计划指定顺序推进模块治理。
 - `module_queue`：待治理模块队列。
 - `module_completed`：本轮已完成治理的模块列表。
-- `module_pause_after_each_completed`：每完成一个模块后已暂停并等待用户确认是否继续。
 - `lw_final_record_written`：上下文过长或跨窗口接续时，已写入 `docs/LW-Work/LW*.md` 轻量 final record。
 - `handoff_prompt_for_new_window`：已提供新窗口续跑提示词，要求下一窗口先读 LW final record。
 - `cleanup_paths_verified_in_backup_zip`：清理、移动或删除旧文档前，已确认原路径存在于 onboarding 备份压缩包。
 - `takeover_final_closeout`：`uth-onboarding` 正在做老项目 full-takeover 最终收口，而不是 preflight 或 enable-only。
 - `docs_followup_completed`：`uth-docs onboarding-followup` 已完成并返回证据。
+- `docs_scene_final_record` / `docs_scene_run_id`：独立 docs 场景的收口记录或运行标识，用于证明不是 onboarding 内联完成。
+- `document_language_code` / `project_document_language_code`：项目文档语言代码，例如 `zh-CN` 或 `en-US`；必须来自 `.uth-governance/project.json` 或本次持久化的等价项目事实。
+- `localized_doc_filenames_applied`：报告字段，表示调用方声称非硬入口治理 Markdown 文件名已按 `document_language` 本地化；它本身不是 L3 放行条件。
+- `localized_doc_filenames_omitted_reason`：未本地化文件名的明确例外原因，例如迁移旧文件但不重命名。
 - `return_to_onboarding`：`uth-docs` 已把 takeover 结果返回 `uth-onboarding` 做总收口。
 - `backup_zip_reported_to_user`：最终接管报告已向用户报告备份压缩包路径。
 - `takeover_scope`：`existing-project` onboarding 的接管范围，取值为 `enable-only` 或 `full-takeover`。

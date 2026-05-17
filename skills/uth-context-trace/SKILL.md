@@ -57,7 +57,7 @@ Follow structure, not guesses:
 
 1. Read the repository agent entry, usually `AGENTS.md`, if it exists.
 2. Read the docs entry README, usually `docs/README.md` or another README that explains the docs structure.
-3. Read the current-state index only after the docs entrypoint confirms where it lives, usually `docs/current-state.md`.
+3. Read the current-state index only after `.uth-governance/project.json` `entrypoints.current_state` confirms where it lives.
 4. Follow active pointers to current task packages, current Design, current Todo, current facts, or relevant ADRs.
 5. Search only the likely document areas named by the entrypoint, current-state, or user-provided anchor.
 
@@ -110,8 +110,8 @@ Default to not reading:
 Treat current facts as coming from:
 
 - docs entry README
-- `docs/current-state.md`
-- current fact documents such as `docs/context/`, `docs/architecture.md`, `docs/development.md`, contracts, or module docs
+- the localized current-state entrypoint
+- current fact documents such as `docs/context/`, localized architecture/development docs, contracts, or module docs
 - active task package only when current-state points to it
 
 Treat these as historical evidence by default:

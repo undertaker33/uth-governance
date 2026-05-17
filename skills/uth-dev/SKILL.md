@@ -73,7 +73,7 @@ First locate docs structure:
 
 1. Read `AGENTS.md`, if present.
 2. Read the docs entry README, usually `docs/README.md`, if present.
-3. Read `docs/current-state.md`, if located by the docs entrypoint or needed.
+3. Read the localized current-state entrypoint from `.uth-governance/project.json`, if needed.
 4. For formal work, read the current task-package Design and current Todo.
 5. For light work, read only current-state, relevant context, nearby README, code, and tests.
 
@@ -95,7 +95,7 @@ For `light-dev`, read only:
 
 - `AGENTS.md`
 - docs entry README, if present
-- `docs/current-state.md`
+- localized current-state entrypoint
 - relevant `docs/context/*.md`, only when module is clear or entrypoint points there
 - directly related code and tests
 - nearby README or local test instructions
@@ -104,7 +104,7 @@ For `formal-dev` / `todo-implementation`, read:
 
 - `AGENTS.md`
 - docs entry README
-- `docs/current-state.md`
+- localized current-state entrypoint
 - current task-package `00-DYYMMDDXX-design.md`
 - current Todo
 - relevant `docs/context/*.md`
@@ -112,8 +112,8 @@ For `formal-dev` / `todo-implementation`, read:
 
 Read on demand:
 
-- `docs/development.md`
-- `docs/architecture.md`
+- localized development docs
+- localized architecture docs
 - API/data/UI docs relevant to the task
 - current Todo Feedback only for continuation or rework
 - related worker Prompt only for worker handoff or rework
@@ -132,7 +132,7 @@ Default to not reading:
 - unrelated changelog
 - unrelated modules
 
-Historical and archived docs are evidence, not current facts. They do not override `docs/current-state.md`, `docs/context/`, or the active Design/Todo.
+Historical and archived docs are evidence, not current facts. They do not override the localized current-state entrypoint, `docs/context/`, or the active Design/Todo.
 
 ## UTH-SP Flow
 
@@ -278,7 +278,7 @@ Allowed:
 - read accepted `00-DYYMMDDXX-design.md`
 - create `10-*todo*`, `20-*todo*`, etc.
 - define scope, non-goals, acceptance criteria, verification, allowed files, forbidden files
-- update `docs/current-state.md` only as an active Todo/task index
+- update the localized current-state entrypoint only as an active Todo/task index
 
 Forbidden:
 
@@ -354,7 +354,7 @@ Allowed in `formal-dev`:
 - current Todo Feedback
 - current task-package worker prompts
 - current task-package runs, when needed
-- `docs/current-state.md` index updates
+- localized current-state entrypoint index updates
 
 Forbidden by default:
 
@@ -396,7 +396,7 @@ Do not write Run Log for:
 
 ## Current-State Rules
 
-Update `docs/current-state.md` only when:
+Update the localized current-state entrypoint only when:
 
 - active task package changes
 - active Todo changes
@@ -416,7 +416,7 @@ Do not write:
 
 When resuming interrupted formal development:
 
-1. Read `docs/current-state.md`.
+1. Read the localized current-state entrypoint.
 2. Read the active Design.
 3. Read the active Todo.
 4. Read existing Feedback for the active Todo, if present.

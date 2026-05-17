@@ -30,10 +30,10 @@ Choose one mode before reading broadly:
 
 - `full-project-baseline`: build or re-confirm the full project documentation baseline from code facts.
 - `scoped-sync`: sync docs from a specified git diff, git range, commit, tag, version, module, or file scope when a trusted full-project baseline already exists.
-- `module-split`: split a large project into confirmed documentation-governance modules, write the context index/report, then pause for user confirmation.
-- `module-governance`: govern one confirmed module at a time after module split; pause after each completed module.
+- `module-split`: after the user allows a large-project split, write the numbered module split plan such as `docs/context/00-module-split.md` or `docs/context/00-模块拆分.md` plus the context index/report, then pause for user confirmation.
+- `module-governance`: govern confirmed modules in the order specified by the numbered module split plan; do not pause between modules unless blocked or context handoff is required.
 - `onboarding-followup`: continue from `uth-onboarding existing-project` takeover handoff and complete full-project documentation governance.
-- `state-cleanup`: clean `docs/current-state.md` without pretending unconfirmed facts are confirmed.
+- `state-cleanup`: clean the localized current-state entrypoint without pretending unconfirmed facts are confirmed.
 - `archive-cleanup`: archive explicitly completed task packages and LW documents.
 - `rules-maintenance`: update `AGENTS.md`, `docs/_governance/`, or templates.
 - `snapshot`: save a historical state snapshot.
@@ -49,7 +49,7 @@ Always start with the minimum routing context:
 AGENTS.md
 .uth-governance/project.json
 docs/README.md
-docs/current-state.md
+entrypoints.current_state from `.uth-governance/project.json`
 docs/_governance/README.md
 ```
 
@@ -58,14 +58,14 @@ If `.uth-governance/project.json` is missing, stay silent unless the user explic
 Then read only what the selected mode needs:
 
 - full-project-baseline: first-party source, build/dependency/workspace/module declarations, runtime entrypoints, test and verification entrypoints, scripts/local commands, README, AGENTS, docs, old governance docs, and module-local README or architecture docs.
-- scoped-sync: existing trusted baseline evidence, `docs/context/README.md`, affected module context files, the explicit diff/range/commit/tag/version/module/file scope, and code/docs needed to trace the impact.
+- scoped-sync: existing trusted baseline evidence, `docs/context/README.md`, affected numbered module context files, the explicit diff/range/commit/tag/version/module/file scope, and code/docs needed to trace the impact.
 - module-split: directory structure, build configuration, module declarations, entrypoint files, existing docs, and enough source to identify candidate module boundaries.
-- module-governance: confirmed module split report, module queue, current module source/config/entrypoints/tests/scripts/docs, and cross-module dependency evidence.
-- onboarding-followup: onboarding handoff snapshot, backup zip record, old docs named by the snapshot, full-project baseline sources, `docs/context/`, and `docs/current-state.md`.
-- state-cleanup: `docs/current-state.md`, active package indexes, and current context files as needed.
-- archive-cleanup: `docs/current-state.md`, completed `docs/work/D*` packages, and completed `docs/LW-Work/LW*` docs.
+- module-governance: confirmed numbered module split plan, module queue, current module source/config/entrypoints/tests/scripts/docs, and cross-module dependency evidence.
+- onboarding-followup: onboarding handoff snapshot, backup zip record, old docs named by the snapshot, full-project baseline sources, `docs/context/`, and the localized current-state entrypoint.
+- state-cleanup: localized current-state entrypoint, active package indexes, and current context files as needed.
+- archive-cleanup: localized current-state entrypoint, completed `docs/work/D*` packages, and completed `docs/LW-Work/LW*` docs.
 - rules-maintenance: relevant `AGENTS.md`, `docs/_governance/`, templates, and user-specified files.
-- snapshot: `docs/current-state.md` plus minimum source documents needed to describe the snapshot.
+- snapshot: localized current-state entrypoint plus minimum source documents needed to describe the snapshot.
 - migration: old source docs, target templates, and enough code facts to avoid migrating stale facts as current truth.
 
 Full-project baseline reads exclude `.git/`, dependency folders, build outputs, caches, generated artifacts, and binary assets unless a binary asset is itself the documentation object under governance.
@@ -83,7 +83,7 @@ Build a trustworthy baseline from code facts:
 - application and local-development entrypoints
 - verification entrypoints
 - documentation conflicts and stale facts
-- current `docs/context/` and `docs/current-state.md` status
+- current `docs/context/` and localized current-state status
 
 Old documents are evidence, not authority. Keep facts only when current code evidence supports them. If a full baseline cannot be completed in the current window, return `blocked` or enter `module-split` after user confirmation.
 
@@ -100,22 +100,25 @@ If any condition is missing, first run `full-project-baseline` or pause with `bl
 
 ## Large Project Module Split
 
-When the project is too large to establish a full baseline reliably in one window, explain the blocker and ask whether the user allows module split.
+When the project is too large to establish a full baseline reliably in one window, explain the blocker and ask whether the user allows module split. Do not write the split plan before that approval.
 
 After the user allows module split:
 
 1. Read enough structure, build config, module declarations, entrypoints, and docs to identify candidate module boundaries.
-2. Write or update `docs/context/README.md`, the module index, split rationale, and necessary context report.
-3. Report module list, responsibility assumptions, primary entrypoints, dependency traces, open confirmation questions, and recommended governance order.
-4. Pause for user confirmation.
+2. Write or update a numbered module split plan with the module order, split rationale, source evidence, assumptions, and unfinished queue. Use `docs/context/00-module-split.md` for `en-US`; use `docs/context/00-模块拆分.md` for `zh-CN`; use the selected language for custom labels. Reserve the `00-` prefix for this split plan or context overview.
+3. Write or update `docs/context/README.md`, the module index, and any necessary context report.
+4. Report module list, responsibility assumptions, primary entrypoints, dependency traces, open confirmation questions, and recommended governance order.
+5. Pause for user confirmation of the split result.
 
-After confirmation, use `module-governance` one module at a time. For each module:
+After confirmation, use `module-governance` and follow the numbered module split plan in order. Continue through the queue without pausing after each module. For each module:
 
 - write its module context report
+- name the module context report with a two-digit prefix in queue order: `01-...md` through `09-...md`, then `10-...md`, `11-...md`, and so on
 - record code-fact source scope and excluded paths
 - update `module_completed`, `module_current`, and `module_queue`
 - note cross-module dependencies that still need later confirmation
-- pause for user confirmation before the next module
+
+Pause only when a blocker requires user input, the module split itself needs revision, or the context is too long to continue responsibly.
 
 If context is too long, write a `docs/LW-Work/LW*.md` final record and provide a new-window prompt. The final record must include the original request, current goal, confirmed split, completed modules and context files, unfinished module queue, current module status, and next-step prompt. The new window must read that LW final record first before continuing.
 
@@ -141,7 +144,10 @@ Before writing any governed Markdown, read `.uth-governance/project.json` and ch
 - If `document_language` exists, write new governance docs and closeout reports in that language.
 - If it is missing, ask one concise question before the first Markdown write: `Which language should UTH use for project governance docs? I will save this as the project default.`
 - Save the answer back to `.uth-governance/project.json` as `document_language` before writing other docs.
-- Preserve paths, commands, code identifiers, schema keys, and filenames exactly even when surrounding prose is localized.
+- Preserve commands, code identifiers, and schema keys exactly even when surrounding prose is localized.
+- Keep hard entry filenames in English: `AGENTS.md` and every directory entry `README.md`.
+- Name all other generated governance Markdown files in the selected `document_language`; for `zh-CN`, use Chinese basenames such as `docs/当前状态.md`, `docs/API契约.md`, `docs/数据模型.md`, `docs/领域术语.md`, `docs/界面规则.md`, and `docs/部署.md`; for `en-US`, use English basenames such as `docs/current-state.md`.
+- For module context files, combine the required numeric prefix with the localized basename, for example `docs/context/01-backend.md` or `docs/context/01-后端.md`.
 - If the selected language is `zh-CN`, closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Written`, or `Verification`.
 - Do not translate existing documentation wholesale unless the user explicitly requests a language migration.
 - If the user requests a one-off different language, ask whether to update the project default or only this output.
@@ -170,7 +176,7 @@ AGENTS.md
 README.md
 docs/README.md
 docs/_governance/
-docs/current-state.md
+entrypoints.current_state from `.uth-governance/project.json`
 docs/context/
 docs/LW-Work/          # module-split handoff final records only
 docs/work/              # migration or archive preparation only
@@ -215,6 +221,8 @@ The guard must check UTF-8 decoding, obvious mojibake, and Markdown fence balanc
 
 `docs/context/` is the module-level current-facts layer. It is maintained only by this documentation-governance window.
 
+Module context Markdown files must be numbered with a two-digit prefix. Reserve `00-...md` for the module split plan or context overview, then use `01-...md` through `09-...md`, `10-...md`, and onward for module reports in governance order. `docs/context/README.md` remains the hard entry index and is not numbered.
+
 Context files may contain:
 
 - module responsibility and non-responsibility
@@ -236,7 +244,7 @@ Context reports must identify source evidence and excluded paths when they suppo
 
 ## Current-State Rules
 
-`docs/current-state.md` is a current-state index, not a log.
+The localized current-state entrypoint is a current-state index, not a log. Read the actual path from `.uth-governance/project.json` `entrypoints.current_state`.
 
 When cleaning it:
 
@@ -284,7 +292,7 @@ docs/archive/
     +-- LWYYMMDDXX-light-task-title.md
 ```
 
-Archive completed LW final records. Before moving items, ensure `docs/current-state.md` no longer treats them as active. After moving items, update indexes and links that still point to the old location.
+Archive completed LW final records. Before moving items, ensure the localized current-state entrypoint no longer treats them as active. After moving items, update indexes and links that still point to the old location.
 
 ## Onboarding Follow-up
 
@@ -299,10 +307,12 @@ Required behavior:
 5. Migrate usable old docs into the current UTH layout.
 6. Archive or remove unusable old docs only when the original path exists in the backup zip.
 7. Rebuild or confirm `docs/context/`.
-8. Clean `docs/current-state.md`.
+8. Clean the localized current-state entrypoint.
 9. Return takeover completion evidence to `uth-onboarding`.
 
 It must not claim full project documentation governance is complete while old docs remain unclassified, current-state still contains takeover-scope unconfirmed facts, module queues remain unfinished, or active takeover blockers exist.
+
+The closeout returned to onboarding must include independent docs-scene evidence, such as `docs_scene_final_record`, `docs_scene_run_id`, or equivalent docs-scene closeout evidence, plus `docs_followup_completed=true`, `docs_completion_level=full-project-docs-complete`, and `return_to_onboarding=true`.
 
 普通 `uth-docs` modes do not return to `uth-onboarding`. Return completion evidence only when the handoff fields identify an existing-project takeover: `origin_scene=uth-onboarding`, `origin_mode=existing-project`, `handoff_type=existing-project-takeover`, `takeover_session_id=ONBYYMMDDXX`, and `return_to=uth-onboarding`.
 
@@ -319,6 +329,10 @@ Baseline status:
 Scoped source:
 Impact trace:
 Module split:
+Module split plan:
+Module context numbering:
+Filename language policy:
+Module order followed:
 Module current:
 Module completed:
 Module queue:

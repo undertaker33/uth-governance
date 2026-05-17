@@ -126,17 +126,20 @@ generation while waiting for Git.
 - Before the first governed Markdown write or scene closeout report, UTH asks
   for the project documentation language and saves it in
   `.uth-governance/project.json` as `document_language`.
+- Hard entry filenames stay stable as `AGENTS.md` and every directory-entry `README.md`; generated
+  governance Markdown filenames follow the selected `document_language` and are
+  recorded in `.uth-governance/project.json` `entrypoints`.
 - Other `uth-*` scenes stay silent unless the project has
   `.uth-governance/project.json`, except when the user explicitly asks to enable
   UTH governance for that project.
 
 ## Existing Project Takeover And Docs Baselines
 
-When the user asks UTH to take over an existing project, `/uth-onboarding` is the orchestrator. It performs preflight safety work, routes to `/uth-docs onboarding-followup` for full documentation governance, then resumes for final takeover closeout.
+When the user asks UTH to take over an existing project, `/uth-onboarding` is the orchestrator. It performs preflight safety work, routes to `/uth-docs onboarding-followup` as a separate docs scene, stops preflight, then resumes for final takeover closeout only after docs-scene completion evidence returns.
 
 `/uth-docs` is the code-fact documentation governance window. It may report `scoped-docs-complete` for a specified diff, range, version, module, or file scope only when a trusted full-project baseline already exists. Only `full-project-docs-complete` supports the claim that project documentation governance is complete.
 
-For large projects, `/uth-docs` may enter `module-split`. It writes the context module index and split report, pauses for user confirmation, then governs modules one by one. If the context becomes too long, it writes a lightweight final record and gives the user a new-window prompt so the next window can resume from that record.
+For large projects, `/uth-docs` asks whether module split is allowed before entering `module-split`. After approval it writes a numbered module split plan such as `docs/context/00-module-split.md` or `docs/context/00-模块拆分.md` and the context module index, pauses for user confirmation, then governs modules in that order with numbered module context files (`01-...md`, ..., `09-...md`, `10-...md`) without pausing between modules. If the context becomes too long, it writes a lightweight final record and gives the user a new-window prompt so the next window can resume from that record.
 
 ## Package Contents
 
