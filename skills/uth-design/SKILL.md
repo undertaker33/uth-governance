@@ -335,8 +335,12 @@ End with:
 - current-state update: yes / no
 - UTF-8 guard result for governed Markdown writes
 - `Needs uth-docs scoped-sync`, if applicable
-- next scene: none / `uth-dev` / `uth-review` / `uth-docs` / `uth-debug`
+- Git-closure decision: not suggested / suggested, waiting for user / user handed off to `uth-git`
+- Git status: not executed in this scene
+- next scene: none / `uth-dev` / `uth-review` / `uth-docs` / `uth-debug` / `uth-git`
 
 If no files were changed, say `read-only, no files modified`.
+
+Always evaluate and report Git closure after design closeout. For read-only evaluation, the decision is normally `not suggested`. For stable Design, ADR, or user-confirmed design-assisted patch output, decide whether Git closure should be suggested. Enter `uth-git` only after the user explicitly agrees.
 
 Never imply implementation has started or succeeded from this scene.

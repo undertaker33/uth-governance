@@ -195,4 +195,4 @@ End with a compact report:
 
 Never claim fixed, passing, or complete without fresh verification evidence. If verification was not run, say so plainly.
 
-Git closure is considered only after debug closeout. Do not suggest Git closure for read-only diagnosis. For independent light repair, evaluate Git closure after the repair is verified. For a repair inside a formal task package, use the Design-level human acceptance boundary, not the individual Todo boundary. Enter `uth-git` only after the user explicitly agrees.
+Always evaluate and report Git closure after debug closeout. For read-only diagnosis, the decision is normally `not suggested`. For independent light repair, evaluate Git closure after the repair is verified. For a repair inside a formal task package, use the Design-level human acceptance boundary, not the individual Todo boundary. Enter `uth-git` only after the user explicitly agrees.

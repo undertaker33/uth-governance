@@ -142,7 +142,7 @@ flowchart TD
     K --> L
     L --> M["按需更新 current-state<br/>只做索引"]
     M --> N["Hook L3<br/>设计文档存在、范围清楚、未伪造验证"]
-    H --> O["收口：评估结论 / 风险 / 是否交给 uth-dev"]
+    H --> O["收口：评估结论 / 风险 / 是否交给 uth-dev<br/>Git 收口判断：通常不建议"]
     N --> P{"是否形成稳定可提交的设计成果？"}
     P -- "是" --> Q["建议 Git 收口<br/>询问用户是否进入 uth-git"]
     P -- "否" --> O
@@ -151,7 +151,7 @@ flowchart TD
     R -- "否" --> O
 ```
 
-补充：`uth-design` 默认不写 Todo；Todo 拆分由 `uth-dev` 负责。设计场景如经用户确认做少量代码补丁，必须走 L2 写入范围和 L3 代码强验证。设计场景是否建议 Git 收口由 Agent 判断，但进入 `uth-git` 仍需用户确认。
+补充：`uth-design` 默认不写 Todo；Todo 拆分由 `uth-dev` 负责。设计场景如经用户确认做少量代码补丁，必须走 L2 写入范围和 L3 代码强验证。设计场景收口必须写出 Git 收口判断；只读评估通常不建议，稳定设计成果才建议；进入 `uth-git` 仍需用户确认。
 
 ## 4. uth-dev 增量开发
 
@@ -228,8 +228,8 @@ flowchart TD
     Q --> R["Hook L3<br/>修复证据 + 0 warning / 0 exception 或用户豁免"]
     R --> S["写 Feedback / Todo / Run Log<br/>仅当有正式任务或需要证据"]
     S --> T{"是否达到人类验收口径？"}
-    T -- "只读诊断" --> U["不触发 Git 收口"]
-    T -- "正式任务包未到 Design 验收" --> V["不触发 Git 收口<br/>继续任务包流程"]
+    T -- "只读诊断" --> U["触发 Git 收口判断：不建议"]
+    T -- "正式任务包未到 Design 验收" --> V["触发 Git 收口判断：不建议<br/>继续任务包流程"]
     T -- "独立轻量修复完成" --> W["触发 Git 收口判断"]
     T -- "正式任务包 Design 验收达成" --> W
     W --> X["询问用户是否进入 uth-git"]
@@ -304,6 +304,15 @@ flowchart TD
     U -- "scoped-docs-complete" --> W["只声明指定范围文档治理完成"]
     U -- "blocked" --> X["列出 blocker 和下一路由"]
     U -- "partial/paused" --> Y["暂停 / 等确认 / 新窗口接续"]
+    V --> Z{"Git 收口判断<br/>是否建议进入 uth-git？"}
+    W --> Z
+    X --> Z
+    Y --> Z
+    Z -- "不建议" --> ZA["docs 场景收口<br/>Git 未执行"]
+    Z -- "建议" --> ZB["询问用户是否进入 uth-git"]
+    ZB --> ZC{"用户确认？"}
+    ZC -- "否" --> ZA
+    ZC -- "是" --> ZD["交给 uth-git"]
 ```
 
 说明：`uth-docs` 通常不调用 UTH-SP / Superpower；若文档治理目标、范围或验收不清，可以由场景内判断进入 `uth-sp-brainstorming`。

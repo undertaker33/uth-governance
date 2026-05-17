@@ -343,6 +343,8 @@ Context reports:
 UTF-8 guard:
 Document language:
 Verification:
+Git-closure decision:
+Git status:
 Next route:
 ```
 
@@ -354,6 +356,6 @@ For onboarding follow-up, include old-doc classification status, cleanup backup 
 
 For module split or module governance, include module split status, current module, completed modules, remaining queue, pause status, and any `docs/LW-Work/LW*.md` handoff record.
 
-`Verification` should normally say documentation-only, no tests/checks run. If Git closure is needed, set `Next route` to `uth-git` and wait for user confirmation.
+`Verification` should normally say documentation-only, no tests/checks run. Always evaluate and report Git closure at docs closeout. The decision may be `not suggested` for read-only or blocked docs work; when docs changes form a stable committable artifact or the user requested Git closure, report `suggested` and ask whether to enter `uth-git`. Do not enter `uth-git` until the user explicitly agrees.
 
 Never claim code was verified from this scene. If documentation changes reveal code drift, mark `Needs implementation/debug/review route` instead of editing code.
