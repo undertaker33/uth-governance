@@ -1,407 +1,148 @@
 # UTH Governance 全链路流程图
 
-本文件画 UTH Governance 的纵向流程图谱。这里的 `UTH-SP` 指改造后保留在本包内的 `uth-sp-*` 方法 Skill，也就是从 Superpower 流程中拆出并纳入 UTH 调度的成熟方法流程。
-
-详细规则仍以各场景 Skill、`docs/AGENT_工程治理启动手册.md`、`docs/HOOKS_工程治理门禁手册.md` 和 `docs/TEMPLATES_工程治理模板.md` 为准。
-
-## 0. 安装与项目启用边界
+## 0. 安装与启用边界
 
 ```mermaid
 flowchart TD
-    A["用户要求安装 UTH Governance"] --> B["clone / checkout<br/>uth-governance pack"]
-    B --> C["scripts/install.py<br/>只安装全局 skills"]
-    C --> D["全局 skills 可被 Agent 发现<br/>uth-* / uth-sp-*"]
-    D --> E{"用户是否在目标项目<br/>显式调用 /uth-onboarding？"}
-    E -- "否" --> F["不创建项目文档<br/>不创建 .uth-governance/<br/>不安装全局 Hook"]
-    E -- "是" --> G["uth-onboarding<br/>项目启用 / 新项目初始化 / 老项目接管"]
-    G --> H["复制项目本地 Hook<br/>tools/uth-hooks/"]
-    H --> I["创建项目标记<br/>.uth-governance/project.json"]
-    I --> J["其他 uth-* 场景开始自动路由"]
+    A["安装 UTH Governance"] --> B["checkout pack"]
+    B --> C["scripts/install.py"]
+    C --> D["安装全局 skills"]
+    D --> E{"显式 uth-onboarding?"}
+    E -- "否" --> F["不初始化项目"]
+    F --> F1["不建 .uth-governance"]
+    F --> F2["不复制 hooks"]
+    E -- "是" --> G["uth-onboarding"]
+    G --> H["复制 tools/uth-hooks"]
+    H --> I["写 project.json"]
+    I --> J["启用 uth-* 路由"]
 ```
 
-## 1. 全链路总览
+## 1. 总览路由
 
 ```mermaid
 flowchart TD
-    A["用户提出工程任务"] --> A1{"显式 uth-onboarding<br/>或 UTH 启用/接管？"}
-    A1 -- "是" --> A2["uth-onboarding<br/>项目启用 / 新项目初始化 / 老项目接管"]
-    A2 --> A3{"existing-project？"}
-    A3 -- "是" --> A3a{"enable-only<br/>还是 full-takeover？"}
-    A3a -- "enable-only" --> A8["最小启用收口"]
-    A3a -- "full-takeover" --> A4["route to uth-docs onboarding-followup<br/>独立 docs 场景执行 baseline / 旧文档分类 / context"]
-    A4 --> A5{"full-project-docs-complete<br/>+ docs scene evidence?"}
-    A5 -- "是" --> A6["回到 uth-onboarding<br/>最终接管收口"]
-    A5 -- "否" --> A7["blocked / module-split<br/>暂停或 handoff"]
-    A3 -- "否" --> A8
-    A1 -- "否" --> B["uth-governance<br/>顶层场景路由"]
-    B --> B0{"是否存在<br/>.uth-governance/project.json？"}
-    B0 -- "否" --> B1["UTH 静默<br/>按普通 Codex 行为"]
-    B0 -- "是" --> C{"是否有工程动作？"}
-    C -- "否" --> C1["正常回答<br/>不触发 UTH / UTH-SP"]
-    C -- "是" --> D{"场景是否明确？"}
-    D -- "否" --> D1["停下澄清一个问题"]
-    D1 --> B
-    D -- "是" --> E["进入对应 uth-* 子 Skill"]
-
-    E --> F["最小上下文装载<br/>AGENTS / docs README / current-state / 相关任务包"]
-    F --> G{"场景内是否有需求、范围、方案、验收歧义？"}
-    G -- "是" --> H["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
-    G -- "否" --> I["记录 UTH-SP 触发判断"]
-    H --> I
-
-    I --> J["Hook L1 Process Gate<br/>场景 / 歧义 / UTH-SP 判断 / worker Prompt"]
-    J --> K["场景内执行<br/>design / dev / debug / review / docs / git"]
-    K --> L["Hook L2 Tool Gate<br/>写入范围 / Git / UTF-8 / 脚本守卫"]
-    L --> M["按场景写回文档<br/>Design / Todo / Feedback / LW-Work / current-state / context"]
-    M --> N["Hook L3 Closeout Gate<br/>完成证据 / 强验证 / 输出语言 / 豁免"]
-    N --> O{"是否达到人类验收口径<br/>并建议 Git 收口？"}
-    O -- "否" --> P["场景收口"]
-    O -- "是" --> Q["询问用户是否进入 uth-git"]
-    Q --> R{"用户确认？"}
-    R -- "否" --> P
-    R -- "是" --> S["uth-git<br/>计划 / 用户确认 / Git 写入 / 远端验证"]
-    S --> P
+    A["用户工程请求"] --> B{"显式启用/接管?"}
+    B -- "是" --> C["uth-onboarding"]
+    B -- "否" --> D["uth-governance"]
+    D --> E{"有 project.json?"}
+    E -- "否" --> F["UTH 静默"]
+    E -- "是" --> G{"工程动作?"}
+    G -- "否" --> H["普通回答"]
+    G -- "是" --> I{"场景明确?"}
+    I -- "否" --> J["澄清/brainstorming"]
+    I -- "是" --> K["进入 uth-*"]
+    K --> L{"场景"}
+    L --> D1["uth-design"]
+    L --> D2["uth-dev"]
+    L --> D3["uth-debug"]
+    L --> D4["uth-review"]
+    L --> D5["uth-docs"]
+    L --> D6["uth-context-trace"]
+    L --> D7["uth-git"]
 ```
 
-## 2. uth-governance 场景路由
+## 2. 场景内执行
 
 ```mermaid
 flowchart TD
-    A["会话或任务开始"] --> B{"用户显式调用 skill-creator？"}
-    B -- "是" --> B1["让路给 skill-creator<br/>不进入 UTH"]
-    B -- "否" --> C{"显式 uth-onboarding<br/>或 UTH 启用/接管？"}
-    C -- "是" --> C1["进入 uth-onboarding"]
-    C -- "否" --> C2{"项目是否有<br/>.uth-governance/project.json？"}
-    C2 -- "否" --> C3["UTH 静默<br/>不路由其他 uth-*"]
-    C2 -- "是" --> D{"用户显式指定 uth-*？"}
-    D -- "是" --> D1["直接进入指定子 Skill"]
-    D -- "否" --> E{"是否有工程动作信号？"}
-    E -- "否" --> E1["正常回答<br/>不触发 UTH-SP"]
-    E -- "是" --> F["分层判断场景"]
-    F --> G{"唯一场景命中？"}
-    G -- "是" --> H["输出简短场景判定<br/>进入子 Skill"]
-    G -- "否，多场景" --> I["选择第一个执行场景<br/>后续场景留到收口交接"]
-    G -- "否，不明确" --> J["停下问一个澄清问题"]
-
-    H --> K["Hook L1<br/>scene_declared / no_engineering_action / scene_ambiguous"]
-    I --> K
-    J --> L["不读全量 docs<br/>不直接开工"]
+    A["uth-* 场景"] --> B["最小上下文"]
+    B --> C{"需求/范围清楚?"}
+    C -- "否" --> D["uth-sp-brainstorming"]
+    D --> C
+    C -- "是" --> E["L1 过程门"]
+    E --> F["L2 写前/工具门"]
+    F --> G["执行/写回"]
+    G --> H["写后守卫/验证证据"]
+    H --> I["L3 收口门"]
+    I --> J{"可建议 Git?"}
+    J -- "否" --> K["场景收口"]
+    J -- "是" --> L["询问用户"]
+    L -- "未确认" --> K
+    L -- "确认" --> M["交给 uth-git"]
 ```
 
-说明：`uth-governance` 不直接调用 UTH-SP / Superpower。UTH-SP 触发判断由进入的子 Skill 负责。
-
-## 2.1 uth-onboarding 项目启用 / 接管
+## 3. onboarding 接管
 
 ```mermaid
 flowchart TD
-    A["用户显式要求启用 UTH<br/>或调用 /uth-onboarding"] --> B{"模式"}
-    B -- "new-project" --> C["读取最小入口<br/>AGENTS / README / docs / 构建配置 / 目录树"]
-    B -- "existing-project" --> D["读取最小入口<br/>旧文档结构 / README / 配置 / 少量 git 基线"]
+    A["uth-onboarding"] --> B{"模式"}
+    B -- "new-project" --> C["最小文档骨架"]
+    B -- "existing enable-only" --> C
+    C --> D["复制 hooks"]
+    D --> E["写 project.json"]
+    E --> F["最小启用完成"]
 
-    C --> E0["询问文档语言<br/>写入 project.json document_language"]
-    E0 --> E["创建最小文档骨架<br/>docs/README / current-state / context / work / LW-Work / _governance"]
-    E --> F["复制项目本地 Hook<br/>tools/uth-hooks/"]
-    F --> G["写 .uth-governance/project.json"]
-    G --> H1["Hook L3<br/>hook tools + project marker + current-state + UTF-8 + 中文收口"]
-    H1 --> H["UTH 最小启用完成"]
-
-    D --> D1{"enable-only<br/>还是 full-takeover？"}
-    D1 -- "enable-only" --> E0
-    D1 -- "full-takeover" --> I["先备份后续可能影响的文档<br/>docs/ONB*-pre-uth-docs-backup.zip"]
-    I --> I0["询问文档语言<br/>写入 project.json document_language"]
-    I0 --> J["创建接管快照<br/>docs/snapshots/ONB*-existing-project-handoff.md"]
-    J --> K["复制项目本地 Hook<br/>tools/uth-hooks/"]
-    K --> L["existing-project preflight<br/>建立 current-state 初始索引"]
-    L --> M["写 .uth-governance/project.json"]
-    M --> M1["Hook L3<br/>backup + snapshot + hook tools + marker + current-state + 输出语言"]
-    M1 --> N["handoff to uth-docs onboarding-followup<br/>stop onboarding preflight"]
-    N --> O{"docs_completion_level = full-project-docs-complete<br/>and docs_scene evidence?"}
-    O -- "yes" --> P["return to uth-onboarding final closeout"]
-    O -- "blocked or module split" --> Q["pause for user confirmation or next-window handoff"]
+    B -- "existing full-takeover" --> G["备份旧文档"]
+    G --> H["接管快照"]
+    H --> I["复制 hooks"]
+    I --> J["写 project.json"]
+    J --> K["handoff: uth-docs onboarding-followup"]
+    K --> L{"docs 完成?"}
+    L -- "full-project-docs-complete" --> M["回到 onboarding 收口"]
+    L -- "blocked/module-split" --> N["暂停或下窗交接"]
 ```
 
-## 3. uth-design 方案评估 / 架构设计
+## 4. docs 治理地图
 
 ```mermaid
 flowchart TD
-    A["用户要求方案评估 / 架构设计 / 技术选型"] --> B["Scene: uth-design"]
-    B --> C["读取最小上下文<br/>AGENTS / docs README / current-state / 相关 context"]
-    C --> D{"目标、范围、方案、验收是否清楚？"}
-    D -- "否" --> E["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
-    E --> D
-    D -- "是" --> F["Hook L1<br/>记录 UTH-SP 判断"]
-
-    F --> G{"模式"}
-    G -- "只读评估" --> H["输出方案、风险、取舍<br/>不写文件"]
-    G -- "正式设计" --> I["写 Design<br/>docs/work/D*/00-D*-design.md"]
-    G -- "重大长期决策" --> J["写 ADR<br/>docs/decisions/ADR-*.md"]
-    G -- "用户接受后要求计划" --> K["UTH-SP / Superpower<br/>uth-sp-writing-plans"]
-
-    I --> L["Hook L2<br/>Design / ADR / current-state 写入范围"]
-    J --> L
-    K --> L
-    L --> M["按需更新 current-state<br/>只做索引"]
-    M --> N["Hook L3<br/>设计文档存在、范围清楚、未伪造验证"]
-    H --> O["收口：评估结论 / 风险 / 是否交给 uth-dev<br/>Git 收口判断：通常不建议"]
-    N --> P{"是否形成稳定可提交的设计成果？"}
-    P -- "是" --> Q["建议 Git 收口<br/>询问用户是否进入 uth-git"]
-    P -- "否" --> O
-    Q --> R{"用户确认？"}
-    R -- "是" --> S["交给 uth-git"]
-    R -- "否" --> O
+    A["uth-docs"] --> B{"模式"}
+    B -- "onboarding-followup" --> C["代码事实基线"]
+    B -- "full-project-baseline" --> C
+    B -- "scoped-sync" --> D["指定范围同步"]
+    B -- "module-split" --> E["写 00-* 拆分计划"]
+    E --> F["更新模块索引"]
+    F --> G["用户确认"]
+    G --> H["module-governance"]
+    B -- "module-governance" --> H
+    H --> I["按 01-* 顺序治理"]
+    I --> J{"module_queue 空?"}
+    J -- "否" --> I
+    J -- "是" --> K["docs 收口"]
+    C --> K
+    D --> K
+    K --> L{"建议 Git?"}
+    L -- "否" --> M["docs 收口"]
+    L -- "是" --> N["询问用户"]
+    N -- "确认" --> O["交给 uth-git"]
+    N -- "未确认" --> M
 ```
 
-补充：`uth-design` 默认不写 Todo；Todo 拆分由 `uth-dev` 负责。设计场景如经用户确认做少量代码补丁，必须走 L2 写入范围和 L3 代码强验证。设计场景收口必须写出 Git 收口判断；只读评估通常不建议，稳定设计成果才建议；进入 `uth-git` 仍需用户确认。
-
-## 4. uth-dev 增量开发
+## 5. Git 收口边界
 
 ```mermaid
 flowchart TD
-    A["用户要求新增功能 / UI 改动 / Todo 实现"] --> B["Scene: uth-dev"]
-    B --> C{"light-dev 还是 formal-dev？"}
-
-    C -- "light-dev" --> D["读取最小上下文<br/>AGENTS / docs README / current-state / 相关代码"]
-    D --> E["记录轻量任务边界<br/>场景入口 + allowed scope"]
-    E --> F["Hook L2<br/>允许相关代码与 docs/LW-Work/**"]
-    F --> G{"是否需要 UTH-SP？"}
-    G -- "歧义" --> H["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
-    G -- "行为逻辑变化" --> I["UTH-SP / Superpower<br/>uth-sp-test-driven-development"]
-    G -- "不需要" --> J["记录不触发理由"]
-    H --> J
-    I --> J
-    J --> K["实现轻量改动"]
-
-    C -- "formal-dev / Todo 实现" --> L["读取 Design + Todo<br/>docs/work/D*/00-design + 10-todo"]
-    L --> M{"是否使用 worker subagent？"}
-    M -- "是" --> N["写 worker Prompt<br/>docs/work/D*/prompts/P*-worker.md"]
-    N --> O["Hook L1<br/>worker Prompt 已落盘"]
-    O --> P["UTH-SP / Superpower<br/>uth-sp-subagent-driven-development"]
-    M -- "否" --> Q{"是否按计划内联执行？"}
-    Q -- "是" --> R["UTH-SP / Superpower<br/>uth-sp-executing-plans"]
-    Q -- "否" --> S["主窗口直接实现"]
-    P --> T["整合 worker 结果"]
-    R --> T
-    S --> T
-
-    K --> U["运行编译 / 构建 / 必要验证"]
-    T --> U
-    U --> V["UTH-SP / Superpower<br/>uth-sp-verification-before-completion"]
-    V --> W["Hook L3<br/>compile/build pass<br/>warnings=0 exceptions=0 或用户豁免"]
-    W --> X{"开发口径"}
-    X -- "light-dev" --> Y["写最终 LW 记录<br/>任务完成即生成报告<br/>触发 Git 收口判断"]
-    X -- "formal-dev Todo 未完" --> Z["写 Feedback / current-state<br/>继续下一个 Todo<br/>不触发 Git 收口"]
-    X -- "formal-dev Design 完成" --> AA["Design 级人类验收口径达成<br/>触发 Git 收口判断"]
-    Y --> AB["询问用户是否进入 uth-git"]
-    AA --> AB
-    AB --> AC{"用户确认？"}
-    AC -- "否" --> AD["场景收口<br/>Git 未执行"]
-    AC -- "是" --> AE["交给 uth-git"]
-    Z --> AD
+    A["debug/design/docs/dev 建议 Git"] --> B["先询问用户"]
+    B -- "未确认" --> C["原场景收口"]
+    B -- "确认" --> D["uth-git"]
+    X["用户显式 Git 请求"] --> D
+    D --> E["读取 Git 规则"]
+    E --> F["检查 status/diff/remote"]
+    F --> G["形成写入计划"]
+    G --> H{"用户确认计划?"}
+    H -- "否" --> I["不执行 Git 写入"]
+    H -- "是" --> J["L2 Git Gate"]
+    J --> K["add/commit/push/PR/tag"]
+    K --> L["远端/本地验证"]
+    L --> M["Git 收口"]
 ```
 
-## 5. uth-debug 故障定位 / 修复
+## 6. Hook 门禁位置
 
 ```mermaid
 flowchart TD
-    A["用户报告 bug / 失败测试 / 运行异常 / 回归"] --> B["Scene: uth-debug"]
-    B --> C["读取最小证据<br/>错误输出 / 复现方式 / 相关文档入口 / 相关代码"]
-    C --> D{"是否需要追溯任务证据？"}
-    D -- "是" --> E["辅助 Skill<br/>uth-context-trace<br/>定位 Design / Todo / Feedback / Prompt / Run"]
-    D -- "否" --> F["继续局部排查"]
-    E --> F
-
-    F --> G{"症状、期望、修复权限是否清楚？"}
-    G -- "否" --> H["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
-    H --> G
-    G -- "是" --> I["Hook L1<br/>记录 debug 范围和 UTH-SP 判断"]
-
-    I --> J["UTH-SP / Superpower<br/>uth-sp-systematic-debugging"]
-    J --> K["先找根因<br/>不先猜修复"]
-    K --> L{"需要修改行为或回归保护？"}
-    L -- "是" --> M["UTH-SP / Superpower<br/>uth-sp-test-driven-development"]
-    L -- "否" --> N["最小修复"]
-    M --> N
-
-    N --> O["Hook L2<br/>只写相关代码 / 测试 / 当前任务证据"]
-    O --> P["运行复现验证 + 编译 / 构建"]
-    P --> Q["UTH-SP / Superpower<br/>uth-sp-verification-before-completion"]
-    Q --> R["Hook L3<br/>修复证据 + 0 warning / 0 exception 或用户豁免"]
-    R --> S["写 Feedback / Todo / Run Log<br/>仅当有正式任务或需要证据"]
-    S --> T{"是否达到人类验收口径？"}
-    T -- "只读诊断" --> U["触发 Git 收口判断：不建议"]
-    T -- "正式任务包未到 Design 验收" --> V["触发 Git 收口判断：不建议<br/>继续任务包流程"]
-    T -- "独立轻量修复完成" --> W["触发 Git 收口判断"]
-    T -- "正式任务包 Design 验收达成" --> W
-    W --> X["询问用户是否进入 uth-git"]
-    X --> Y{"用户确认？"}
-    Y -- "否" --> Z["debug 场景收口<br/>Git 未执行"]
-    Y -- "是" --> ZA["交给 uth-git"]
-    U --> Z
-    V --> Z
+    A["进入 uth-*"] --> B["L1 Process Gate"]
+    B --> C["场景/歧义/UTH-SP/worker"]
+    C --> D["准备执行或写入"]
+    D --> E["L2 Tool Gate"]
+    E --> F["范围/Git/UTF-8/脚本"]
+    F --> G["场景写回或 Git 写入"]
+    G --> H["L3 Closeout Gate"]
+    H --> I["证据/例外/输出语言"]
+    I --> J["最终收口"]
 ```
 
-## 6. uth-review 审查 / 验收
+## Notes
 
-```mermaid
-flowchart TD
-    A["用户要求 review / 验收 / diff 检查 / readiness"] --> B["Scene: uth-review"]
-    B --> C["读取最小审查上下文<br/>AGENTS / docs README / current-state / 目标 diff / Todo"]
-    C --> D{"审查口径是否清楚？"}
-    D -- "否" --> E["UTH-SP / Superpower<br/>uth-sp-brainstorming"]
-    E --> D
-    D -- "是" --> F["Hook L1<br/>审查范围明确"]
-
-    F --> G{"review 类型"}
-    G -- "主动审查" --> H["UTH-SP / Superpower<br/>uth-sp-requesting-code-review"]
-    G -- "处理外部反馈" --> I["UTH-SP / Superpower<br/>uth-sp-receiving-code-review"]
-    G -- "验收验证" --> J["读取验收证据 / 运行允许的检查"]
-
-    H --> K["只读发现问题<br/>不直接改代码"]
-    I --> K
-    J --> K
-    K --> L["UTH-SP / Superpower<br/>uth-sp-verification-before-completion<br/>仅在声称通过/可合并前"]
-    L --> M["Hook L3<br/>审查发现 / 验收证据 / 禁止代码写入"]
-    M --> N{"有问题？"}
-    N -- "是" --> O["交给 uth-debug 或 uth-dev<br/>不在 review 场景修"]
-    N -- "否" --> P["收口：Findings-first / 验收结论 / 未验证风险<br/>默认不触发 Git 收口"]
-```
-
-## 7. uth-docs 单开文档治理
-
-```mermaid
-flowchart TD
-    A["用户要求文档治理 / onboarding-followup / context 同步 / current-state 清理 / 归档"] --> B["Scene: uth-docs"]
-    B --> C{"选择模式"}
-    C -- "full-project-baseline" --> D["从代码事实建立全项目文档基线"]
-    C -- "scoped-sync" --> E["确认 trusted_full_project_baseline<br/>读取指定 diff / range / version / module / file scope"]
-    C -- "module-split" --> F["写 docs/context/00-本地化拆分计划.md<br/>写 docs/context/README.md 模块索引"]
-    C -- "module-governance" --> G["按 00-...md 顺序<br/>连续治理 01-...md 模块"]
-    C -- "state/archive/snapshot/migration/rules" --> H["只处理目标文档治理范围"]
-
-    D --> I["只读代码事实 / 构建声明 / 入口 / 测试入口 / 旧文档"]
-    E --> I
-    F --> J["pause for user confirmation"]
-    J --> G
-    G --> K{"上下文是否过长<br/>或出现 blocker？"}
-    K -- "上下文过长" --> L["写 LW final record<br/>给出新窗口 handoff prompt"]
-    K -- "可继续" --> M["写模块 context report<br/>更新 module_completed / module_queue"]
-    M --> M2{"module_queue empty?"}
-    M2 -- "否" --> G
-    M2 -- "是" --> N
-    H --> N["不跑测试 / 不改代码 / 不执行 Git 写入"]
-    I --> N
-    L --> N
-
-    N --> O{"是否要写治理 Markdown？"}
-    O -- "是" --> P["uth-utf8-guard<br/>写前检查"]
-    P --> Q["Hook L2<br/>docs/** / AGENTS.md / README.md 写入范围"]
-    Q --> R["写回 current-state / context / archive / snapshots / 规则文档"]
-    R --> S["uth-utf8-guard<br/>写后检查"]
-    O -- "否" --> T["只读输出"]
-    S --> U{"completion level"}
-    T --> U
-    U -- "full-project-docs-complete" --> V["可声明项目完整文档治理完成"]
-    U -- "scoped-docs-complete" --> W["只声明指定范围文档治理完成"]
-    U -- "blocked" --> X["列出 blocker 和下一路由"]
-    U -- "partial/paused" --> Y["暂停 / 等确认 / 新窗口接续"]
-    V --> Z{"Git 收口判断<br/>是否建议进入 uth-git？"}
-    W --> Z
-    X --> Z
-    Y --> Z
-    Z -- "不建议" --> ZA["docs 场景收口<br/>Git 未执行"]
-    Z -- "建议" --> ZB["询问用户是否进入 uth-git"]
-    ZB --> ZC{"用户确认？"}
-    ZC -- "否" --> ZA
-    ZC -- "是" --> ZD["交给 uth-git"]
-```
-
-说明：`uth-docs` 通常不调用 UTH-SP / Superpower；若文档治理目标、范围或验收不清，可以由场景内判断进入 `uth-sp-brainstorming`。
-
-## 8. uth-git Git / PR / 发布收口
-
-```mermaid
-flowchart TD
-    A["用户要求 commit / push / PR / tag / release"] --> B["Scene: uth-git"]
-    B --> C["读取 Git 规则<br/>docs/_governance/git-workflow.md 或 AGENTS.md"]
-    C --> D["检查 Git 状态<br/>branch / status / diff / remote / locks"]
-    D --> E{"是否 release / tag / PR / 分支收口？"}
-    E -- "是" --> F["UTH-SP / Superpower<br/>uth-sp-finishing-a-development-branch"]
-    E -- "否" --> G["普通 commit / push 计划"]
-    F --> H["形成 Git 写入计划"]
-    G --> H
-
-    H --> I{"是否有代码改动且缺少强验证证据？"}
-    I -- "是" --> J["阻止 release/tag<br/>commit 需用户确认风险"]
-    I -- "否" --> K["展示计划<br/>等待用户确认"]
-    J --> K
-    K --> L["Hook L2 Git Gate<br/>active_scene=uth-git<br/>plan + user confirmed"]
-    L --> M["执行 Git 写入<br/>add / commit / push / PR / tag"]
-    M --> N{"Git 写入成功？"}
-    N -- "轻量改动" --> O["向现有 LW final record<br/>追加 Git baseline"]
-    N -- "正式任务包" --> P["向关联 Feedback<br/>追加 Git baseline"]
-    N -- "无报告目标" --> R["远端或本地 Git 证据验证"]
-    O --> Q["辅助 Skill<br/>uth-utf8-guard<br/>检查 LW / Feedback / changelog"]
-    P --> Q
-    Q --> R
-    R --> S["UTH-SP / Superpower<br/>uth-sp-verification-before-completion"]
-    S --> T["Hook L3<br/>Git closeout evidence"]
-    T --> U["收口：commit / remote / PR / tag / changelog / 风险"]
-```
-
-## 9. uth-context-trace 文档定位 / 证据追踪
-
-```mermaid
-flowchart TD
-    A["需要定位任务文档证据链"] --> B["Scene: uth-context-trace"]
-    B --> C["读取文档入口<br/>AGENTS / docs README / current-state"]
-    C --> D{"目标是否指向活跃任务？"}
-    D -- "是" --> E["定位 docs/work/D*/<br/>Design / Todo / Feedback / prompts / runs"]
-    D -- "否" --> F{"是否明确需要历史或归档？"}
-    F -- "是" --> G["只读 docs/archive/<br/>定位历史证据"]
-    F -- "否" --> H["不进入 archive<br/>报告未定位到活跃证据"]
-    E --> I["按需定位 docs/LW-Work / ADR / changelog / context"]
-    G --> I
-    H --> I
-    I --> J["输出证据链<br/>不改文件 / 不判断代码 / 不执行 Git<br/>不触发 Git 收口"]
-```
-
-说明：`uth-context-trace` 是只读辅助 Skill，不调用 UTH-SP，不替代代码搜索，也不负责修复或审查。
-
-## 10. uth-utf8-guard 文档编码守卫
-
-```mermaid
-flowchart TD
-    A["准备修改治理 Markdown"] --> B["uth-utf8-guard 写前检查"]
-    B --> C{"UTF-8 / mojibake / fence 是否正常？"}
-    C -- "否" --> D["先修复编码或 fence<br/>不继续写入"]
-    C -- "是" --> E["执行文档写入"]
-    E --> F["Hook L2<br/>确认写入范围"]
-    F --> G["uth-utf8-guard 写后检查"]
-    G --> H{"检查通过？"}
-    H -- "否" --> I["修复文档<br/>重新检查"]
-    I --> G
-    H -- "是" --> J["文档场景可收口"]
-```
-
-## 11. Hook 门禁位置总览
-
-```mermaid
-flowchart TD
-    A["进入 uth-* 子 Skill"] --> B["Hook L1 Process Gate"]
-    B --> B1["检查：场景声明 / 歧义是否处理 / UTH-SP 判断 / worker Prompt"]
-    B1 --> C["执行或准备写入"]
-    C --> D["Hook L2 Tool Gate"]
-    D --> D1["检查：文件范围 / Git 确认 / UTF-8 / 脚本 no-BOM 与语法"]
-    D1 --> E["场景写回或 Git 写入"]
-    E --> F["Hook L3 Closeout Gate"]
-    F --> F1["检查：完成证据 / 代码强验证 / 输出语言 / 场景禁止事项 / 豁免记录"]
-    F1 --> G["最终收口"]
-```
-
-## 图例
-
-- `uth-governance` 只负责顶层场景路由，不直接调用 UTH-SP / Superpower。
-- `uth-*` 子 Skill 负责场景内上下文装载、UTH-SP 触发判断、执行边界、文档写回和收口协议。
-- `UTH-SP / Superpower` 节点表示调用本包内 `skills/uth-sp-*` 方法 Skill。
-- Hook 是门禁，不是流程；它只检查调用方提供的场景、范围、确认和验证事实。
-- `docs/LW-Work/` 属于轻量开发记录；正式任务包放在 `docs/work/DYYMMDDXX-*`。
+- 场景规则、进入条件、收口语义见 `docs/AGENT_工程治理启动手册.md`。
+- Hook 事件字段、L1/L2/L3 门禁证据见 `docs/HOOKS_工程治理门禁手册.md`。

@@ -1,50 +1,39 @@
 # HOOKS 工程治理门禁手册
 
-> 本手册定义 UTH 工程治理的硬门槛契约。  
-> Skill 负责告诉 Agent 怎么做；Hook 负责阻止 Agent 跳过最低治理事实。
+> 本手册只定义可执行 Hook 契约。
+> 场景教程、模板写法和完整流程分别见 `docs/AGENT_工程治理启动手册.md`、`docs/FLOW_全链路流程图.md`、`docs/TEMPLATES_工程治理模板.md`。
 
 ---
 
 ## 0. 定位
 
-Hook 不是新的研发流程，也不替代 `uth-*` Skill 或 UTH-SP。
+Hook 不替代 `uth-*` Skill、UTH-SP 或人工判断。Hook 只检查关键动作前后的最低治理事实：
 
-Hook 只检查关键动作是否满足最低治理条件：
+- 路由前：是否应该触发 UTH，是否存在项目 marker，是否已声明场景。
+- 过程前：是否存在歧义、场景越界、worker 派发缺少 Prompt、UTH-SP 触发判断缺失。
+- 写入前：文件路径、Git 写入、治理 Markdown 编码、脚本可执行性是否满足硬条件。
+- 收口前：完成声明、代码验证、场景边界、文档语言、docs/onboarding 接管证据是否齐全。
 
-- 是否已经判定场景。
-- 是否在当前场景允许的范围内读写。
-- 是否在歧义时澄清或进入 brainstorming。
-- 是否在写代码后完成强验证。
-- 是否在 Git 写入前获得确认。
-- 是否在文档写入时保护 UTF-8。
-- 是否在脚本写入时保护 no-BOM，并在环境可用时做语法检查。
-- 是否在收口时按场景给出必要证据。
-
-在接入到具体项目时，本手册建议落位为：
-
-```text
-docs/_governance/hook-gates.md
-```
-
-本治理包的 L1/L2 参考实现位于：
+参考 runner：
 
 ```text
 tools/uth-hooks/uth-hook.py
 ```
 
-它接受 JSON 事件并输出 `PASS` / `WARN` / `ASK` / `BLOCK`。L3 场景收口门禁只检查调用方提供的证据，不主动重复执行编译或测试。
+输入是 JSON event，可用 `type` 或 `event_type` 指定事件；输出为：
 
-Hook 的目标是防止：
+```json
+{
+  "schema_version": "uth-hook-result/v1",
+  "decision": "PASS|WARN|ASK|BLOCK",
+  "event_type": "<normalized-event-type>",
+  "findings": []
+}
+```
 
-- 没判场景就修改文件。
-- 未显式接管的项目误触发 UTH 场景。
-- 场景不明还继续开工。
-- 跨场景加戏。
-- 未授权 Git 写入。
-- worker 未记录 Prompt 就派发。
-- 未验证却声称完成、修复、通过或可交付。
-- 把旧文档或归档文档当当前事实。
-- 文档写回后乱码。
+L0 findings 可携带 `route_action`；若存在，最终响应也会把第一个 `route_action` 提升到顶层。
+
+Hook 只检查调用方提供的事实和证据。L3 不主动重跑编译、测试、文档扫描或 Git 命令。
 
 ---
 
@@ -52,82 +41,38 @@ Hook 的目标是防止：
 
 ```text
 PASS   放行
-WARN   提醒并记录，但允许继续
-ASK    暂停并请求用户确认，确认后放行
-BLOCK  阻断，必须补齐条件或切换场景
+WARN   记录非阻断风险，允许继续
+ASK    暂停并要求用户确认；确认后由调用方重新提交事实
+BLOCK  阻断；必须补齐事实、修复问题或切换场景
 ```
 
-L0 还会返回 `route_action`，用于区分 `PASS` 的路由含义：
+L0 `route_action` 合法语义：
 
 ```text
 idle                 无工程动作，不触发 UTH
-silent               缺少项目 marker，其他 uth-* 子场景保持静默
-enter-onboarding    进入 uth-onboarding
-enter-scene         已声明场景，可进入对应子场景
-yield-skill-creator 让路给 skill-creator
-ask                  场景不明，问一个澄清问题
-block                缺少必需场景
+silent               无 .uth-governance/project.json，其他 uth-* 子场景静默
+enter-onboarding    显式 uth-onboarding / UTH enable / takeover
+enter-scene         已声明 active_scene 或 requested_scene
+yield-skill-creator 显式 skill-creator 工作让路
+ask                  场景不明，只问一个澄清问题
+block                UTH-enabled 工程动作缺少必需场景
 ```
 
-默认规则：
+默认判定：
 
-- 涉及 Git 写入、场景不明、硬禁区写入、虚假完成声明时使用 `BLOCK`。
-- 涉及合理越界写入时使用 `ASK`。
-- 涉及非阻断文档质量、可后续清理事项时使用 `WARN`。
-- closeout 字段缺失、证据缺失或格式不完整使用 `BLOCK`，不伪装成用户确认问题。
+- Git 写入缺少 `active_scene="uth-git"`、`git_plan_present=true` 或 `user_git_confirmed=true`：`BLOCK`。
+- 场景不明、硬禁区写入、虚假完成声明：`BLOCK`。
+- 超出当前允许写入范围但非硬禁区：`ASK`。
+- 环境缺失导致非关键语法检查跳过：`WARN`。
+- closeout 字段或证据缺失：`BLOCK`，不转成用户确认问题。
 
 ---
 
 ## 2. 运行态状态
 
-Hook 至少需要维护以下运行态信息，可由 wrapper、hook 系统或 Agent 状态文件提供：
+运行态状态由 wrapper、hook 调用方或 Agent 会话维护，不是项目事实源，不写入 `docs/context/`。
 
-```json
-{
-  "active_scene": "uth-dev",
-  "mode": "light-dev",
-  "scene_declared": true,
-  "ambiguous_state_resolved": true,
-  "brainstorming_invoked": false,
-  "explicit_no_brainstorm_reason": "scope and acceptance are clear",
-  "allowed_writes": ["src/**", "tests/**", "docs/LW-Work/**"],
-  "forbidden_writes": ["docs/context/**", "docs/archive/**", "skills/**"],
-  "scope_expansions": [],
-  "user_git_confirmed": false,
-  "verification": {
-    "compile_build_pass": false,
-    "warnings": null,
-    "exceptions": null,
-    "evidence": [],
-    "waiver_granted": false,
-    "waiver_reason": null,
-    "user_risk_confirmed": false
-  },
-  "worker_prompts": [],
-  "uth_sp": {
-    "decision_recorded": false,
-    "selected_methods": [],
-    "hard_triggers": [],
-    "exemptions": [],
-    "no_trigger_reason": null
-  },
-  "needs_context_sync": false,
-  "utf8_guard": {
-    "required": false,
-    "checked_files": []
-  },
-  "script_guard": {
-    "required": false,
-    "checked_files": [],
-    "syntax_checked": [],
-    "syntax_skipped": []
-  }
-}
-```
-
-运行态状态不是项目事实源，不进入 `docs/context/`。
-
-L3 closeout 事件常用字段：
+最小事件字段示例：
 
 ```json
 {
@@ -148,166 +93,93 @@ L3 closeout 事件常用字段：
 }
 ```
 
-Design 小补丁授权字段可使用：
+核心字段契约：
 
-```json
-{
-  "design_patch_authorized": true
-}
-```
+| 字段 | 契约 |
+| --- | --- |
+| `active_scene` | 当前执行场景；L1/L2/L3 的主路由字段。L3 仅接受 `uth-onboarding`、`uth-dev`、`uth-debug`、`uth-design`、`uth-review`、`uth-docs`、`uth-git`、`uth-context-trace`。 |
+| `route_action` | L0 输出字段，不由调用方伪造业务完成状态。 |
+| `next_scene` | 下一场景意图；`next_scene="uth-git"` 会触发代码豁免后的 Git 风险确认。 |
+| `next_mode` | 下一场景模式；`next_scene="uth-docs"` 且 `next_mode="onboarding-followup"` 表示老项目 full-takeover docs follow-up。 |
+| `git_plan_present` | Git 写入或 Git plan-only 收口证据；Git 写入前必须为 true。 |
+| `user_git_confirmed` | 用户已明确授权 Git 写入；Git 写入前和 Git 写入收口都需要。 |
+| `document_language_code` | 本次事件提供的项目文档语言代码，例如 `zh-CN` 或 `en-US`。 |
+| `project_document_language_code` | 与 `document_language_code` 等价的项目级文档语言代码。二者至少一个存在，才能执行治理 Markdown 语言/文件名检查。 |
+| `module_split_confirmed_by_user` | `uth-docs` 的 `module-split` 模式继续前，必须有用户确认；缺失返回 `ASK`。 |
+| `module_context_files` | 本次写入或更新的模块上下文 Markdown；会参与治理 Markdown、模块文件名编号和 `00-` 保留规则检查。 |
+| `docs_followup_completed` | 老项目 full-takeover 最终收口字段，只能在独立 `uth-docs onboarding-followup` 完成后作为证据。preflight 阶段不得提前提供。 |
+| `return_to_onboarding` | `uth-docs onboarding-followup` 完成后返回 `uth-onboarding` 总收口的证据。preflight 阶段不得提前提供。 |
 
-或在场景切换事件中使用：
+治理 Markdown 写入时，`document_language_code` 和 `project_document_language_code` 的取值规则是：
 
-```json
-{
-  "transition": {
-    "authorized_design_patch": true
-  }
-}
+```text
+effective_document_language_code =
+  document_language_code 或 project_document_language_code
 ```
 
 ---
 
 ## 3. L0 Router Gate
 
-触发：
-
-- 项目或仓库会话开始。
-- 用户提出新工程请求。
-- 用户中途改变目标。
-- 用户要求继续之前任务。
-
-检查：
+事件别名：
 
 ```text
-当前项目是否存在 .uth-governance/project.json？
-是否显式调用 skill-creator？
-是否显式调用 uth-onboarding 或要求启用 UTH？
-是否命中 uth-* 场景？
-是否多场景？
-是否场景不明？
+l0
+l0-router
+router
+preflight
 ```
 
-规则：
+输入检查与结果：
 
-- 显式 `skill-creator`：`PASS`，让路。
-- 显式 `uth-onboarding` 或显式 UTH 启用 / 接管：`PASS`，进入 onboarding。
-- 缺少 `.uth-governance/project.json` 且不是 onboarding / 安装 / 显式启用：`PASS` + `route_action=silent`，保持 UTH 静默，不路由其他 `uth-*` 场景。
-- 场景明确：`PASS`，记录一行 `Scene: uth-dev/debug/...`。
-- 多场景：`PASS`，选择第一个执行场景，后续场景收口交接。
-- 场景不明：`BLOCK`，只问一个澄清问题。
-- 无工程动作：`PASS`，不触发 UTH，不触发 UTH-SP。
+| 条件 | 结果 |
+| --- | --- |
+| `no_engineering_action=true` 或 `engineering_action` 不为 true | `PASS` + `route_action=idle` |
+| `skill_creator_active=true` 或 `explicit_skill_creator=true` | `PASS` + `route_action=yield-skill-creator` |
+| `explicit_onboarding=true`、`explicit_uth_enable=true` 或 `explicit_uth_takeover=true` | `PASS` + `route_action=enter-onboarding` |
+| 缺少 `.uth-governance/project.json` | `PASS` + `route_action=silent` |
+| marker JSON 无效、schema 不为 `uth-governance-project/v1`、`enabled` 不是 true、必需 entrypoints 缺失 | `BLOCK` |
+| `scene_ambiguous=true` | `BLOCK` + `route_action=ask` |
+| `active_scene` 或 `requested_scene` 存在 | `PASS` + `route_action=enter-scene` |
+| UTH-enabled 工程动作缺少场景 | `BLOCK` + `route_action=block` |
+
+L0 只做路由，不展开场景教程。场景选择说明见 `docs/AGENT_工程治理启动手册.md`。
 
 ---
 
 ## 4. L1 Process Gate
 
-触发：
-
-- 准备从只读进入写入。
-- 准备从 design 进入 dev。
-- 准备从 debug 进入 feature work。
-- 准备从 review 进入修复。
-- 准备从 docs 进入 Git。
-- 准备派发 worker。
-- 准备调用或豁免 UTH-SP 方法 Skill。
-- 当前任务范围扩大。
-
-### 4.1 Ambiguity / Brainstorm Gate
-
-场景不清：
+事件别名：
 
 ```text
-BLOCK -> 由 uth-governance 问一个澄清问题
+l1
+l1-process
+process
 ```
 
-场景已清，但任务内存在歧义：
+字段检查：
+
+| 检查 | 通过条件 | 失败结果 |
+| --- | --- | --- |
+| 场景存在 | `active_scene` 非空，且 `scene_ambiguous` 不为 true | `BLOCK scene-ambiguous` |
+| 任务歧义 | `ambiguity.present` 不为 true，或 `ambiguity.brainstorming_invoked=true`，或 `ambiguity.resolved=true`，或 `ambiguity.explicit_no_brainstorm_reason` 非空 | `BLOCK ambiguity-unresolved` |
+| 场景切换 | 受限 transition 必须有 `transition.explicit_handoff=true`；design 小补丁可用 `transition.authorized_design_patch=true` | `BLOCK` 或 `ASK` |
+| worker 派发 | `worker.role="worker"` 时必须 `worker.prompt_written=true` 且 `worker.prompt_path` 非空；worker 不得 `git_write_allowed=true` | `BLOCK` |
+| light-dev 派发 worker | `mode="light-dev"` 且派发 worker 时，需要 `worker.user_confirmed_worker=true` | `ASK` |
+| planner/evaluator | `worker.role` 为 `planner` 或 `evaluator` 时不应写 Prompt | `WARN` |
+| UTH-SP 判断 | `require_uth_sp_decision=true` 或当前场景属于代码相关场景时，`uth_sp.decision_recorded=true` | `BLOCK uth-sp-decision-missing` |
+
+受限 transition 契约：
 
 ```text
-要求满足其一：
-- brainstorming_invoked = true，且使用 uth-sp-brainstorming
-- ambiguous_state_resolved = true
-- explicit_no_brainstorm_reason 存在
+uth-design -> uth-dev          需要 explicit_handoff
+uth-design -> code-patch/debug 需要 authorized_design_patch，否则 ASK
+uth-debug  -> feature/dev/design 需要 explicit_handoff
+uth-review -> fix/dev/debug    需要 explicit_handoff
+any        -> uth-git          需要 explicit_handoff
 ```
 
-否则：
-
-```text
-BLOCK -> 进入对应子 Skill 的澄清 / brainstorming 判断
-```
-
-说明：
-
-- L1 只要求 Agent 在歧义处停下来给出判断，不要求每次都进入 `uth-sp-brainstorming`。
-- `explicit_no_brainstorm_reason` 必须具体说明目标、范围、验收和影响面为什么已经明确。
-- “用户说简单改一下”“看起来不复杂”不能作为不进入澄清 / brainstorming 的理由。
-
-### 4.2 Scene Transition Gate
-
-规则：
-
-- `design -> dev`：必须切换到 `uth-dev`，除非是用户授权的 design 小补丁。
-- `debug -> feature`：如果从修 bug 变成新需求，必须切换 `uth-dev` 或 `uth-design`。
-- `review -> fix`：review 不直接修复；先切 `uth-debug` 或 `uth-dev`。
-- `docs -> git`：必须切 `uth-git`。
-- `any -> git`：必须切 `uth-git` 且用户确认。
-- `any -> docs/context`：必须切 `uth-docs`。
-- `any -> skills`：必须是显式 Skill 维护任务，并使用 `skill-creator` 或等价 Skill 写作流程。
-
-越界转换未显式交接时：
-
-```text
-BLOCK
-```
-
-### 4.3 Worker Dispatch Gate
-
-规则：
-
-- `worker` 派发前必须有当前正式任务包 Prompt。
-- Prompt 必须先写入 `docs/work/D*/prompts/`，再用短提示词派发 worker 去读取。
-- 同一 worker 返工追加原 Prompt，不新建 Prompt 文件。
-- `planner` / `evaluator` 只读，不记录 Prompt。
-- worker 不允许 Git 写入。
-- 轻量 dev 通常不派 worker；如果确实派 worker，必须升级为正式任务包或先获得用户确认。
-
-未满足时：
-
-```text
-BLOCK
-```
-
-### 4.4 UTH-SP Trigger Decision Gate
-
-触发：
-
-- 准备进入 `uth-dev` / `uth-debug` / `uth-design` / `uth-review` / `uth-git` 的具体执行。
-- 准备声称“不需要 UTH-SP”。
-- 准备执行一个被 UTH-SP 覆盖的成熟方法流程。
-
-要求子场景给出最小判断：
-
-```text
-UTH-SP 触发判断：
-- 命中的硬触发：
-- 选择的 uth-sp-*：
-- 满足的豁免条件：
-- 未触发原因：
-```
-
-规则：
-
-- `uth-governance` 不直接触发 UTH-SP；只要求路由到子场景。
-- 子场景必须负责 UTH-SP 判断。
-- 命中硬触发时，必须进入对应 `uth-sp-*` 方法 Skill。
-- 不触发时必须说明具体豁免条件。
-- L1 只检查“是否做出触发判断”；完整 evidence gate 放到后续增强，不在第一阶段硬拦所有场景。
-
-缺少触发判断时：
-
-```text
-BLOCK -> 回到当前子场景补齐 UTH-SP 判断
-```
+UTH-SP 这里只检查是否记录触发判断，不检查方法 Skill 的完整执行证据。
 
 ---
 
@@ -315,512 +187,301 @@ BLOCK -> 回到当前子场景补齐 UTH-SP 判断
 
 ### 5.1 File Write Gate
 
-写文件前检查目标路径。
+事件别名：
 
 ```text
-if path in allowed_writes:
-  PASS
-
-if path in hard_forbidden:
-  BLOCK
-
-if path outside allowed_writes but not hard_forbidden:
-  ASK user for temporary scope expansion
+file-write
+write
+pre-write
 ```
+
+路径来源：`paths` 或单个 `path`。
+
+判定顺序：
+
+1. 归一化路径。
+2. 检查硬禁区。
+3. 检查当前场景 forbidden patterns。
+4. 检查 `extra_hard_forbidden`。
+5. 匹配 `default_allowed_writes`、`scene_write_rules[active_scene]`、`allowed_writes`、已批准 `scope_expansions`。
 
 硬禁区：
 
-```text
-.git/**
-skills/**                         # 仅显式 Skill 维护任务可写，维护流程使用 skill-creator 或等价流程
-skills/uth-sp-*/**                # 仅显式 UTH-SP 方法 Skill 维护任务可写；同样使用 skill-creator 或等价流程
-docs/context/**                   # 仅 uth-docs 可写
-docs/archive/**                   # 仅 uth-docs 可写
-docs/decisions/ADR-*.md           # 仅 uth-design 可写正文/状态
-docs/changelogs/**                # 仅 uth-git / release flow 可写正文
-```
+| 路径 | 契约 |
+| --- | --- |
+| `.git/**` | 永远 `BLOCK`。 |
+| `skills/uth-sp-*/**` | 仅 `skill_creator_active`/`explicit_skill_maintenance`/`active_scene="skill-creator"` 且 `explicit_uth_sp_maintenance=true` 时放行。 |
+| `skills/**` | 仅显式 Skill 维护语境放行。 |
+| `docs/context/**` | 仅 `active_scene` 为 `uth-docs` 或 `uth-onboarding`。 |
+| `docs/archive/**` | 仅 `active_scene` 为 `uth-docs` 或 `uth-onboarding`。 |
+| 全局 `docs/*.md` 治理文档 | 仅文档治理允许的场景。 |
+| `docs/decisions/ADR-*.md` | 仅 `uth-design`。 |
+| `docs/changelogs/**` | 仅 `uth-git`；onboarding scaffold index 例外。 |
 
-超范围但非硬禁区时，向用户确认：
-
-```text
-目标文件超出当前允许写入范围：
-- <path>
-
-原因：
-- <reason>
-
-风险：
-- <risk>
-
-是否允许临时扩展写入范围？
-```
-
-用户确认后记录：
-
-```json
-{
-  "path": "<path>",
-  "reason": "<reason>",
-  "approved_by_user": true
-}
-```
-
-Skill 维护说明：
-
-- 普通 `uth-dev` / `uth-debug` / `uth-review` / `uth-docs` 不允许顺手修改 `skills/**`。
-- 修改任意 Skill 时，应显式进入 Skill 维护语境，并使用 `skill-creator`。
-- 修改 `skills/uth-sp-*/**` 时，还必须明确这是 UTH-SP 方法 Skill 维护，不是普通业务任务。
-- 上游包同步属于人工维护流程，不作为普通工程 hook 的默认检查项。
+非硬禁区但不在允许范围：`ASK write-scope-expansion`。
 
 ### 5.2 Git Write Gate
 
-以下全部视为 Git 写入：
+事件别名：
 
 ```text
-git add
-git commit
-git push
-git tag
-git merge
-git rebase
-git switch / checkout 修改分支或工作区
-创建/删除/重命名 branch
-创建/删除 worktree
+git-write
+git
 ```
 
-要求：
-
-- `active_scene = uth-git`
-- 已展示 Git 计划。
-- 用户已明确确认。
-- release/tag 场景满足 changelog 规则。
-
-否则：
+写入命令包括但不限于：
 
 ```text
-BLOCK
+git add / commit / push / tag / merge / rebase / switch / checkout / branch ...
+git reset / restore / rm / mv / clean / fetch / stash / pull / cherry-pick / revert
+git worktree add|remove|move|prune|repair
+gh pr checkout|create|merge|edit|close|reopen|ready
+gh release create|delete|edit|upload
 ```
+
+只读命令如 `git status`、`git diff`、`git log`、`git show`、`gh pr view`、`gh run view` 不触发写入阻断。
+
+Git 写入放行条件：
+
+```text
+active_scene = "uth-git"
+git_plan_present = true
+user_git_confirmed = true
+release_or_tag=true 时 changelog_ok=true
+```
+
+缺任一条件：`BLOCK`。
 
 ### 5.3 UTF-8 Doc Guard
 
-触发：
-
-- 修改 `AGENTS.md`
-- 修改根目录 `README.md`
-- 修改 `docs/**/*.md`
-- 修改任务包 Markdown
-- 显式 `skill-creator` 下修改 `skills/**/*.md`
-- 显式 UTH-SP 维护下修改 `skills/uth-sp-*/**/*.md`
-
-要求：
-
-- 写前调用 `uth-utf8-guard` 或等价 UTF-8 检查。
-- 写后再次调用 `uth-utf8-guard` 或等价 UTF-8 检查。
-- 检查 UTF-8 解码、明显乱码、Markdown 代码围栏平衡。
-
-失败时：
+事件别名：
 
 ```text
-BLOCK -> 修复文档编码后再收口
+utf8-doc
+utf8
+doc-guard
 ```
+
+触发范围：
+
+```text
+AGENTS.md
+README.md
+docs/**/*.md
+任务包 Markdown
+显式 skill-creator 下的 skills/**/*.md
+显式 UTH-SP 维护下的 skills/uth-sp-*/**/*.md
+```
+
+检查项：
+
+- 文件存在。
+- UTF-8 可解码。
+- 无明显 mojibake marker。
+- Markdown 代码围栏成对。
+
+失败：`BLOCK`。通过：逐文件 `PASS utf8-doc-pass`。
 
 ### 5.4 Script Guard
 
-触发：
-
-- 修改 `.sh`
-- 修改 `.js`
-- 修改 `.cjs`
-- 修改 `.mjs`
-- 修改 `.py`
-- 修改 `.ps1`
-- 修改带 shebang 的脚本文件
-- 当前任务声称脚本可执行、已验证或可交付
-
-基础检查必须执行：
+事件别名：
 
 ```text
-- 文件可 UTF-8 解码
-- 无 UTF-8 BOM
-- shebang 前无隐藏字符
-- 文件不是空脚本
+script-guard
+script
 ```
 
-条件语法检查：
+触发范围：
 
 ```text
-.js / .cjs / .mjs:
-  if node exists:
-    run node --check <file>
-  else:
-    WARN -> record skipped reason
-
-.sh:
-  if bash exists:
-    run bash -n <file>
-  else:
-    WARN -> record skipped reason
-
-.py:
-  run Python syntax compile without writing pyc files
-
-.ps1:
-  if PowerShell parser is available:
-    run parser/tokenizer syntax check
-  else:
-    WARN -> record skipped reason
+.sh
+.js
+.cjs
+.mjs
+.py
+.ps1
+带 shebang 的脚本
+声称脚本可执行、已验证或可交付的文件
 ```
 
-环境缺失时：
+基础硬检查：
 
 ```text
-WARN
+UTF-8 可解码
+无 UTF-8 BOM
+shebang 前无隐藏字符或空白
+非空脚本
 ```
 
-但以下情况必须 `BLOCK`：
-
-- 本次修改目标就是该脚本，且脚本是交付物或关键执行入口。
-- 用户或场景要求“脚本可执行 / 可运行 / 已验证”。
-- Agent 准备声称脚本验证通过。
-
-收口必须列出：
+语法检查：
 
 ```text
-脚本守卫：
-- UTF-8：
-- no-BOM：
-- syntax check：
-- skipped：
-- 风险：
+JS/CJS/MJS: node --check 可用则执行
+SH:        bash -n 可用则执行
+PY:        Python compile，且不写 pyc
+PS1:       PowerShell parser/tokenizer 可用则执行
 ```
+
+语法工具缺失时通常 `WARN`；如果调用方正在声称脚本验证通过，或脚本是本次关键交付入口，则缺失/失败必须 `BLOCK`。
 
 ---
 
 ## 6. L3 Closeout Gate
 
-### 6.1 全局完成声明规则
-
-准备声称以下状态时触发：
-
-- 完成了。
-- 修好了。
-- 测试通过。
-- 编译通过。
-- 可交付。
-- 可以提交。
-- ready。
-
-要求：
-
-- 有新鲜验证证据；或
-- 明确声明未验证，且不声称完成 / 通过 / 可交付。
-
-否则：
+事件别名：
 
 ```text
-BLOCK
+l3
+l3-closeout
+closeout
 ```
 
-### 6.2 Code Change Verification Gate
-
-适用：
-
-- `uth-dev` 修改代码。
-- `uth-debug` 修改代码。
-- `uth-design` 在用户授权下做少量代码补丁。
-
-强治理规则：
+L3 支持的 `active_scene`：
 
 ```text
-代码改动后必须有编译 / 构建通过证据，且 0 warning、0 exception。
+uth-onboarding
+uth-dev
+uth-debug
+uth-design
+uth-review
+uth-docs
+uth-git
+uth-context-trace
 ```
 
-不接受历史 warning baseline 作为默认豁免。
+全局检查：
 
-首次启动 UTH 代码修改场景时，如果项目存在 warning / exception：
+| 检查 | 契约 |
+| --- | --- |
+| 正向完成声明 | `claims`、`claim`、`claims_complete`、`claims_fixed`、`claims_passing`、`claims_ready`、`claims_deliverable`、`claims_accepted` 或 `recommendation=pass/accepted/ready/mergeable` 命中时，必须有 `verification.evidence`。 |
+| 代码验证 | 代码改动 closeout 必须有编译/构建证据、`compile_build_pass=true`、`warnings=0`、`exceptions=0`。 |
+| 非零 warning/exception | 无正向完成声明时可 `ASK` 用户临时豁免；已豁免只能 `WARN`，不能支撑完成/通过/ready 声明。 |
+| Git/Release 风险 | 有豁免且 `next_scene="uth-git"`、`git_closure_requested=true` 或 `release_or_tag=true` 时，需要 `user_risk_confirmed=true`。 |
+| 治理 Markdown 语言 | 有治理 Markdown 写入时，必须有 `document_language_code` 或 `project_document_language_code`。 |
+| 非英文文档文件名 | 非入口治理 Markdown 文件名不能继续使用默认英文治理文件名；`AGENTS.md`、`README.md` 是硬例外。 |
 
-- 必须先清理到 0 warning / 0 exception；或
-- 如果确实清不掉、后续单独清理更合理，先询问用户是否给出临时豁免。
+场景字段检查：
 
-临时豁免后：
+| 场景 | 必需字段 / 行为 |
+| --- | --- |
+| `uth-onboarding` | `mode` 为 `new-project` 或 `existing-project`；`project_marker_written=true`；`current_state_written=true`；`hook_tools_copied=true`；治理 Markdown 写入时 `utf8_guard_passed=true`；不得 `git_write_performed=true`；不得修改源码/测试。 |
+| `uth-onboarding` existing-project | `takeover_scope` 必须是 `enable-only` 或 `full-takeover`。 |
+| full-takeover preflight | 需要 `backup_zip_created=true`、`handoff_snapshot_created=true`、旧文档分类证据、关键事实证据，并路由到 `next_scene="uth-docs onboarding-followup"`，或 `next_scene="uth-docs"` 且 `next_mode="onboarding-followup"`。不得同时提供 `docs_followup_completed=true`、`return_to_onboarding=true`、`docs_completion_level=full-project-docs-complete` 等内联完成证据。 |
+| full-takeover final | 需要 `takeover_final_closeout=true`、`takeover_scope="full-takeover"`、`docs_followup_completed=true`、`docs_completion_level="full-project-docs-complete"`、独立 docs 证据字段至少一个非空：`docs_scene_final_record`、`docs_scene_run_id`、`docs_followup_final_record` 或 `docs_scene_evidence`；还需要 `return_to_onboarding=true`、`backup_zip_reported_to_user=true`、旧文档已分类、无 active takeover blocker、current-state 已清理、context 已重建或确认。 |
+| `uth-dev` | 有变更时列出 `changed_files`；代码验证通过；`mode="light-dev"` 时 `lw_final_record_written=true`；formal/todo 模式需要 `feedback_written=true` 或 `feedback_not_written_reason`；不得 Git 写入。 |
+| `uth-debug` | 需要 `root_cause` 或 `root_cause_unknown=true`；代码修复需要 `fix_scope`；代码验证通过；不得 Git 写入。 |
+| `uth-design` | 默认不改代码；代码补丁需 `design_patch_authorized=true` 或 `transition.authorized_design_patch=true`；范围扩大需切 `uth-dev`/`uth-debug`；不得开始 feature implementation。 |
+| `uth-review` | 不得修改源码/测试；代码评审给 `pass/accepted/ready/mergeable` 时强制代码验证；`static_review_only=true` 不得给正向 pass；`pass with risk` 的 warning/exception 需要风险豁免；不得 Git 写入。 |
+| `uth-docs` | documentation-only；不得改代码；治理 Markdown 写入需要文档语言和 `utf8_guard_passed=true`；`docs/context/**` 变更需要 `context_source_evidence` 或 `context_source_omitted_reason`；归档清理需要 before/after paths 和 current-state active 清理证据。 |
+| `uth-git` | 未执行 Git 写入时，需要 `git_plan_present=true` 或 `plan_only=true`；执行 Git 写入时需要 `user_git_confirmed=true`、`commands_executed`、`final_status`；commit/PR/tag/release 分别需要对应证据；release/tag 需要 `changelog_ok=true`。 |
+| `uth-context-trace` | 只读；需要区分 active/current facts 与 historical/archive evidence；需要 `recommended_next_scene` 或明确 none。 |
 
-- 不允许声称“完成 / 可交付 / 通过”。
-- 收口必须写明编译门槛未达成。
-- 后续 Git / release 应继续阻断，除非用户明确承担风险。
-- Hook 对非零 warning / exception 且未给出豁免的场景返回 `ASK`，要求调用方询问用户或回到代码场景清理。
-
-### 6.3 uth-onboarding closeout
-
-检查：
-
-- mode 是 `new-project` 或 `existing-project`。
-- `existing-project` 必须提供 `takeover_scope=enable-only` 或 `takeover_scope=full-takeover`；`takeover_final_closeout=true` 只能表示 `full-takeover` 总收口。
-- 已创建 `.uth-governance/project.json`。
-- 已复制项目本地 `tools/uth-hooks/`。
-- 已创建或更新 `entrypoints.current_state` 指向的初始索引。
-- 已选择并持久化 `document_language` 到 `.uth-governance/project.json`。
-- 收口报告已按 `document_language` 输出；选择中文时不得使用英文收口字段标签。
-- 已提供真实 `document_language_code` 或 `project_document_language_code`。`localized_doc_filenames_applied` 只是报告字段，不是放行条件；实际文件名是否可接受由文档语言字段、写入路径和例外原因共同解释。
-- 修改治理 Markdown 时已通过 UTF-8 Guard。
-- 没有修改业务源码或测试。
-- 没有执行 Git 写入。
-
-以上 baseline onboarding 检查适用于 `new-project` 和 `existing-project enable-only`。`enable-only` 只表示 UTH 已启用，不要求备份 zip、handoff snapshot 或 `uth-docs` 路由，也不能声称完整接管完成。
-
-`existing-project full-takeover` preflight 还必须检查：
-
-- `takeover_scope=full-takeover`。
-- 已创建 `docs/ONBYYMMDDXX-pre-uth-docs-backup.zip`。
-- 已创建 `docs/snapshots/ONBYYMMDDXX-existing-project-handoff.md`。
-- 已显式提供旧文档分类 marker/count/list。
-- 已显式提供未读、未确认或未解决事实 marker/count/list。
-- 下一场景是 `/uth-docs onboarding-followup`，例如 `next_scene="uth-docs onboarding-followup"`，或 `next_scene="uth-docs"` 且 `next_mode="onboarding-followup"`；除非用户明确暂停或当前存在 blocker。
-- 不得同时提供 `docs_followup_completed=true`、`docs_completion_level=full-project-docs-complete`、`return_to_onboarding=true` 或等价 docs 完成证据；preflight 必须在路由到 docs 场景后停止，不能内联执行 docs follow-up。
-
-`existing-project full-takeover` final closeout 必须检查：
-
-- `takeover_final_closeout=true`。
-- `docs_followup_completed=true`。
-- `docs_completion_level=full-project-docs-complete`。
-- 已提供独立 docs 场景证据，例如 `docs_scene_final_record` 或 `docs_scene_run_id`。
-- `return_to_onboarding=true`。
-- 已向用户报告备份压缩包路径。
-
-### 6.4 uth-dev closeout
-
-检查：
-
-- changed files 已列出。
-- 编译通过，0 warning，0 exception。
-- 其他必要验证已运行，或明确未验证且不声称完成。
-- light-dev：任务完成时已写最终 LW 记录。
-- formal-dev：已写 Feedback，或说明为什么未写。
-- formal-dev：Feedback 不等待 Git 信息；Git baseline 由 `uth-git` 在 Git 写入成功后追加。
-- current-state 只在活跃任务状态变化时更新。
-- 如模块事实变化，标记 `Needs uth-docs scoped-sync`。
-- 未执行 Git 写入。
-
-### 6.5 uth-debug closeout
-
-检查：
-
-- root cause 已说明，或明确仍未知。
-- fix scope 已说明。
-- 修复后编译通过，0 warning，0 exception。
-- 复现 / 验证证据已列出。
-- formal debug 必要时写 Feedback / Run Log。
-- blocker / baseline 变化时更新 current-state。
-- 如模块事实变化，标记 `Needs uth-docs scoped-sync`。
-
-### 6.6 uth-design closeout
-
-默认不改代码。
-
-如果设计过程中发现小型逻辑错误，需要少量代码补丁：
+`uth-docs` 完成级别字段：
 
 ```text
-ASK user for design-assisted patch
+docs_completion_level = full-project-docs-complete | scoped-docs-complete | blocked | partial/paused
 ```
 
-用户确认后允许小范围修改，但必须：
-
-- 说明为什么不切 `uth-dev` / `uth-debug`。
-- 列出文件和风险。
-- 不顺手实现新功能。
-- 不做重构。
-- 改完后触发 Code Change Verification Gate。
-
-Hook 字段：
+`full-project-docs-complete` 必需：
 
 ```text
-design_patch_authorized = true
-或 transition.authorized_design_patch = true
+full_project_baseline_completed = true
+baseline_source_scope 非空
+baseline_excluded_paths 非空，或 baseline_excluded_reason 非空
+无 unread / unconfirmed / unresolved critical facts
+module_split_required=true 时 module_queue 为空
 ```
 
-如果补丁范围扩大：
+`scoped-docs-complete` 必需：
 
 ```text
-BLOCK -> 切换 uth-dev 或 uth-debug
+trusted_full_project_baseline = true
+scoped_source_scope / git_range / commit / tag / module_scope 至少一个非空
+scoped_impact_traced = true
+baseline_still_trusted = true
 ```
 
-设计收口还需检查：
-
-- mode 明确。
-- recommendation / open questions 明确。
-- Design 只在需要时写。
-- ADR 只在用户接受长期决策后写。
-- current-state 只作为索引更新。
-- implementation 请求交给 `uth-dev`。
-
-### 6.7 uth-review closeout
-
-检查：
-
-- findings-first。
-- code files not modified；如需要修复，必须切 `uth-debug` 或 `uth-dev`。
-- acceptance basis 已说明。
-- 验证证据已列出，或明确 static-review-only。
-- recommendation 是 pass / fail / pass with risk / needs follow-up。
-- 需要修复时路由到 `uth-debug` 或 `uth-dev`，不在 review 内直接修。
-- `pass with risk` 且存在 warning / exception 时，必须有用户风险豁免。
-
-### 6.8 uth-docs closeout
-
-检查：
-
-- mode 已说明。
-- read / written 已列出。
-- 修改治理 Markdown 前，项目已有 `document_language`，或本次已询问用户并持久化到 `.uth-governance/project.json`。
-- 收口报告已按 `document_language` 输出；选择中文时不得使用英文收口字段标签。
-- 修改 `AGENTS.md`、根 `README.md`、`docs/**/*.md` 时已通过 UTF-8 Guard。
-- context touched 时提供 `context_source_evidence`，或提供 `context_source_omitted_reason`；不因等待 Git baseline 阻断文档报告。
-- archive touched 时列出迁移前后路径，并确认 current-state 不再列为 active。
-- ADR / changelog 边界未越界。
-- verification 写明 documentation-only，没有跑检查 / 测试。
-- 如需 Git，路由到 `uth-git`。
-
-新增文档基线 / 老项目接管证据字段：
+`module-split` 必需：
 
 ```text
-docs_completion_level
-full_project_baseline_completed
-baseline_source_scope
-baseline_excluded_paths
-baseline_still_trusted
-trusted_full_project_baseline
-scoped_source_scope
-scoped_impact_traced
-module_split_confirmed_by_user
-module_split_report_written
-module_context_index_written
-module_context_files
-module_split_plan_path
-module_order_followed
-module_queue
-module_completed
-lw_final_record_written
-handoff_prompt_for_new_window
-cleanup_paths_verified_in_backup_zip
-takeover_final_closeout
-docs_followup_completed
-docs_scene_final_record
-docs_scene_run_id
-document_language_code
-project_document_language_code
-localized_doc_filenames_applied
-localized_doc_filenames_omitted_reason
-return_to_onboarding
-backup_zip_reported_to_user
-takeover_scope
-next_mode
+module_split_confirmed_by_user = true        # 缺失返回 ASK
+module_split_report_written = true
+module_split_plan_path 非空，且文件名以 00- 开头
+module_context_index_written = true
+module_queue 非空
+paused_for_user_confirmation = true
 ```
 
-字段含义：
+`module-governance` 必需：
 
-- `docs_completion_level`：文档治理完成级别，只能用于区分 `full-project-docs-complete`、`scoped-docs-complete`、`blocked`、`partial/paused`。
-- `full_project_baseline_completed`：已基于代码事实完成全项目文档基线；老项目 `onboarding-followup` 必须为 true。
-- `baseline_source_scope`：全项目基线实际读取的源码、构建、脚本、入口、测试、README、AGENTS、docs 或旧文档范围。
-- `baseline_excluded_paths`：全项目基线明确排除的路径，例如 `.git`、构建产物、依赖缓存或二进制输出。
-- `baseline_still_trusted`：范围同步后，既有全项目基线仍可信。
-- `trusted_full_project_baseline`：执行 `scoped-sync` 或输出 `scoped-docs-complete` 前，已存在可信全项目基线。
-- `scoped_source_scope`：本次范围同步的指定 diff、range、版本、模块或文件范围。
-- `scoped_impact_traced`：已追踪指定范围对 current-state、context、归档、规则或模块文档的影响。
-- `module_split_confirmed_by_user`：大型项目拆分方案已经用户确认。
-- `module_split_report_written`：已写入带编号和本地化文件名的模块拆分报告，例如 `docs/context/00-module-split.md` 或 `docs/context/00-模块拆分.md`。
-- `module_context_index_written`：已写入 `docs/context/README.md` 模块索引。
-- `module_context_files`：本次写入或更新的模块上下文文件；除 `README.md` 外必须使用两位数字前缀。
-- `module_split_plan_path`：已确认的模块拆分计划路径；必须用 `00-` 前缀。
-- `module_order_followed`：`module-governance` 已按带编号的模块拆分计划指定顺序推进模块治理。
-- `module_queue`：待治理模块队列。
-- `module_completed`：本轮已完成治理的模块列表。
-- `lw_final_record_written`：上下文过长或跨窗口接续时，已写入 `docs/LW-Work/LW*.md` 轻量 final record。
-- `handoff_prompt_for_new_window`：已提供新窗口续跑提示词，要求下一窗口先读 LW final record。
-- `cleanup_paths_verified_in_backup_zip`：清理、移动或删除旧文档前，已确认原路径存在于 onboarding 备份压缩包。
-- `takeover_final_closeout`：`uth-onboarding` 正在做老项目 full-takeover 最终收口，而不是 preflight 或 enable-only。
-- `docs_followup_completed`：`uth-docs onboarding-followup` 已完成并返回证据。
-- `docs_scene_final_record` / `docs_scene_run_id`：独立 docs 场景的收口记录或运行标识，用于证明不是 onboarding 内联完成。
-- `document_language_code` / `project_document_language_code`：项目文档语言代码，例如 `zh-CN` 或 `en-US`；必须来自 `.uth-governance/project.json` 或本次持久化的等价项目事实。
-- `localized_doc_filenames_applied`：报告字段，表示调用方声称非硬入口治理 Markdown 文件名已按 `document_language` 本地化；它本身不是 L3 放行条件。
-- `localized_doc_filenames_omitted_reason`：未本地化文件名的明确例外原因，例如迁移旧文件但不重命名。
-- `return_to_onboarding`：`uth-docs` 已把 takeover 结果返回 `uth-onboarding` 做总收口。
-- `backup_zip_reported_to_user`：最终接管报告已向用户报告备份压缩包路径。
-- `takeover_scope`：`existing-project` onboarding 的接管范围，取值为 `enable-only` 或 `full-takeover`。
-- `next_mode`：当 `next_scene="uth-docs"` 时，用 `next_mode="onboarding-followup"` 表示完整接管的 docs follow-up 路由。
-
-### 6.9 uth-git closeout
-
-检查：
-
-- 用户确认存在。
-- 执行命令已列出。
-- 最终 branch / status 已说明。
-- commit / PR / tag / release 证据已列出。
-- release/tag 满足 changelog 规则。
-- light-dev Git 写入成功后，已向现有 LW final record 追加 Git baseline；如需把该追加纳入 Git，必须重新展示 diff 并再次确认。
-- formal task Git 写入成功后，已向关联 Feedback 追加 Git baseline，或说明无法追加原因。
-- push/tag/merge 等结果有新鲜验证。
-- 只生成 Git plan、未执行 Git 写入时，不要求 `user_git_confirmed`，但必须有 `git_plan_present=true` 或 `plan_only=true`，并明确 no Git writes executed。
-
-### 6.10 uth-context-trace closeout
-
-检查：
-
-- anchors used 已列出。
-- active / archived evidence 已区分。
-- current fact sources 与 historical-only evidence 已分开。
-- missing / unclear docs 已说明。
-- recommended next scene 已说明。
-- files modified = none。
+```text
+module_context_files 文件名必须使用两位数字前缀；普通模块不能占用 docs/context/00-*.md
+module_context_report_written=true 时 module_source_evidence、module_completed、module_queue 必须存在
+module_completed 非空时必须有 module_split_plan_path 且 module_order_followed=true
+context_too_long=true 时需要 lw_final_record_written=true 和 handoff_prompt_for_new_window
+resumed_from_new_window=true 时需要 read_lw_final_record=true
+```
 
 ---
 
 ## 7. 当前实现状态
 
-当前参考 runner 已实现：
+已实现事件：
 
 ```text
-H1 scene-required-before-write
-H2 ambiguity-brainstorm-decision
-H3 scope-write-confirmation
-H4 no-git-without-uth-git-confirmation
-H5 code-change-compile-zero-warning
-H6 no-worker-without-prompt
-H7 utf8-doc-guard
-H8 script-guard
-H9 per-scene-closeout
-Context-source closeout gate for docs/context/** changes
-Archive write-scope gate
-Archive cleanup closeout gate
-Generic positive-claim evidence gate
-Code verification evidence gate
+L0: l0 / l0-router / router / preflight
+L1: l1 / l1-process / process
+L2: file-write / write / pre-write
+L2: git-write / git
+L2: utf8-doc / utf8 / doc-guard
+L2: script-guard / script
+L3: l3 / l3-closeout / closeout
+```
+
+未知事件类型返回：
+
+```text
+BLOCK unknown-event-type
+```
+
+已实现门禁：
+
+```text
+L0 router 与 project marker 校验
+L1 scene / ambiguity / transition / worker / UTH-SP decision presence
+L2 write scope / Git write / UTF-8 doc / script guard
+L3 per-scene closeout
+positive-claim evidence gate
+code verification evidence gate
+document_language_code / project_document_language_code gate
+non-English governance filename gate
+docs/context source evidence gate
+archive write scope 与 cleanup closeout gate
+full-project / scoped docs completion gate
+module-split / module-governance gate
+existing-project onboarding full-takeover preflight/final gate
 ```
 
 仍待实现或硬化：
 
 ```text
-UTH-SP-required-evidence gate
-Archive-read gate
-Current-state-staleness gate
-Broader context-source freshness/staleness gate
+UTH-SP required evidence gate（目前只检查 decision_recorded）
+Archive-read 独立读取门禁
+Current-state stale / length / active-index consistency 门禁
+更广范围的 context-source freshness / staleness 门禁
 ```
 
-说明：
-
-- `Context-source` 已在 `uth-docs` L3 closeout 中实现基础门禁：修改 `docs/context/**` 时必须提供 `context_source_evidence` 或 `context_source_omitted_reason`。
-- `Archive` 目前已覆盖写入范围和归档清理收口，但没有独立的 archive-read 事件或读取门禁。
-- `Current-state` 目前只在 onboarding、dev/debug/review/docs/git 等场景中作为写入范围或收口事实检查的一部分；尚未实现 stale / length / active-index consistency 这类新鲜度门禁。
-- `UTH-SP` 目前 L1 只检查是否记录触发判断；尚未校验 hard trigger 是否对应 selected method，也未要求 UTH-SP 执行证据。
-
-UTH-SP 触发层改造完成后，再把 UTH-SP evidence gate 变成硬门槛。
+实现状态必须以 `tools/uth-hooks/uth_hooks/` 和 `tools/uth-hooks/tests/` 为准；本手册不得把计划中的门禁写成已实现。
 
 ---
 
 ## 8. 设计原则
 
-- Hook 拦关键动作，不替代 Agent 思考。
-- 强门槛优先放在写入、Git、派工、完成声明和文档编码。
-- 合理越界允许用户授权，不让流程僵死。
-- 归档和旧文档只作历史证据。
-- 文档 UTF-8 守卫只覆盖治理文档，不全局扫描所有代码。
-- 脚本守卫只覆盖脚本文件和可执行交付物；环境缺失要记录 WARN，不伪装为通过。
-- dev/debug 强治理以 0 warning / 0 exception 为收口门槛。
+- Hook 拦关键动作，不替代 Agent 推理。
+- 契约字段优先于叙事说明；教程放到 AGENT/FLOW/TEMPLATES。
+- 写入、Git、派工、完成声明、文档编码、脚本交付是硬门槛。
+- 合理越界用 `ASK` 请求用户授权；硬禁区直接 `BLOCK`。
+- L3 closeout 检查证据，不重跑昂贵命令。
+- 归档和旧文档只能作为历史证据，不能冒充当前事实。
+- 代码收口默认要求编译/构建通过且 0 warning、0 exception。
+- 文档语言和文件名规则必须由真实项目字段驱动，不能由报告话术替代。
