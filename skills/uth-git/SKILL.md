@@ -88,6 +88,7 @@ Also inspect:
 - docs entry README and the localized current-state entrypoint only when needed to locate active LW/task/changelog pointers
 - relevant remote and upstream state when push/PR/release is requested
 - changelog/tag state when release or tag is requested
+- `.uth-governance/project.json` `document_language` before writing or updating changelog Markdown
 - lock files if the project defines Git Owner or Workspace Owner locks
 
 Do not read `docs/archive/` by default. Archived task packages and archived LW records are not active Git closure targets unless the user explicitly asks to inspect historical closure evidence.
@@ -121,6 +122,7 @@ Before any Git write, show:
 - proposed commit message, if committing
 - PR need: yes / no
 - changelog need: yes / no
+- changelog language, if changelog will be written or updated
 - tag need: yes / no
 - lightweight change: yes / no
 - if lightweight: existing LW final record path for Git baseline append
@@ -199,6 +201,7 @@ For releases:
 - changelog must correspond to the formal tag
 - do not create formal tag on a non-main release branch unless project rules explicitly allow it
 - changelog is user-facing, not a commit log
+- changelog Markdown is governed documentation and must be written in the project `document_language`; for `zh-CN`, use Chinese headings and prose such as `发布日期`, `新增`, `变更`, `修复`, `验证`, and `风险与回滚`
 
 If changelog is missing, stop and ask whether to create or update it before tagging.
 

@@ -141,7 +141,7 @@ Start here before reading project documentation. Read only the sections needed b
 - `snapshots/`: onboarding handoff and other project snapshots.
 - `archive/`: completed work and LW records that are no longer active.
 - `decisions/`: ADR decision evidence, not the current fact source.
-- `changelogs/`: release changelogs.
+- `changelogs/`: formal release changelogs. README body and generated changelog Markdown follow `document_language`.
 ```
 
 ## docs/<localized-current-state>.md
@@ -399,7 +399,7 @@ Project governance rules live here. Scene routing and scene execution live in th
 - `writing-rules.md`: Design/Todo/Feedback/LW/context write rules.
 - `hook-gates.md`: L0/L1/L2/L3 gates.
 - `state-rules.md`: current-state and snapshot rules.
-- `adr-release-rules.md`: ADR and changelog rules.
+- `adr-release-rules.md`: ADR and release changelog rules; natural-language headings follow `document_language`.
 ```
 
 ## Other Governance Files
@@ -446,7 +446,7 @@ The localized current-state entrypoint is an index, not a log. Keep stale facts 
 ```md
 # ADR and Release Rules
 
-ADR records decision evidence. Changelogs belong to formal releases.
+ADR records decision evidence. Changelogs belong to formal releases. Render changelog headings and prose in the project `document_language`.
 ```
 
 ## Archive / Decisions / Changelogs README placeholders
@@ -464,7 +464,9 @@ ADR files live here. ADR is decision evidence, not the current fact source.
 ```
 
 ```md
-# Changelogs
+# 版本变更记录
 
-Release changelogs live here. Do not use changelog files as commit logs.
+正式版本变更记录存放在这里。不要把 changelog 当作 commit log。
+
+正文和条目标题必须按项目 `document_language` 生成；非中文项目应翻译本示例。
 ```

@@ -73,7 +73,7 @@
 - `work/`: Design、Todo、Feedback、Run Log、Worker Prompt。
 - `LW-Work/`: 轻量开发最终记录。
 - `decisions/`: ADR。
-- `changelogs/`: 正式版本 changelog。
+- `changelogs/`: 正式版本变更记录。
 - `snapshots/`: onboarding handoff 等项目级快照。
 - `state/snapshots/`: 历史状态快照。
 - `archive/`: 不再活跃的任务和轻量记录。
@@ -425,7 +425,7 @@ docs/context/01-module-name.md
 - `writing-rules.md`: 文档写入位置和必填字段。
 - `hook-gates.md`: 项目本地 Hook 配置说明。
 - `state-rules.md`: current-state 和 snapshot 维护字段。
-- `adr-release-rules.md`: ADR、changelog、版本记录字段。
+- `adr-release-rules.md`: ADR、版本变更记录和版本号字段。
 ````
 
 ---
@@ -490,10 +490,10 @@ Hook 基础契约来自 UTH 治理包；本文件只记录本项目对 `tools/ut
 
 ## 发布字段
 
-- Changelog:
+- 变更记录:
 - Tag:
-- Verification:
-- Risk and rollback:
+- 验证:
+- 风险与回滚:
 ````
 
 ---
@@ -632,15 +632,15 @@ docs/state/snapshots/SYYMMDD-description.md
 - Decision:
 - Consequences:
 
-## Changelog 字段
+## 版本变更记录字段
 
-- Version:
-- Release date:
-- Added:
-- Changed:
-- Fixed:
-- Verification:
-- Risk and rollback:
+- 版本:
+- 发布日期:
+- 新增:
+- 变更:
+- 修复:
+- 验证:
+- 风险与回滚:
 ````
 
 ---
@@ -1038,16 +1038,16 @@ YYYY-MM-DD
 
 ---
 
-## 27. Changelog 模板
+## 27. 版本变更记录模板
 
 ```text
 docs/changelogs/v0.1.0.md
 ```
 
 ````md
-# v0.1.0: release title
+# v0.1.0：版本标题
 
-Release date: YYYY-MM-DD
+发布日期：YYYY-MM-DD
 
 ## 新增
 
@@ -1260,10 +1260,10 @@ type(scope): summary
 - 风险:
 - 回滚:
 
-## PR / Changelog / Tag 判断
+## PR / 变更记录 / Tag 判断
 
 - PR:
-- Changelog:
+- 变更记录:
 - Tag:
 - Release:
 
