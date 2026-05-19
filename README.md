@@ -108,6 +108,16 @@ Lightweight development writes one `docs/LW-Work/LW*.md` final record when the
 task is completed. It does not create a separate LW Todo, and it does not wait
 for Git baseline details before the report exists.
 
+`light-dev` is gated by model-specific hard boundaries, not by agent judgment.
+The first supported batch is `claude-opus-4.6`, `claude-opus-4.7`, `gpt-5.4`,
+`gpt-5.5`, `gpt-5.3-codex-spark`, `deepseek-v4-pro`, `deepseek-v4-flash`,
+`mimo-v2.5-pro`, and `kimi-k2.6`. L1 Process Gate requires `llm_model` plus
+`task_shape.changed_files_count`, `modules_count`, and
+`implementation_steps_count`; API/contract, database, security, architecture,
+dependency/build, cross-module data-flow, integration/protocol, concurrency,
+state-machine, data-loss, worker, and parallel-agent triggers always route to
+formal work.
+
 Formal work uses Design/Todo/Feedback documents under `docs/work/D*/`. The
 Feedback record is written when the work is accepted, before any Git closure.
 

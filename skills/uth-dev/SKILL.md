@@ -1,6 +1,6 @@
 ---
 name: uth-dev
-description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for incremental feature, UI, API, field, behavior, Todo implementation, or bounded development work, including explicit uth-dev requests inside an enabled project. Controls light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
+description: Use in a UTH-enabled project, identified by .uth-governance/project.json, for incremental feature, UI, API, field, behavior, Todo implementation, or bounded development work, including explicit uth-dev requests inside an enabled project. Controls model-specific light-vs-formal development routing, minimal context loading, Todo writeback, worker-subagent prompt writeback, UTH-SP method-skill gates, Feedback/current-state writeback for formal tasks, LW-Work records for lightweight tasks, and handoff to review/debug/git. Stay silent in projects without the UTH marker unless the user explicitly asks to enable UTH first. Do not use for pure design, unknown bug diagnosis, code review, documentation governance, or Git/release closure.
 ---
 
 # uth-dev
@@ -40,11 +40,62 @@ Do not use `uth-dev` when the request is mainly design/evaluation, unknown-bug d
 
 State one mode at the start:
 
-- `light-dev`: small clear change without formal task package.
+- `light-dev`: small clear change that passes the model hard boundary without formal task package.
 - `formal-dev`: development inside a formal `DYYMMDDXX-*` task package.
 - `todo-breakdown`: create Todo files from an accepted Design.
 - `todo-implementation`: implement a specific Todo.
 - `handoff-from-design`: receive accepted Design from `uth-design`, then choose `todo-breakdown` or `formal-dev`.
+
+## Light/Formal Hard Boundary
+
+Do not choose `light-dev` by confidence, intuition, or "this feels small". Use these hard gates.
+
+`light-dev` requires:
+
+- supported `llm_model`
+- explicit `task_shape.changed_files_count`
+- explicit `task_shape.modules_count`
+- explicit `task_shape.implementation_steps_count`
+- no formal trigger flags
+
+Supported first-batch model limits:
+
+| `llm_model` | Max changed files | Max modules | Max implementation steps |
+| --- | ---: | ---: | ---: |
+| `claude-opus-4.7`, `gpt-5.5` | 8 | 2 | 4 |
+| `claude-opus-4.6`, `gpt-5.4`, `deepseek-v4-pro`, `mimo-v2.5-pro`, `kimi-k2.6` | 5 | 1 | 3 |
+| `gpt-5.3-codex-spark`, `deepseek-v4-flash` | 3 | 1 | 2 |
+
+Unsupported or undeclared model means `light-dev` is blocked. Route to `formal-dev` or ask for an explicit boundary update.
+
+These flags always force `formal-dev` for all models:
+
+- ambiguous requirements or unclear acceptance
+- required Design or formal Todo
+- new feature surface
+- public API, contract, database schema, or migration change
+- auth, permission, security, concurrency, state machine, or data-loss risk
+- architecture, module boundary, dependency, build logic, cross-module state, external integration, or protocol change
+- worker or parallel-agent dispatch
+
+Before implementing a `light-dev` candidate, run or satisfy the L1 process gate with:
+
+```json
+{
+  "type": "l1-process",
+  "active_scene": "uth-dev",
+  "mode": "light-dev",
+  "llm_model": "gpt-5.4",
+  "task_shape": {
+    "changed_files_count": 2,
+    "modules_count": 1,
+    "implementation_steps_count": 2
+  },
+  "uth_sp": {
+    "decision_recorded": true
+  }
+}
+```
 
 ## Entry Protocol
 
@@ -55,6 +106,8 @@ Start with:
 - user goal
 - allowed change scope
 - forbidden change scope
+- `llm_model` and `task_shape`, when `light-dev` is considered
+- formal trigger check result
 - existing task package, if any
 - whether worker subagent is needed
 - UTH-SP method-skill trigger decision

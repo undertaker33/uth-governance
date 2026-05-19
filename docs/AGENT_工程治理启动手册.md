@@ -37,6 +37,18 @@ UTH 保留三层工程治理模型：
 
 `Design -> Todo -> Feedback` 是正式任务主线。轻量开发不创建正式任务包，完成时写 `docs/LW-Work/` 最终记录。
 
+### 2.1 轻量与正式任务硬边界
+
+`light-dev` 不是 Agent 自行判断的“我觉得很小”。它必须通过 L1 模型硬边界：
+
+- 声明 `llm_model`，且模型在首批支持表内。
+- 声明 `task_shape.changed_files_count`、`task_shape.modules_count`、`task_shape.implementation_steps_count`。
+- 不命中 Design、正式 Todo、新功能面、API/契约、数据库迁移、权限安全、架构边界、依赖构建、跨模块数据流、外部集成、并发/状态机、数据丢失风险、worker/并行 Agent 等正式触发。
+
+首批 `light-dev` 支持模型：`claude-opus-4.6`、`claude-opus-4.7`、`gpt-5.4`、`gpt-5.5`、`gpt-5.3-codex-spark`、`deepseek-v4-pro`、`deepseek-v4-flash`、`mimo-v2.5-pro`、`kimi-k2.6`。
+
+具体上限和字段契约以 `docs/HOOKS_工程治理门禁手册.md` 的 L1 Process Gate 为准。未知模型、缺少计数字段、超出模型上限或命中正式触发时，必须切换到 `formal-dev` 或先澄清/补设计，不得继续轻量路径。
+
 ## 3. AGENTS.md 定位
 
 `AGENTS.md` 是仓库级 Agent 原生入口，只放每次会话都必须知道的稳定规则。

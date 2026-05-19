@@ -79,6 +79,12 @@ block                UTH-enabled 工程动作缺少必需场景
   "type": "l3-closeout",
   "active_scene": "uth-dev",
   "mode": "light-dev",
+  "llm_model": "gpt-5.4",
+  "task_shape": {
+    "changed_files_count": 2,
+    "modules_count": 1,
+    "implementation_steps_count": 2
+  },
   "changed_files": ["src/example.py"],
   "claims": [],
   "verification": {
@@ -103,6 +109,8 @@ block                UTH-enabled 工程动作缺少必需场景
 | `next_mode` | 下一场景模式；`next_scene="uth-docs"` 且 `next_mode="onboarding-followup"` 表示老项目 full-takeover docs follow-up。 |
 | `git_plan_present` | Git 写入或 Git plan-only 收口证据；Git 写入前必须为 true。 |
 | `user_git_confirmed` | 用户已明确授权 Git 写入；Git 写入前和 Git 写入收口都需要。 |
+| `llm_model` | 当前执行模型。`mode="light-dev"` 时必须是已发布硬边界支持的模型；未知模型不得走轻量路径。 |
+| `task_shape` | `mode="light-dev"` 的硬边界事实，至少包含 `changed_files_count`、`modules_count`、`implementation_steps_count`；正式触发可用布尔字段或 `formal_triggers` 明示。 |
 | `document_language_code` | 本次事件提供的项目文档语言代码，例如 `zh-CN` 或 `en-US`。 |
 | `project_document_language_code` | 与 `document_language_code` 等价的项目级文档语言代码。二者至少一个存在，才能执行治理 Markdown 语言/文件名检查。 |
 | `module_split_confirmed_by_user` | `uth-docs` 的 `module-split` 模式继续前，必须有用户确认；缺失返回 `ASK`。 |
@@ -165,9 +173,43 @@ process
 | 任务歧义 | `ambiguity.present` 不为 true，或 `ambiguity.brainstorming_invoked=true`，或 `ambiguity.resolved=true`，或 `ambiguity.explicit_no_brainstorm_reason` 非空 | `BLOCK ambiguity-unresolved` |
 | 场景切换 | 受限 transition 必须有 `transition.explicit_handoff=true`；design 小补丁可用 `transition.authorized_design_patch=true` | `BLOCK` 或 `ASK` |
 | worker 派发 | `worker.role="worker"` 时必须 `worker.prompt_written=true` 且 `worker.prompt_path` 非空；worker 不得 `git_write_allowed=true` | `BLOCK` |
-| light-dev 派发 worker | `mode="light-dev"` 且派发 worker 时，需要 `worker.user_confirmed_worker=true` | `ASK` |
+| light-dev 模型边界 | `mode="light-dev"` 时，`llm_model` 必须受支持，`task_shape` 必须提供文件数、模块数、步骤数，并且不得命中正式触发 | `BLOCK lwdev-*` |
+| light-dev 派发 worker | `mode="light-dev"` 且派发 worker 时会命中正式触发；旧式事件仍会提示需要用户确认 | `BLOCK lwdev-formal-trigger` 或 `ASK` |
 | planner/evaluator | `worker.role` 为 `planner` 或 `evaluator` 时不应写 Prompt | `WARN` |
 | UTH-SP 判断 | `require_uth_sp_decision=true` 或当前场景属于代码相关场景时，`uth_sp.decision_recorded=true` | `BLOCK uth-sp-decision-missing` |
+
+### 4.1 light-dev 与正式任务硬边界
+
+`light-dev` 不由 Agent 自行判断“小不小”。调用方必须提交模型和任务形态事实；L1 按下表执行硬阻断。
+
+| `llm_model` | `changed_files_count` 上限 | `modules_count` 上限 | `implementation_steps_count` 上限 |
+| --- | ---: | ---: | ---: |
+| `claude-opus-4.7`、`gpt-5.5` | 8 | 2 | 4 |
+| `claude-opus-4.6`、`gpt-5.4`、`deepseek-v4-pro`、`mimo-v2.5-pro`、`kimi-k2.6` | 5 | 1 | 3 |
+| `gpt-5.3-codex-spark`、`deepseek-v4-flash` | 3 | 1 | 2 |
+
+未知模型、未声明模型、缺少计数字段，均为 `BLOCK`。这些字段可以放在 `task_shape`、`task`、`work_scope`，或同名顶层字段；推荐统一放在 `task_shape`。
+
+以下任一正式触发出现时，所有模型都不得走 `light-dev`：
+
+| 字段 | 语义 |
+| --- | --- |
+| `ambiguous_requirements` / `acceptance_unclear` | 需求或验收不清。 |
+| `requires_design` / `requires_formal_todo` | 需要 Design 或正式 Todo。 |
+| `new_feature_surface` | 新增功能面。 |
+| `public_api_or_contract_change` | 对外 API 或契约变化。 |
+| `database_schema_or_migration` | 数据库 schema 或迁移变化。 |
+| `auth_permission_security` | 认证、权限或安全行为变化。 |
+| `architecture_or_module_boundary` | 架构或模块边界变化。 |
+| `new_dependency_or_build_logic` | 新依赖或构建逻辑变化。 |
+| `cross_module_state_or_data_flow` | 跨模块状态或数据流变化。 |
+| `external_integration_or_protocol` | 外部集成或协议变化。 |
+| `concurrency_state_machine_or_permission_rules` | 并发、状态机或权限规则变化。 |
+| `data_loss_or_user_visible_risk` | 数据丢失风险或高用户可见风险。 |
+| `requires_worker_or_parallel_agents` | 需要 worker 或并行 Agent。 |
+| `formal_triggers` / `light_dev_formal_triggers` | 调用方列出的其他正式触发。 |
+
+模型别名会做有限归一化，例如 `GPT5.4`、`gpt-5.4` 等价；归一化后仍不在上表内则阻断。
 
 受限 transition 契约：
 
@@ -448,7 +490,7 @@ BLOCK unknown-event-type
 
 ```text
 L0 router 与 project marker 校验
-L1 scene / ambiguity / transition / worker / UTH-SP decision presence
+L1 scene / ambiguity / transition / worker / light-dev model boundary / UTH-SP decision presence
 L2 write scope / Git write / UTF-8 doc / script guard
 L3 per-scene closeout
 positive-claim evidence gate

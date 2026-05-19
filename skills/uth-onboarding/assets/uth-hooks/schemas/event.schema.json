@@ -21,6 +21,15 @@
     "engineering_action": {
       "type": "boolean"
     },
+    "llm_model": {
+      "type": "string",
+      "description": "Current LLM model identifier. Required for mode=light-dev model-boundary checks."
+    },
+    "task_shape": {
+      "type": "object",
+      "description": "Light-dev boundary facts such as changed_files_count, modules_count, implementation_steps_count, and formal trigger flags.",
+      "additionalProperties": true
+    },
     "paths": {
       "type": "array",
       "items": {

@@ -957,6 +957,9 @@ docs/LW-Work/LWYYMMDDXX-light-task-title.md
 ## 场景判定
 
 - Scene: uth-dev / light-dev
+- llm_model:
+- task_shape: changed_files_count= / modules_count= / implementation_steps_count=
+- Model boundary: passed / failed, reason:
 - UTH-SP used: no / yes, reason:
 - Formal work item: none /
 

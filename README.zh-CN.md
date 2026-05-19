@@ -101,6 +101,8 @@ python scripts/install.py --runtime codex
 
 轻量开发在任务完成时写入一个 `docs/LW-Work/LW*.md` final record。它不创建单独的 LW Todo，也不会因为等待 Git baseline 信息而阻塞报告生成。
 
+`light-dev` 必须按模型能力走硬边界，而不是让 Agent 自行判断。首批支持 `claude-opus-4.6`、`claude-opus-4.7`、`gpt-5.4`、`gpt-5.5`、`gpt-5.3-codex-spark`、`deepseek-v4-pro`、`deepseek-v4-flash`、`mimo-v2.5-pro`、`kimi-k2.6`。L1 Process Gate 要求提供 `llm_model` 和 `task_shape.changed_files_count` / `modules_count` / `implementation_steps_count`，并按模型档位阻断超限轻量任务；API/契约、数据库迁移、权限安全、架构边界、依赖构建、跨模块数据流、外部集成、并发/状态机、数据丢失风险、worker/并行 Agent 等触发项一律进入正式任务。
+
 正式工作使用 `docs/work/D*/` 下的 Design/Todo/Feedback 文档。Feedback 在工作被接受时写入，并且早于任何 Git 收口。
 
 Git baseline 信息属于 `uth-git` 场景。Git 写入成功后，`uth-git` 会把 baseline 追加到轻量 final record 或正式 Feedback 中。普通开发和 review 流程不应该因为等待 Git 而不生成报告。
