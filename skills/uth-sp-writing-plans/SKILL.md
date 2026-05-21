@@ -28,6 +28,8 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Save plans to:** the path supplied by the owning UTH scene. If no path is supplied, return the plan in the response and ask the owning scene where to persist it.
 
+Before saving a plan as governed Markdown, require the owning UTH scene to have completed the brainstorming preflight and confirmed that no user-facing questions remain. If that evidence is missing, return the plan in the response and ask the owning scene to complete the preflight before persistence.
+
 ## Scope Check
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.

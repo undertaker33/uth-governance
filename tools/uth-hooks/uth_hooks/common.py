@@ -125,6 +125,96 @@ def as_bool(value: Any) -> bool:
     return bool(value) and str(value).lower() not in {"false", "0", "none", "null"}
 
 
+def document_preflight(ctx: dict[str, Any]) -> dict[str, Any]:
+    preflight: dict[str, Any] = {}
+    for key in ("document_preflight", "docs_preflight", "doc_preflight"):
+        value = ctx.get(key)
+        if isinstance(value, dict):
+            preflight.update(value)
+
+    writeback = ctx.get("writeback")
+    if isinstance(writeback, dict):
+        nested = writeback.get("document_preflight") or writeback.get("docs_preflight")
+        if isinstance(nested, dict):
+            preflight.update(nested)
+        for key in (
+            "brainstorming_invoked",
+            "no_open_user_questions",
+            "user_confirmed_no_open_questions",
+            "confirmed_no_open_questions",
+            "no_open_questions",
+            "open_user_questions",
+            "needs_user_confirmation",
+        ):
+            if key in writeback and key not in preflight:
+                preflight[key] = writeback[key]
+
+    for key in (
+        "brainstorming_invoked",
+        "no_open_user_questions",
+        "user_confirmed_no_open_questions",
+        "confirmed_no_open_questions",
+        "no_open_questions",
+        "open_user_questions",
+        "needs_user_confirmation",
+    ):
+        if key in ctx and key not in preflight:
+            preflight[key] = ctx[key]
+    return preflight
+
+
+def check_document_preflight(ctx: dict[str, Any], path: str | None = None) -> list[dict[str, Any]]:
+    preflight = document_preflight(ctx)
+    findings: list[dict[str, Any]] = []
+    if not as_bool(preflight.get("brainstorming_invoked")):
+        findings.append(
+            result(
+                "BLOCK",
+                "document-preflight-brainstorming-missing",
+                "Governed Markdown persistence requires uth-sp-brainstorming before the write.",
+                path,
+            )
+        )
+        return findings
+
+    if as_bool(preflight.get("open_user_questions") or preflight.get("needs_user_confirmation")):
+        findings.append(
+            result(
+                "ASK",
+                "document-preflight-open-questions",
+                "Governed Markdown persistence must pause until open user questions are resolved.",
+                path,
+            )
+        )
+        return findings
+
+    no_open_questions = as_bool(
+        preflight.get("no_open_user_questions")
+        or preflight.get("user_confirmed_no_open_questions")
+        or preflight.get("confirmed_no_open_questions")
+        or preflight.get("no_open_questions")
+    )
+    if not no_open_questions:
+        findings.append(
+            result(
+                "ASK",
+                "document-preflight-confirmation-missing",
+                "Governed Markdown persistence requires confirmed no open user questions after brainstorming.",
+                path,
+            )
+        )
+        return findings
+
+    return [
+        result(
+            "PASS",
+            "document-preflight-pass",
+            "Governed Markdown preflight completed: brainstorming invoked and no open user questions remain.",
+            path,
+        )
+    ]
+
+
 def merge_context(event: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
     merged = dict(state)
     merged.update(event)

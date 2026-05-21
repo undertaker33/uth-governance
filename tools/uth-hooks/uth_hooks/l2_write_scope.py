@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .common import as_bool, get_paths, match_pattern, matches_any, normalize_path, result
-from .doc_policy import can_govern_global_docs, is_global_docs_markdown_path
+from .common import as_bool, check_document_preflight, get_paths, match_pattern, matches_any, normalize_path, result
+from .doc_policy import can_govern_global_docs, is_global_docs_markdown_path, is_governed_markdown_path
 
 def scene_allowed_patterns(ctx: dict[str, Any], config: dict[str, Any]) -> list[str]:
     active_scene = ctx.get("active_scene")
@@ -84,8 +84,11 @@ def check_file_write(ctx: dict[str, Any], config: dict[str, Any], project: Path)
     findings: list[dict[str, Any]] = []
     allowed = scene_allowed_patterns(ctx, config)
     forbidden = scene_forbidden_patterns(ctx, config)
-    for raw in get_paths(ctx):
-        path = normalize_path(raw, project)
+    paths = [normalize_path(raw, project) for raw in get_paths(ctx)]
+    governed_markdown_paths = [path for path in paths if is_governed_markdown_path(path)]
+    if governed_markdown_paths:
+        findings.extend(check_document_preflight(ctx, governed_markdown_paths[0]))
+    for path in paths:
         hard = check_hard_forbidden(path, ctx)
         if hard:
             findings.append(hard)

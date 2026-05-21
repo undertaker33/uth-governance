@@ -102,6 +102,8 @@ still name them explicitly when you want that method:
 | `/uth-sp-finishing-a-development-branch` | Branch, PR, merge, cleanup, tag, or release closure needs structured options. |
 | `/uth-sp-writing-skills` | UTH or method skills themselves are being created, updated, or verified. |
 
+When `uth-design` is designing a Web page, Web app screen, browser UI, or frontend page layout, it must invoke `ui-ux-pro-max`. Android UI/UX design does not trigger `ui-ux-pro-max` by default.
+
 ## Lightweight vs Formal Work
 
 Lightweight development writes one `docs/LW-Work/LW*.md` final record when the
@@ -120,6 +122,12 @@ formal work.
 
 Formal work uses Design/Todo/Feedback documents under `docs/work/D*/`. The
 Feedback record is written when the work is accepted, before any Git closure.
+Once work is routed to formal development, implementation cannot start until an
+active task package, accepted Design, and current Todo all exist. Design to dev
+handoff must pause for explicit user confirmation.
+
+Before any governed Markdown is persisted, the owning scene must complete a
+brainstorming preflight and confirm that no open user questions remain.
 
 Git baseline details belong to `uth-git`. After a successful Git write,
 `uth-git` appends the baseline to the lightweight final record or to the formal

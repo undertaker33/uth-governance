@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .common import CODE_CHANGING_SCENES, as_bool, result
+from .common import CODE_CHANGING_SCENES, as_bool, check_document_preflight, result
 
 
 LIGHT_DEV_MODEL_LIMITS: dict[str, dict[str, int]] = {
@@ -52,6 +52,27 @@ LIGHT_DEV_FORMAL_TRIGGER_FIELDS = {
     "requires_worker_or_parallel_agents": "worker or parallel agents are required",
 }
 
+FORMAL_DEV_IMPLEMENTATION_MODES = {"formal-dev", "todo-implementation"}
+FORMAL_DEV_DESIGN_ONLY_MODES = {"todo-breakdown", "handoff-from-design"}
+DOCUMENT_WRITE_INTENT_KEYS = {
+    "docs_write_intent",
+    "document_write_intent",
+    "governed_markdown_write",
+    "markdown_write_intent",
+    "task_document_write_intent",
+}
+WEB_DESIGN_TARGETS = {
+    "web",
+    "web-page",
+    "web-ui",
+    "webapp",
+    "web-app",
+    "website",
+    "frontend",
+    "frontend-web",
+    "browser-ui",
+}
+
 
 def check_l1_process(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
@@ -79,6 +100,13 @@ def check_l1_process(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if worker:
         findings.extend(check_worker_dispatch(worker, ctx))
 
+    findings.extend(check_formal_dev_package(ctx))
+
+    if document_write_intent_present(ctx):
+        findings.extend(check_document_preflight(ctx))
+
+    findings.extend(check_web_design_method_skill(ctx))
+
     if ctx.get("mode") == "light-dev":
         findings.extend(check_light_dev_model_boundary(ctx, worker))
 
@@ -90,6 +118,136 @@ def check_l1_process(ctx: dict[str, Any]) -> list[dict[str, Any]]:
             findings.append(result("PASS", "uth-sp-decision-recorded", "UTH-SP trigger decision is recorded."))
 
     return findings or [result("PASS", "l1-pass", "L1 process gate passed.")]
+
+
+def check_formal_dev_package(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    if ctx.get("active_scene") != "uth-dev":
+        return []
+    mode = ctx.get("mode")
+    if mode not in FORMAL_DEV_IMPLEMENTATION_MODES | FORMAL_DEV_DESIGN_ONLY_MODES:
+        return []
+
+    findings: list[dict[str, Any]] = []
+    if not task_package_present(ctx):
+        findings.append(
+            result(
+                "BLOCK",
+                "formal-task-package-missing",
+                "Formal development requires an active docs/work/D* task package before execution.",
+            )
+        )
+    if not accepted_design_present(ctx):
+        findings.append(
+            result(
+                "BLOCK",
+                "formal-design-missing",
+                "Formal development requires an accepted task-package Design before Todo or implementation work.",
+            )
+        )
+    if mode in FORMAL_DEV_IMPLEMENTATION_MODES and not active_todo_present(ctx):
+        findings.append(
+            result(
+                "BLOCK",
+                "formal-todo-missing",
+                "Formal implementation requires a current task-package Todo before code work.",
+            )
+        )
+
+    if findings:
+        return findings
+    return [result("PASS", "formal-task-package-evidence-present", "Formal task package, accepted Design, and required Todo evidence are present.")]
+
+
+def task_package_present(ctx: dict[str, Any]) -> bool:
+    if any(text_value(ctx, key) for key in ("task_package", "task_package_path", "formal_task_package", "associated_task_package")):
+        return True
+    task_package = ctx.get("task_package")
+    if isinstance(task_package, dict):
+        return any(text_value(task_package, key) for key in ("path", "id", "package_path")) or as_bool(task_package.get("created"))
+    return as_bool(ctx.get("formal_task_package_created"))
+
+
+def accepted_design_present(ctx: dict[str, Any]) -> bool:
+    if any(text_value(ctx, key) for key in ("accepted_design_path", "accepted_design")):
+        return True
+    design = ctx.get("design")
+    if isinstance(design, dict):
+        if text_value(design, "accepted_path") or text_value(design, "accepted_design_path"):
+            return True
+        if (text_value(design, "path") or as_bool(design.get("written"))) and as_bool(design.get("accepted")):
+            return True
+    if (text_value(ctx, "design_path") or as_bool(ctx.get("design_written"))) and as_bool(ctx.get("design_accepted")):
+        return True
+    return False
+
+
+def active_todo_present(ctx: dict[str, Any]) -> bool:
+    if any(text_value(ctx, key) for key in ("active_todo", "current_todo", "todo_path", "associated_todo", "todo_id")):
+        return True
+    todo = ctx.get("todo")
+    if isinstance(todo, dict):
+        return any(text_value(todo, key) for key in ("path", "id", "todo_path")) or as_bool(todo.get("written"))
+    return as_bool(ctx.get("todo_written"))
+
+
+def text_value(ctx: dict[str, Any], key: str) -> str:
+    value = ctx.get(key)
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def document_write_intent_present(ctx: dict[str, Any]) -> bool:
+    if any(as_bool(ctx.get(key)) for key in DOCUMENT_WRITE_INTENT_KEYS):
+        return True
+    writeback = ctx.get("writeback")
+    if isinstance(writeback, dict):
+        return any(as_bool(writeback.get(key)) for key in DOCUMENT_WRITE_INTENT_KEYS)
+    return False
+
+
+def check_web_design_method_skill(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    if ctx.get("active_scene") != "uth-design" or not web_page_design_intent(ctx):
+        return []
+    if ui_ux_pro_max_invoked(ctx):
+        return [result("PASS", "web-design-uiux-skill-invoked", "Web page design has invoked ui-ux-pro-max.")]
+    return [
+        result(
+            "BLOCK",
+            "web-design-uiux-skill-missing",
+            "Web page design in uth-design requires ui-ux-pro-max; Android UI/UX design is exempt.",
+        )
+    ]
+
+
+def web_page_design_intent(ctx: dict[str, Any]) -> bool:
+    if as_bool(ctx.get("web_page_design") or ctx.get("web_ui_design") or ctx.get("website_design")):
+        return True
+    targets = [
+        str(ctx.get(key, "")).strip().lower().replace("_", "-").replace(" ", "-")
+        for key in ("design_target", "ui_target", "surface", "platform")
+        if ctx.get(key)
+    ]
+    if any("android" in target for target in targets):
+        return False
+    return any(
+        target in WEB_DESIGN_TARGETS
+        or "web" in target
+        or "website" in target
+        or "frontend" in target
+        or "browser-ui" in target
+        for target in targets
+    )
+
+
+def ui_ux_pro_max_invoked(ctx: dict[str, Any]) -> bool:
+    if as_bool(ctx.get("ui_ux_pro_max_invoked") or ctx.get("uiux_pro_max_invoked")):
+        return True
+    for key in ("ui_ux_pro_max", "uiux_pro_max"):
+        value = ctx.get(key)
+        if isinstance(value, dict) and as_bool(value.get("invoked") or value.get("active")):
+            return True
+    return False
 
 
 def check_light_dev_model_boundary(ctx: dict[str, Any], worker: dict[str, Any]) -> list[dict[str, Any]]:
@@ -244,8 +402,15 @@ def check_transition(transition: dict[str, Any]) -> list[dict[str, Any]]:
     authorized_design_patch = as_bool(transition.get("authorized_design_patch"))
     findings: list[dict[str, Any]] = []
 
-    if source == "uth-design" and target == "uth-dev" and not as_bool(transition.get("explicit_handoff")):
-        findings.append(result("BLOCK", "design-dev-handoff-missing", "design -> dev requires explicit uth-dev handoff."))
+    if source == "uth-design" and target == "uth-dev":
+        if not as_bool(transition.get("explicit_handoff")):
+            findings.append(result("BLOCK", "design-dev-handoff-missing", "design -> dev requires explicit uth-dev handoff."))
+        elif not as_bool(
+            transition.get("user_confirmed")
+            or transition.get("user_confirmed_handoff")
+            or transition.get("confirmed_by_user")
+        ):
+            findings.append(result("ASK", "design-dev-user-confirmation-missing", "design -> dev must stop and get explicit user confirmation before entering uth-dev."))
     if source == "uth-design" and target in {"code-patch", "uth-debug"} and not authorized_design_patch:
         findings.append(result("ASK", "design-patch-needs-confirmation", "Design-assisted code patch requires user confirmation."))
     if source == "uth-debug" and target in {"feature", "uth-dev", "uth-design"} and not as_bool(transition.get("explicit_handoff")):

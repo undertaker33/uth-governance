@@ -85,6 +85,8 @@ Route to the first matching child skill:
 | review, validation, acceptance, delivery check, test gate, diff review | `uth-review` |
 | clear implementation, feature, UI/API/config change, Todo implementation | `uth-dev` |
 | architecture design, option comparison, feasibility, technical selection, solution evaluation | `uth-design` |
+| Web page, Web app screen, browser UI, or frontend page design | `uth-design`; the owning scene must invoke `ui-ux-pro-max` |
+| Android UI/UX design | `uth-design`; do not invoke `ui-ux-pro-max` merely because the work is UI/UX |
 | docs governance, context sync/bootstrap, current-state cleanup, archive, snapshot, migration, rules/templates | `uth-docs` |
 | Git/PR/tag/release/changelog/worktree/branch closure as the primary request | `uth-git` |
 | task evidence lookup, document conflict tracing, archived evidence lookup | `uth-context-trace` |

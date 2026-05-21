@@ -49,7 +49,10 @@ flowchart TD
     B --> C{"需求/范围清楚?"}
     C -- "否" --> D["uth-sp-brainstorming"]
     D --> C
-    C -- "是" --> E["L1 过程门"]
+    C -- "是" --> C2{"准备落文档?"}
+    C2 -- "是" --> D2["uth-sp-brainstorming 预检无开放问题"]
+    D2 --> E["L1 过程门"]
+    C2 -- "否" --> E
     E --> F["L2 写前/工具门"]
     F --> G["执行/写回"]
     G --> H["写后守卫/验证证据"]
@@ -59,6 +62,23 @@ flowchart TD
     J -- "是" --> L["询问用户"]
     L -- "未确认" --> K
     L -- "确认" --> M["交给 uth-git"]
+```
+
+## 2.1 正式任务链
+
+```mermaid
+flowchart TD
+    A["命中正式触发"] --> B{"已有 accepted Design?"}
+    B -- "否" --> C["uth-design 写 Design"]
+    C --> D{"用户确认切 uth-dev?"}
+    D -- "否" --> E["停在 design 收口"]
+    D -- "是" --> F["uth-dev todo-breakdown"]
+    B -- "是" --> F
+    F --> G{"已有 current Todo?"}
+    G -- "否" --> H["先写 Todo"]
+    H --> I["停止，等待实现确认或下一轮"]
+    G -- "是" --> J["formal-dev / todo-implementation"]
+    J --> K["Feedback / 验证 / Review"]
 ```
 
 ## 3. onboarding 接管

@@ -168,6 +168,8 @@ Use this marker shape:
 
 ## Write Rules
 
+Before writing governed Markdown, use `uth-sp-brainstorming` and confirm no open user questions remain. If questions remain, ask the user and do not persist the document yet.
+
 Allowed writes:
 
 ```text

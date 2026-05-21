@@ -97,6 +97,8 @@ Before the first governed Markdown write in a project, resolve the documentation
 - If the selected language is `zh-CN`, the closeout headings and prose must be Chinese. Do not output English labels such as `Read`, `Created/updated`, or `Current-state`.
 - Do not infer the language from the chat language or repository language on first write; ask once and persist it.
 
+Before any governed Markdown write, use `uth-sp-brainstorming` and confirm no open user questions remain. If questions remain, ask the user before writing the onboarding docs.
+
 Use this marker shape:
 
 ```json
@@ -331,6 +333,7 @@ docs/**/*.md
 
 Use project hook gates when available:
 
+- L1 document preflight gate before governed Markdown persistence
 - L2 write-scope gate before writes
 - L3 onboarding closeout gate before claiming minimal onboarding is complete
 

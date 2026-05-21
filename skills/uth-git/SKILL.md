@@ -205,6 +205,8 @@ For releases:
 
 If changelog is missing, stop and ask whether to create or update it before tagging.
 
+Before appending Git baselines or writing changelog/governance Markdown, use `uth-sp-brainstorming` and confirm no open user questions remain. If questions remain, ask the user before writing.
+
 Use `uth-utf8-guard` before and after appending Git baselines to LW-Work records, appending Git baselines to Feedback, writing changelog Markdown, or modifying other governed Markdown during Git closure.
 
 ## Codex App Git Directives

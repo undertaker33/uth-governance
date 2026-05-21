@@ -12,6 +12,10 @@ class TestHookSchemas(unittest.TestCase):
 
         self.assertEqual(data["$schema"], "https://json-schema.org/draft/2020-12/schema")
         self.assertIn("type", data["properties"])
+        self.assertIn("document_preflight", data["properties"])
+        self.assertIn("accepted_design_path", data["properties"])
+        self.assertIn("active_todo", data["properties"])
+        self.assertIn("ui_ux_pro_max", data["properties"])
 
     def test_project_marker_schema_exists_and_matches_marker_version(self):
         data = json.loads((HOOK_ROOT / "schemas" / "project-marker.schema.json").read_text(encoding="utf-8"))

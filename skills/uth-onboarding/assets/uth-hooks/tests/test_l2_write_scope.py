@@ -45,12 +45,43 @@ class TestL2WriteScope(unittest.TestCase):
 
     def test_uth_docs_can_write_global_docs_markdown(self):
         findings = check_file_write(
-            {"active_scene": "uth-docs", "paths": ["docs/current-state.md"]},
+            {
+                "active_scene": "uth-docs",
+                "paths": ["docs/current-state.md"],
+                "document_preflight": {
+                    "brainstorming_invoked": True,
+                    "no_open_user_questions": True,
+                },
+            },
             load_config(),
             REPO_ROOT,
         )
 
         assert_has(findings, "PASS", "write-allowed")
+
+
+    def test_governed_markdown_write_requires_brainstorming_preflight(self):
+        findings = check_file_write(
+            {"active_scene": "uth-docs", "paths": ["docs/current-state.md"]},
+            load_config(),
+            REPO_ROOT,
+        )
+
+        assert_has(findings, "BLOCK", "document-preflight-brainstorming-missing")
+
+
+    def test_governed_markdown_write_requires_no_open_user_questions(self):
+        findings = check_file_write(
+            {
+                "active_scene": "uth-docs",
+                "paths": ["docs/current-state.md"],
+                "document_preflight": {"brainstorming_invoked": True},
+            },
+            load_config(),
+            REPO_ROOT,
+        )
+
+        assert_has(findings, "ASK", "document-preflight-confirmation-missing")
 
 
     def test_forbidden_writes_override_allowed_writes(self):
@@ -73,6 +104,10 @@ class TestL2WriteScope(unittest.TestCase):
             {
                 "active_scene": "uth-git",
                 "paths": ["docs/work/D26051601-demo/11-D26051601-T01-feedback-demo.md"],
+                "document_preflight": {
+                    "brainstorming_invoked": True,
+                    "no_open_user_questions": True,
+                },
             },
             load_config(),
             REPO_ROOT,

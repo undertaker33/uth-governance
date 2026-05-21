@@ -115,6 +115,7 @@ Respect the project hook gates when available:
 
 - declare `Scene: uth-review` before acceptance or validation
 - remain read-only for code; review writeback may only touch allowed task documents
+- before governed Markdown persistence, use `uth-sp-brainstorming` and confirm no open user questions remain
 - use `uth-utf8-guard` before and after modifying governed Markdown (`docs/**/*.md`, Feedback, Run Log, current-state, root `README.md`, or `AGENTS.md`)
 - do not perform Git writes
 
@@ -163,6 +164,8 @@ Allowed only when explicitly requested or when closing a formal Todo:
 - Feedback file, if the user asks to write or supplement delivery feedback
 - localized current-state entrypoint, only when Todo acceptance, blocker, active task state, or verification baseline changed
 - Run Log, only when verification evidence is important and the current task package needs it
+
+Before any allowed review writeback, complete the brainstorming preflight and confirm no open user questions remain. If questions remain, ask the user before writing.
 
 Forbidden by default:
 

@@ -140,6 +140,8 @@ Use UTH-SP method skills as the process engine, not as the document owner.
 Use:
 
 - `uth-sp-brainstorming` when requirements, scope, options, tradeoffs, or acceptance criteria are unclear
+- `uth-sp-brainstorming` before governed Markdown persistence, even when the design is otherwise clear, to confirm there are no open user questions
+- `ui-ux-pro-max` when the design target is a Web page, Web app screen, browser UI, or frontend page layout; do not use it for Android UI/UX design
 - `uth-sp-writing-plans` only after the user accepts a Design and explicitly wants an implementation plan
 - `uth-sp-verification-before-completion` before claiming a Design, ADR, or plan was written and checked
 
@@ -238,6 +240,8 @@ If the patch grows beyond the confirmed scope, stop and switch to `uth-dev` or `
 
 ## Design Writeback
 
+Before writing a Design, ADR, or current-state index update, use `uth-sp-brainstorming` and confirm no open user questions remain. If questions remain, stop and ask the user instead of persisting the document.
+
 Write a formal Design only when:
 
 - the output will guide implementation
@@ -301,7 +305,8 @@ Detailed implementation progress belongs to `uth-dev`, not this scene.
 
 If the user accepts the Design and wants implementation:
 
-- hand off to `uth-dev`
+- stop and ask the user to confirm switching from `uth-design` to `uth-dev`
+- hand off to `uth-dev` only after that explicit confirmation
 - do not start coding in `uth-design`
 - pass the accepted Design, constraints, open questions, risks, and acceptance criteria
 

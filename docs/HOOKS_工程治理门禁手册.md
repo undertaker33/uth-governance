@@ -111,6 +111,11 @@ block                UTH-enabled 工程动作缺少必需场景
 | `user_git_confirmed` | 用户已明确授权 Git 写入；Git 写入前和 Git 写入收口都需要。 |
 | `llm_model` | 当前执行模型。`mode="light-dev"` 时必须是已发布硬边界支持的模型；未知模型不得走轻量路径。 |
 | `task_shape` | `mode="light-dev"` 的硬边界事实，至少包含 `changed_files_count`、`modules_count`、`implementation_steps_count`；正式触发可用布尔字段或 `formal_triggers` 明示。 |
+| `task_package_path` / `formal_task_package` / `associated_task_package` | 正式任务包证据。`formal-dev`、`todo-implementation`、`todo-breakdown`、`handoff-from-design` 需要 active task package。 |
+| `accepted_design_path` / `design_accepted` | 已接受 Design 证据。正式开发和 Todo 拆分必须先有 accepted Design。 |
+| `active_todo` / `todo_path` / `associated_todo` | 当前 Todo 证据。`formal-dev` 和 `todo-implementation` 必须提供。 |
+| `document_preflight` | 治理 Markdown 落文档前的 brainstorming 预检；需要 `brainstorming_invoked=true` 且 `no_open_user_questions=true` 或同义确认字段。 |
+| `ui_ux_pro_max` / `ui_ux_pro_max_invoked` | Web 页面设计时的外部 UI/UX 方法技能证据；Android UI/UX 设计不需要。 |
 | `document_language_code` | 本次事件提供的项目文档语言代码，例如 `zh-CN` 或 `en-US`。 |
 | `project_document_language_code` | 与 `document_language_code` 等价的项目级文档语言代码。二者至少一个存在，才能执行治理 Markdown 语言/文件名检查。 |
 | `module_split_confirmed_by_user` | `uth-docs` 的 `module-split` 模式继续前，必须有用户确认；缺失返回 `ASK`。 |
@@ -173,6 +178,9 @@ process
 | 任务歧义 | `ambiguity.present` 不为 true，或 `ambiguity.brainstorming_invoked=true`，或 `ambiguity.resolved=true`，或 `ambiguity.explicit_no_brainstorm_reason` 非空 | `BLOCK ambiguity-unresolved` |
 | 场景切换 | 受限 transition 必须有 `transition.explicit_handoff=true`；design 小补丁可用 `transition.authorized_design_patch=true` | `BLOCK` 或 `ASK` |
 | worker 派发 | `worker.role="worker"` 时必须 `worker.prompt_written=true` 且 `worker.prompt_path` 非空；worker 不得 `git_write_allowed=true` | `BLOCK` |
+| 正式任务包 | `uth-dev` 的 `formal-dev` / `todo-implementation` 需要 active task package、accepted Design、current Todo；`todo-breakdown` / `handoff-from-design` 需要 active task package 和 accepted Design | `BLOCK formal-*` |
+| 文档预检 | 治理 Markdown 写入意图需要 `document_preflight.brainstorming_invoked=true` 且确认无开放用户问题 | `BLOCK document-preflight-brainstorming-missing` 或 `ASK document-preflight-*` |
+| Web 页面设计 | `uth-design` 且目标为 Web 页面/Web app/browser UI/frontend layout 时必须有 `ui_ux_pro_max.invoked=true` 或 `ui_ux_pro_max_invoked=true` | `BLOCK web-design-uiux-skill-missing` |
 | light-dev 模型边界 | `mode="light-dev"` 时，`llm_model` 必须受支持，`task_shape` 必须提供文件数、模块数、步骤数，并且不得命中正式触发 | `BLOCK lwdev-*` |
 | light-dev 派发 worker | `mode="light-dev"` 且派发 worker 时会命中正式触发；旧式事件仍会提示需要用户确认 | `BLOCK lwdev-formal-trigger` 或 `ASK` |
 | planner/evaluator | `worker.role` 为 `planner` 或 `evaluator` 时不应写 Prompt | `WARN` |
@@ -215,6 +223,7 @@ process
 
 ```text
 uth-design -> uth-dev          需要 explicit_handoff
+                              还需要 user_confirmed / user_confirmed_handoff / confirmed_by_user，否则 ASK
 uth-design -> code-patch/debug 需要 authorized_design_patch，否则 ASK
 uth-debug  -> feature/dev/design 需要 explicit_handoff
 uth-review -> fix/dev/debug    需要 explicit_handoff
@@ -222,6 +231,32 @@ any        -> uth-git          需要 explicit_handoff
 ```
 
 UTH-SP 这里只检查是否记录触发判断，不检查方法 Skill 的完整执行证据。
+
+### 4.2 正式任务包与文档预检
+
+`uth-dev` 一旦进入正式任务相关模式，必须用字段证明正式文档链已经存在：
+
+| 模式 | 必需证据 |
+| --- | --- |
+| `formal-dev` / `todo-implementation` | active task package、accepted Design、current Todo |
+| `todo-breakdown` / `handoff-from-design` | active task package、accepted Design |
+
+缺 active task package 返回 `BLOCK formal-task-package-missing`；缺 accepted Design 返回 `BLOCK formal-design-missing`；缺 current Todo 返回 `BLOCK formal-todo-missing`。正式触发只说明不能走 `light-dev`，不等于已经完成 Design/Todo。
+
+治理 Markdown 写入意图字段包括 `docs_write_intent`、`document_write_intent`、`governed_markdown_write`、`markdown_write_intent`、`task_document_write_intent`，也可放在 `writeback` 内。命中后必须提供：
+
+```json
+{
+  "document_preflight": {
+    "brainstorming_invoked": true,
+    "no_open_user_questions": true
+  }
+}
+```
+
+`open_user_questions=true` 或 `needs_user_confirmation=true` 会返回 `ASK document-preflight-open-questions`。只做了 brainstorming 但没有确认无开放问题时，返回 `ASK document-preflight-confirmation-missing`。
+
+`uth-design` 的 Web 页面、Web app screen、browser UI、frontend page layout 设计必须提供 `ui_ux_pro_max_invoked=true` 或 `ui_ux_pro_max.invoked=true`。`design_target="android-ui"`、`android` 平台或 Android UI/UX 设计不触发这条门禁。
 
 ---
 
@@ -242,10 +277,11 @@ pre-write
 判定顺序：
 
 1. 归一化路径。
-2. 检查硬禁区。
-3. 检查当前场景 forbidden patterns。
-4. 检查 `extra_hard_forbidden`。
-5. 匹配 `default_allowed_writes`、`scene_write_rules[active_scene]`、`allowed_writes`、已批准 `scope_expansions`。
+2. 如果目标包含治理 Markdown，检查 `document_preflight`。
+3. 检查硬禁区。
+4. 检查当前场景 forbidden patterns。
+5. 检查 `extra_hard_forbidden`。
+6. 匹配 `default_allowed_writes`、`scene_write_rules[active_scene]`、`allowed_writes`、已批准 `scope_expansions`。
 
 硬禁区：
 
@@ -406,16 +442,16 @@ uth-context-trace
 
 | 场景 | 必需字段 / 行为 |
 | --- | --- |
-| `uth-onboarding` | `mode` 为 `new-project` 或 `existing-project`；`project_marker_written=true`；`current_state_written=true`；`hook_tools_copied=true`；治理 Markdown 写入时 `utf8_guard_passed=true`；不得 `git_write_performed=true`；不得修改源码/测试。 |
+| `uth-onboarding` | `mode` 为 `new-project` 或 `existing-project`；`project_marker_written=true`；`current_state_written=true`；`hook_tools_copied=true`；治理 Markdown 写入前需要 `document_preflight`，写入后需要 `utf8_guard_passed=true`；不得 `git_write_performed=true`；不得修改源码/测试。 |
 | `uth-onboarding` existing-project | `takeover_scope` 必须是 `enable-only` 或 `full-takeover`。 |
 | full-takeover preflight | 需要 `backup_zip_created=true`、`handoff_snapshot_created=true`、旧文档分类证据、关键事实证据，并路由到 `next_scene="uth-docs onboarding-followup"`，或 `next_scene="uth-docs"` 且 `next_mode="onboarding-followup"`。不得同时提供 `docs_followup_completed=true`、`return_to_onboarding=true`、`docs_completion_level=full-project-docs-complete` 等内联完成证据。 |
 | full-takeover final | 需要 `takeover_final_closeout=true`、`takeover_scope="full-takeover"`、`docs_followup_completed=true`、`docs_completion_level="full-project-docs-complete"`、独立 docs 证据字段至少一个非空：`docs_scene_final_record`、`docs_scene_run_id`、`docs_followup_final_record` 或 `docs_scene_evidence`；还需要 `return_to_onboarding=true`、`backup_zip_reported_to_user=true`、旧文档已分类、无 active takeover blocker、current-state 已清理、context 已重建或确认。 |
-| `uth-dev` | 有变更时列出 `changed_files`；代码验证通过；`mode="light-dev"` 时 `lw_final_record_written=true`；formal/todo 模式需要 `feedback_written=true` 或 `feedback_not_written_reason`；不得 Git 写入。 |
+| `uth-dev` | 有变更时列出 `changed_files`；代码验证通过；`mode="light-dev"` 时 `lw_final_record_written=true`；formal/todo 模式在 L1 需要任务包/Design/Todo，L3 需要 `feedback_written=true` 或 `feedback_not_written_reason`；治理 Markdown 写入前需要 `document_preflight`；不得 Git 写入。 |
 | `uth-debug` | 需要 `root_cause` 或 `root_cause_unknown=true`；代码修复需要 `fix_scope`；代码验证通过；不得 Git 写入。 |
-| `uth-design` | 默认不改代码；代码补丁需 `design_patch_authorized=true` 或 `transition.authorized_design_patch=true`；范围扩大需切 `uth-dev`/`uth-debug`；不得开始 feature implementation。 |
+| `uth-design` | 默认不改代码；Web 页面设计需要 `ui_ux_pro_max` 证据；代码补丁需 `design_patch_authorized=true` 或 `transition.authorized_design_patch=true`；范围扩大需切 `uth-dev`/`uth-debug`；切 `uth-dev` 前必须用户确认；不得开始 feature implementation。 |
 | `uth-review` | 不得修改源码/测试；代码评审给 `pass/accepted/ready/mergeable` 时强制代码验证；`static_review_only=true` 不得给正向 pass；`pass with risk` 的 warning/exception 需要风险豁免；不得 Git 写入。 |
-| `uth-docs` | documentation-only；不得改代码；治理 Markdown 写入需要文档语言和 `utf8_guard_passed=true`；`docs/context/**` 变更需要 `context_source_evidence` 或 `context_source_omitted_reason`；归档清理需要 before/after paths 和 current-state active 清理证据。 |
-| `uth-git` | 未执行 Git 写入时，需要 `git_plan_present=true` 或 `plan_only=true`；执行 Git 写入时需要 `user_git_confirmed=true`、`commands_executed`、`final_status`；commit/PR/tag/release 分别需要对应证据；release/tag 需要 `changelog_ok=true`。 |
+| `uth-docs` | documentation-only；不得改代码；治理 Markdown 写入前需要 `document_preflight`，写入后需要文档语言和 `utf8_guard_passed=true`；`docs/context/**` 变更需要 `context_source_evidence` 或 `context_source_omitted_reason`；归档清理需要 before/after paths 和 current-state active 清理证据。 |
+| `uth-git` | 未执行 Git 写入时，需要 `git_plan_present=true` 或 `plan_only=true`；执行 Git 写入时需要 `user_git_confirmed=true`、`commands_executed`、`final_status`；commit/PR/tag/release 分别需要对应证据；release/tag 需要 `changelog_ok=true`；治理 Markdown baseline/changelog 写入前需要 `document_preflight`。 |
 | `uth-context-trace` | 只读；需要区分 active/current facts 与 historical/archive evidence；需要 `recommended_next_scene` 或明确 none。 |
 
 `uth-docs` 完成级别字段：

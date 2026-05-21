@@ -84,6 +84,7 @@ Respect the project hook gates when available:
 
 - declare `Scene: uth-debug` before diagnosis or repair
 - stay read-only until repair scope and permission are clear
+- before governed Markdown persistence, use `uth-sp-brainstorming` and confirm no open user questions remain
 - use `uth-utf8-guard` before and after modifying governed Markdown (`docs/**/*.md`, Feedback, Todo status, Run Log, Prompt, current-state, root `README.md`, or `AGENTS.md`)
 - ask before writing outside the repair scope
 - do not perform Git writes
@@ -162,6 +163,8 @@ If the fix changes module responsibilities, public entrypoints, dependencies, bo
 ## Writeback Rules
 
 Write task evidence only when it exists.
+
+Before writing Feedback, Run Log, Prompt, LW final record, or current-state updates, complete the brainstorming preflight and confirm no open user questions remain. If questions remain, ask the user before writing.
 
 Write Feedback when a formal task debug produced a conclusion, fix, regression note, verification result, or unresolved blocker.
 

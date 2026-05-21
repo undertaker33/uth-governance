@@ -40,7 +40,7 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc only when requested** — use the path supplied by `uth-design`; otherwise keep the result in the response
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Return to UTH** — hand off to `uth-design` or `uth-dev`; invoke `uth-sp-writing-plans` only if the owning UTH scene requests it
+9. **Return to UTH** — hand off to `uth-design` or `uth-dev` with `no_open_user_questions=true` or the exact questions still requiring user input; invoke `uth-sp-writing-plans` only if the owning UTH scene requests it
 
 ## Process Flow
 
@@ -121,6 +121,7 @@ digraph brainstorming {
 
 - Write the validated design only if the owning UTH scene requests a document.
 - Use the path supplied by `uth-design`, usually the task-package Design path.
+- Before the owning scene persists governed Markdown, return an explicit statement that no open user questions remain, or list the questions that must be asked first.
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Do not commit. Git writes belong to `uth-git`.
 

@@ -109,6 +109,7 @@ Start with:
 - `llm_model` and `task_shape`, when `light-dev` is considered
 - formal trigger check result
 - existing task package, if any
+- formal task package evidence when mode is `formal-dev`, `todo-implementation`, `todo-breakdown`, or `handoff-from-design`
 - whether worker subagent is needed
 - UTH-SP method-skill trigger decision
 - document writeback decision
@@ -117,6 +118,10 @@ Start with:
 If requirement, scope, acceptance criteria, or impact is unclear, use `uth-sp-brainstorming` before implementation.
 
 Do not start coding while ambiguity remains.
+
+For `formal-dev` and `todo-implementation`, do not start implementation until an active task package, accepted Design, and current Todo all exist. A formal trigger is not enough. If the accepted Design is missing, route to `uth-design`; if the Todo is missing, use `todo-breakdown` first.
+
+Before any governed Markdown persistence from this scene, use `uth-sp-brainstorming` and record that no open user questions remain. This applies to Todo, Feedback, worker Prompt, Run Log, LW final record, and current-state index writes.
 
 ## Document Lookup
 
@@ -192,6 +197,7 @@ Historical and archived docs are evidence, not current facts. They do not overri
 Use:
 
 - `uth-sp-brainstorming` when goal, scope, acceptance, or impact is unclear
+- `uth-sp-brainstorming` before governed Markdown persistence, even when the work is otherwise clear, to confirm there are no open user questions
 - `uth-sp-test-driven-development` when changing business logic, API behavior, permission rules, state machines, core flows, or regression behavior
 - `uth-sp-subagent-driven-development` when formal development uses worker subagents
 - `uth-sp-verification-before-completion` before claiming complete, fixed, passing, or ready to submit
@@ -314,6 +320,9 @@ docs/work/DYYMMDDXX-任务包标题/
 
 Rules:
 
+- `formal-dev` and `todo-implementation` require an active task package, accepted Design, and current Todo before implementation.
+- If formal work has no accepted Design, stop and route to `uth-design`; do not invent a Todo directly from the user request.
+- If formal work has an accepted Design but no Todo, stay in `todo-breakdown` and create the Todo before code work.
 - Todo files are created only in `uth-dev`, not `uth-design`.
 - Feedback is written for formal Todo delivery.
 - Feedback records implementation, changed files, verification, risks, and remaining work; it does not require Git commit/PR/tag information.
@@ -325,6 +334,8 @@ Rules:
 ## Todo Breakdown
 
 After an accepted Design, `uth-dev` may create Todo files.
+
+Before creating or updating Todo files, use `uth-sp-brainstorming` and confirm no user-facing questions remain. If questions remain, stop and ask the user instead of persisting the Todo.
 
 Allowed:
 
@@ -338,6 +349,8 @@ Forbidden:
 - changing Design casually
 - writing Feedback before implementation
 - implementing code during pure Todo breakdown unless the user explicitly asks to continue
+
+After Todo creation from a Design handoff, stop and ask before continuing into implementation. Do not treat Design acceptance as automatic permission to enter `formal-dev`.
 
 ## Worker Subagent Policy
 

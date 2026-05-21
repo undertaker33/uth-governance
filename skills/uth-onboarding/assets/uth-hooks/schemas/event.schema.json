@@ -30,6 +30,31 @@
       "description": "Light-dev boundary facts such as changed_files_count, modules_count, implementation_steps_count, and formal trigger flags.",
       "additionalProperties": true
     },
+    "task_package_path": {
+      "type": "string",
+      "description": "Active docs/work/D* task package path for formal task modes."
+    },
+    "accepted_design_path": {
+      "type": "string",
+      "description": "Accepted Design path required before formal Todo or implementation work."
+    },
+    "active_todo": {
+      "type": "string",
+      "description": "Current Todo path or id required for formal implementation modes."
+    },
+    "document_preflight": {
+      "type": "object",
+      "description": "Governed Markdown persistence preflight. Requires brainstorming_invoked=true and no_open_user_questions=true or equivalent confirmation.",
+      "additionalProperties": true
+    },
+    "ui_ux_pro_max": {
+      "type": "object",
+      "description": "Method-skill evidence for Web page design. Android UI/UX design is exempt.",
+      "additionalProperties": true
+    },
+    "ui_ux_pro_max_invoked": {
+      "type": "boolean"
+    },
     "paths": {
       "type": "array",
       "items": {
