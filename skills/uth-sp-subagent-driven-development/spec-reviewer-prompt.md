@@ -55,7 +55,15 @@ Task tool (general-purpose):
 
     **Verify by reading code, not by trusting report.**
 
+    ## Accountability
+
+    You are the evaluator for every finding you raise. Report your evaluator id
+    or stable handle if the platform exposes one. If you find issues, the
+    controller must send them back to the worker that produced the output, then
+    ask you to recheck the same findings after that worker fixes them.
+
     Report:
+    - Evaluator id / stable handle, if available
     - ✅ Spec compliant (if everything matches after code inspection)
     - ❌ Issues found: [list specifically what's missing or extra, with file:line references]
 ```

@@ -152,7 +152,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A["进入 uth-*"] --> B["L1 Process Gate"]
-    B --> C["场景/歧义/UTH-SP/worker/模型边界"]
+    B --> C["场景/歧义/UTH-SP/worker/责任链/模型边界"]
     C --> D["准备执行或写入"]
     D --> E["L2 Tool Gate"]
     E --> F["范围/Git/UTF-8/脚本"]

@@ -13,6 +13,10 @@ Task tool (general-purpose):
   DESCRIPTION: [task summary, from implementer's report]
   PLAN_OR_REQUIREMENTS: Task N from [plan-file]
   REVIEW_SCOPE: [changed files, diff range, or workspace scope supplied by uth-dev]
+  ACCOUNTABILITY: You are the evaluator for every quality finding you raise.
+  Report your evaluator id / stable handle if available. If you find issues,
+  the controller must send them back to the worker that produced the output,
+  then ask you to recheck the same findings after that worker fixes them.
 ```
 
 **In addition to standard code quality concerns, the reviewer should check:**
@@ -21,4 +25,4 @@ Task tool (general-purpose):
 - Is the implementation following the file structure from the plan?
 - Did this implementation create new files that are already large, or significantly grow existing files? (Don't flag pre-existing file sizes — focus on what this change contributed.)
 
-**Code reviewer returns:** Strengths, Issues (Critical/Important/Minor), Assessment
+**Code reviewer returns:** evaluator id / stable handle if available, Strengths, Issues (Critical/Important/Minor), Assessment

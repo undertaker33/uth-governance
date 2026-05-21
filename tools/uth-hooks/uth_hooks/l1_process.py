@@ -100,6 +100,8 @@ def check_l1_process(ctx: dict[str, Any]) -> list[dict[str, Any]]:
     if worker:
         findings.extend(check_worker_dispatch(worker, ctx))
 
+    findings.extend(check_subagent_issue_loop(ctx))
+
     findings.extend(check_formal_dev_package(ctx))
 
     if document_write_intent_present(ctx):
@@ -437,3 +439,164 @@ def check_worker_dispatch(worker: dict[str, Any], ctx: dict[str, Any]) -> list[d
         if as_bool(worker.get("prompt_written")):
             findings.append(result("WARN", "readonly-agent-prompt-written", "planner/evaluator should not persist Prompt files."))
     return findings or [result("PASS", "worker-dispatch-pass", "Worker dispatch gate passed.")]
+
+
+def check_subagent_issue_loop(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    loops = subagent_issue_loops(ctx)
+    if not loops:
+        return []
+
+    findings: list[dict[str, Any]] = []
+    for loop in loops:
+        if not subagent_issue_loop_active(loop):
+            continue
+
+        origin_worker = first_text(
+            loop,
+            "origin_worker_id",
+            "owner_worker_id",
+            "task_owner_worker_id",
+            "worker_id",
+            "origin_worker",
+        )
+        evaluator = first_text(
+            loop,
+            "finding_evaluator_id",
+            "origin_evaluator_id",
+            "reviewer_id",
+            "evaluator_id",
+            "issue_evaluator_id",
+            "finding_author_id",
+        )
+        fix_worker = first_text(loop, "fix_worker_id", "assigned_fix_worker_id", "repair_worker_id")
+        recheck_evaluator = first_text(
+            loop,
+            "recheck_evaluator_id",
+            "recheck_reviewer_id",
+            "reviewer_recheck_id",
+            "verification_evaluator_id",
+        )
+
+        if not origin_worker or not evaluator:
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-issue-owner-missing",
+                    "Subagent issue loop requires origin worker id and finding evaluator id.",
+                )
+            )
+            continue
+
+        if fix_required(loop) and not fix_worker:
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-fix-worker-missing",
+                    "Reviewer finding must be routed back to the worker that produced the faulty output.",
+                )
+            )
+        elif fix_worker and fix_worker != origin_worker:
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-fix-worker-mismatch",
+                    "Reviewer finding must be fixed by the original worker that produced the faulty output.",
+                )
+            )
+
+        if recheck_required(loop) and not recheck_evaluator:
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-recheck-evaluator-missing",
+                    "Completed subagent fix must return to the evaluator that raised the finding.",
+                )
+            )
+        elif recheck_evaluator and recheck_evaluator != evaluator:
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-recheck-evaluator-mismatch",
+                    "Subagent finding must be rechecked by the evaluator that raised it.",
+                )
+            )
+
+        if issue_closure_claimed(loop) and not as_bool(loop.get("recheck_completed") or loop.get("recheck_passed")):
+            findings.append(
+                result(
+                    "BLOCK",
+                    "subagent-issue-loop-open",
+                    "Subagent finding cannot be closed or advanced until the original evaluator rechecks it.",
+                )
+            )
+
+    return findings or [result("PASS", "subagent-issue-loop-pass", "Subagent issue loop keeps origin worker fix and origin evaluator recheck.")]
+
+
+def subagent_issue_loops(ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    raw = ctx.get("subagent_issue_loop") or ctx.get("subagent_issue_loops") or ctx.get("review_issue_loop")
+    if isinstance(raw, dict):
+        return [raw]
+    if isinstance(raw, list):
+        return [item for item in raw if isinstance(item, dict)]
+    return []
+
+
+def subagent_issue_loop_active(loop: dict[str, Any]) -> bool:
+    if as_bool(loop.get("issue_found") or loop.get("finding_found") or loop.get("issues_found")):
+        return True
+    return any(
+        key in loop
+        for key in (
+            "origin_worker_id",
+            "owner_worker_id",
+            "task_owner_worker_id",
+            "finding_evaluator_id",
+            "origin_evaluator_id",
+            "reviewer_id",
+            "evaluator_id",
+            "fix_worker_id",
+            "recheck_evaluator_id",
+            "issue_closed",
+        )
+    )
+
+
+def fix_required(loop: dict[str, Any]) -> bool:
+    return as_bool(
+        loop.get("issue_found")
+        or loop.get("finding_found")
+        or loop.get("issues_found")
+        or loop.get("fix_assigned")
+        or loop.get("fix_started")
+        or loop.get("fix_completed")
+        or loop.get("issue_closed")
+        or loop.get("mark_task_complete")
+        or loop.get("moving_to_next_task")
+    )
+
+
+def recheck_required(loop: dict[str, Any]) -> bool:
+    return as_bool(
+        loop.get("fix_completed")
+        or loop.get("issue_closed")
+        or loop.get("mark_task_complete")
+        or loop.get("moving_to_next_task")
+    )
+
+
+def issue_closure_claimed(loop: dict[str, Any]) -> bool:
+    return as_bool(
+        loop.get("issue_closed")
+        or loop.get("finding_closed")
+        or loop.get("mark_task_complete")
+        or loop.get("moving_to_next_task")
+    )
+
+
+def first_text(ctx: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = text_value(ctx, key)
+        if value:
+            return value
+    return ""

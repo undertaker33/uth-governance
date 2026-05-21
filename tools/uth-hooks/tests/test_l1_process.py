@@ -38,6 +38,87 @@ class TestL1Process(unittest.TestCase):
         assert_has(findings, "BLOCK", "worker-prompt-missing")
 
 
+    def test_subagent_issue_requires_origin_worker_fix(self):
+        findings = check_l1_process(
+            {
+                "active_scene": "uth-dev",
+                "mode": "formal-dev",
+                "subagent_issue_loop": {
+                    "issue_found": True,
+                    "origin_worker_id": "worker-B",
+                    "finding_evaluator_id": "evaluator-A",
+                    "fix_worker_id": "worker-C",
+                },
+                "require_uth_sp_decision": False,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "subagent-fix-worker-mismatch")
+
+
+    def test_subagent_issue_requires_origin_evaluator_recheck_after_fix(self):
+        findings = check_l1_process(
+            {
+                "active_scene": "uth-dev",
+                "mode": "formal-dev",
+                "subagent_issue_loop": {
+                    "issue_found": True,
+                    "origin_worker_id": "worker-B",
+                    "finding_evaluator_id": "evaluator-A",
+                    "fix_worker_id": "worker-B",
+                    "fix_completed": True,
+                    "recheck_evaluator_id": "evaluator-C",
+                },
+                "require_uth_sp_decision": False,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "subagent-recheck-evaluator-mismatch")
+
+
+    def test_subagent_issue_cannot_close_without_recheck(self):
+        findings = check_l1_process(
+            {
+                "active_scene": "uth-dev",
+                "mode": "formal-dev",
+                "subagent_issue_loop": {
+                    "issue_found": True,
+                    "origin_worker_id": "worker-B",
+                    "finding_evaluator_id": "evaluator-A",
+                    "fix_worker_id": "worker-B",
+                    "fix_completed": True,
+                    "recheck_evaluator_id": "evaluator-A",
+                    "issue_closed": True,
+                },
+                "require_uth_sp_decision": False,
+            }
+        )
+
+        assert_has(findings, "BLOCK", "subagent-issue-loop-open")
+
+
+    def test_subagent_issue_loop_passes_with_origin_worker_and_evaluator(self):
+        findings = check_l1_process(
+            {
+                "active_scene": "uth-dev",
+                "mode": "formal-dev",
+                "subagent_issue_loop": {
+                    "issue_found": True,
+                    "origin_worker_id": "worker-B",
+                    "finding_evaluator_id": "evaluator-A",
+                    "fix_worker_id": "worker-B",
+                    "fix_completed": True,
+                    "recheck_evaluator_id": "evaluator-A",
+                    "recheck_completed": True,
+                    "issue_closed": True,
+                },
+                "require_uth_sp_decision": False,
+            }
+        )
+
+        assert_has(findings, "PASS", "subagent-issue-loop-pass")
+
+
     def test_formal_dev_requires_task_package_design_and_todo(self):
         findings = check_l1_process(
             {

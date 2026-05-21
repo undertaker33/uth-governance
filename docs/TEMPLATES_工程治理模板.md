@@ -518,6 +518,17 @@ Hook 基础契约来自 UTH 治理包；本文件只记录本项目对 `tools/ut
 
 - Prompt directory: `docs/work/DYYMMDDXX-task/prompts/`
 - Return format:
+
+## Subagent accountability ledger
+
+| Task | Owner worker id | Finding id | Finding evaluator id | Fix worker id | Recheck evaluator id | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T01 |  |  |  |  |  | open / fixed / rechecked / rejected-with-reason |
+
+Rules:
+- 谁造的问题谁解决：review/evaluator A 发现 worker B 的输出有问题时，fix 必须回派给 B。
+- 谁提出的问题谁复查：B 修完后，recheck 必须回到提出该 finding 的 A。
+- 无法恢复同一个 worker/evaluator 时，先暂停并取得用户确认；替换只能作为例外记录。
 ````
 
 ---

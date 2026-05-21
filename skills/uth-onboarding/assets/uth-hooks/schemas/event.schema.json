@@ -55,6 +55,22 @@
     "ui_ux_pro_max_invoked": {
       "type": "boolean"
     },
+    "subagent_issue_loop": {
+      "description": "Subagent review/fix/recheck accountability evidence. Use when an evaluator found issues in a worker result.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": true
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      ]
+    },
     "paths": {
       "type": "array",
       "items": {

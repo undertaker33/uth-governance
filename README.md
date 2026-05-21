@@ -93,7 +93,7 @@ still name them explicitly when you want that method:
 | `/uth-sp-executing-plans` | An accepted plan should be executed inline. |
 | `/uth-sp-test-driven-development` | Behavior, API, permission, state, or regression work needs a test-first path. |
 | `/uth-sp-systematic-debugging` | Debugging needs root-cause discipline before repair. |
-| `/uth-sp-subagent-driven-development` | Formal development should use worker subagents. |
+| `/uth-sp-subagent-driven-development` | Formal development should use worker subagents with origin-worker fixes and origin-evaluator rechecks. |
 | `/uth-sp-dispatching-parallel-agents` | Independent domains can be delegated in parallel. |
 | `/uth-sp-verification-before-completion` | A scene is about to claim complete, fixed, passing, ready, or releasable. |
 | `/uth-sp-requesting-code-review` | Completed work needs structured code review. |

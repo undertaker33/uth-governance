@@ -73,7 +73,18 @@ Task tool (general-purpose):
     If you find issues with the plan itself rather than the implementation,
     say so.
 
+    ## Accountability
+
+    You are the evaluator for every finding you raise. Report your evaluator id
+    or stable handle if the platform exposes one. If this review is for a worker
+    result, the controller must send valid issues back to the worker that
+    produced the output, then ask you to recheck the same findings after that
+    worker fixes them.
+
     ## Output Format
+
+    ### Reviewer Identity
+    [Evaluator id / stable handle if available]
 
     ### Strengths
     [What's well done? Be specific.]
@@ -127,7 +138,7 @@ Task tool (general-purpose):
 - `{BASE_SHA}` — starting commit
 - `{HEAD_SHA}` — ending commit
 
-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+**Reviewer returns:** Reviewer Identity, Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
 
 ## Example Output
 

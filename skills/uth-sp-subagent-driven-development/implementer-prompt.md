@@ -42,6 +42,13 @@ Task tool (general-purpose):
     branches, or create/delete worktrees. Git closure belongs to uth-git after
     the owning UTH scene reviews your result.
 
+    ## Accountability
+
+    You are the task owner worker for this task. Report your worker id or stable
+    handle if the platform exposes one. If an evaluator finds an issue in your
+    output, the controller will route the fix back to you; do not assume a fresh
+    worker will take over your corrections.
+
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
@@ -105,6 +112,7 @@ Task tool (general-purpose):
 
     When done, report:
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+    - Worker id / stable handle, if available
     - What you implemented (or what you attempted, if blocked)
     - What you tested and test results
     - Files changed

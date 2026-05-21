@@ -116,6 +116,7 @@ block                UTH-enabled 工程动作缺少必需场景
 | `active_todo` / `todo_path` / `associated_todo` | 当前 Todo 证据。`formal-dev` 和 `todo-implementation` 必须提供。 |
 | `document_preflight` | 治理 Markdown 落文档前的 brainstorming 预检；需要 `brainstorming_invoked=true` 且 `no_open_user_questions=true` 或同义确认字段。 |
 | `ui_ux_pro_max` / `ui_ux_pro_max_invoked` | Web 页面设计时的外部 UI/UX 方法技能证据；Android UI/UX 设计不需要。 |
+| `subagent_issue_loop` | subagent review/fix/recheck 责任链证据。reviewer/evaluator A 发现 worker B 的问题时，`fix_worker_id` 必须等于 B；修复后 `recheck_evaluator_id` 必须等于 A。 |
 | `document_language_code` | 本次事件提供的项目文档语言代码，例如 `zh-CN` 或 `en-US`。 |
 | `project_document_language_code` | 与 `document_language_code` 等价的项目级文档语言代码。二者至少一个存在，才能执行治理 Markdown 语言/文件名检查。 |
 | `module_split_confirmed_by_user` | `uth-docs` 的 `module-split` 模式继续前，必须有用户确认；缺失返回 `ASK`。 |
@@ -178,6 +179,7 @@ process
 | 任务歧义 | `ambiguity.present` 不为 true，或 `ambiguity.brainstorming_invoked=true`，或 `ambiguity.resolved=true`，或 `ambiguity.explicit_no_brainstorm_reason` 非空 | `BLOCK ambiguity-unresolved` |
 | 场景切换 | 受限 transition 必须有 `transition.explicit_handoff=true`；design 小补丁可用 `transition.authorized_design_patch=true` | `BLOCK` 或 `ASK` |
 | worker 派发 | `worker.role="worker"` 时必须 `worker.prompt_written=true` 且 `worker.prompt_path` 非空；worker 不得 `git_write_allowed=true` | `BLOCK` |
+| subagent 责任链 | `subagent_issue_loop.issue_found=true` 时，必须记录原 worker 和原 evaluator；`fix_worker_id` 必须等于原 worker；修复后 `recheck_evaluator_id` 必须等于原 evaluator；未复查不得关闭 finding 或进入下一任务 | `BLOCK subagent-*` |
 | 正式任务包 | `uth-dev` 的 `formal-dev` / `todo-implementation` 需要 active task package、accepted Design、current Todo；`todo-breakdown` / `handoff-from-design` 需要 active task package 和 accepted Design | `BLOCK formal-*` |
 | 文档预检 | 治理 Markdown 写入意图需要 `document_preflight.brainstorming_invoked=true` 且确认无开放用户问题 | `BLOCK document-preflight-brainstorming-missing` 或 `ASK document-preflight-*` |
 | Web 页面设计 | `uth-design` 且目标为 Web 页面/Web app/browser UI/frontend layout 时必须有 `ui_ux_pro_max.invoked=true` 或 `ui_ux_pro_max_invoked=true` | `BLOCK web-design-uiux-skill-missing` |
@@ -257,6 +259,25 @@ UTH-SP 这里只检查是否记录触发判断，不检查方法 Skill 的完整
 `open_user_questions=true` 或 `needs_user_confirmation=true` 会返回 `ASK document-preflight-open-questions`。只做了 brainstorming 但没有确认无开放问题时，返回 `ASK document-preflight-confirmation-missing`。
 
 `uth-design` 的 Web 页面、Web app screen、browser UI、frontend page layout 设计必须提供 `ui_ux_pro_max_invoked=true` 或 `ui_ux_pro_max.invoked=true`。`design_target="android-ui"`、`android` 平台或 Android UI/UX 设计不触发这条门禁。
+
+subagent review/fix/recheck 责任链示例：
+
+```json
+{
+  "subagent_issue_loop": {
+    "issue_found": true,
+    "origin_worker_id": "worker-B",
+    "finding_evaluator_id": "evaluator-A",
+    "fix_worker_id": "worker-B",
+    "fix_completed": true,
+    "recheck_evaluator_id": "evaluator-A",
+    "recheck_completed": true,
+    "issue_closed": true
+  }
+}
+```
+
+这条门禁表达“谁造的问题谁解决，谁提出的问题谁复查”：A 发现 B 的问题，总控必须回派 B 修复；B 修完后必须回到 A 复查。换 worker 或换 evaluator 只能作为用户确认后的异常，不是默认路径。
 
 ---
 

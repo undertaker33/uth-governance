@@ -16,6 +16,7 @@ class TestHookSchemas(unittest.TestCase):
         self.assertIn("accepted_design_path", data["properties"])
         self.assertIn("active_todo", data["properties"])
         self.assertIn("ui_ux_pro_max", data["properties"])
+        self.assertIn("subagent_issue_loop", data["properties"])
 
     def test_project_marker_schema_exists_and_matches_marker_version(self):
         data = json.loads((HOOK_ROOT / "schemas" / "project-marker.schema.json").read_text(encoding="utf-8"))

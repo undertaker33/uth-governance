@@ -58,6 +58,8 @@ Use the template at `code-reviewer.md`.
 - Fix Important issues before proceeding
 - Note Minor issues for later
 - Push back if reviewer is wrong (with reasoning)
+- If feedback is for a worker result, route valid fixes back to the worker that produced the reviewed output.
+- After that worker fixes, ask the same reviewer who raised each issue to recheck it.
 
 ## Example
 
@@ -92,6 +94,7 @@ You: [Fix progress indicators]
 - Review after EACH task
 - Catch issues before they compound
 - Fix before moving to next task
+- Preserve accountability: origin worker fixes, origin reviewer rechecks
 
 **Executing Plans:**
 - Review after each batch (3 tasks)
@@ -107,6 +110,8 @@ You: [Fix progress indicators]
 - Skip review because "it's simple"
 - Ignore Critical issues
 - Proceed with unfixed Important issues
+- Send a review issue to a different worker than the one who produced the faulty output
+- Ask a different reviewer to approve a finding raised by the original reviewer
 - Argue with valid technical feedback
 
 **If reviewer wrong:**
