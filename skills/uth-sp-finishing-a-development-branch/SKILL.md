@@ -105,15 +105,8 @@ Then: include cleanup in the `uth-git` plan if appropriate.
 # Push branch
 git push -u origin <feature-branch>
 
-# Create PR
-gh pr create --title "<title>" --body "$(cat <<'EOF'
-## Summary
-<2-3 bullets of what changed>
-
-## Test Plan
-- [ ] <verification steps>
-EOF
-)"
+# Create the PR with the forge tooling selected by uth-git.
+# Include a concise summary and the verified test plan.
 ```
 
 Then: include cleanup in the `uth-git` plan if appropriate.
@@ -155,9 +148,13 @@ Check if in worktree:
 git worktree list | grep $(git branch --show-current)
 ```
 
+Only treat project-local `.worktrees/` or `worktrees/` paths as UTH-owned. Preserve externally managed worktrees unless the user explicitly includes them in the confirmed cleanup plan.
+
 If user confirms cleanup through `uth-git`:
 ```bash
+cd <main-repository-root>
 git worktree remove <worktree-path>
+git worktree prune
 ```
 
 **For Option 3:** Keep worktree.

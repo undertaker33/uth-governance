@@ -7,7 +7,7 @@ Use this template when dispatching a spec document reviewer subagent.
 **Dispatch after:** the owning UTH scene writes or provides a spec/design document.
 
 ```
-Task tool (general-purpose):
+Subagent (general-purpose):
   description: "Review spec document"
   prompt: |
     You are a spec document reviewer. Verify this spec is complete and ready for planning.

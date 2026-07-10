@@ -15,12 +15,20 @@ This is a UTH-scoped method skill, not a top-level router.
 - Do not run Git writes, create commits, push, tag, merge, rebase, switch branches, or create/delete worktrees unless the owning scene is `uth-git` and the user has confirmed the Git plan.
 - If this skill conflicts with an owning UTH scene, follow the UTH scene.
 
-
-Execute an accepted UTH formal development plan by dispatching a fresh worker per task, with review after each task. The owning `uth-dev` scene remains the controller for prompts, write scopes, subagent identity, verification, Feedback, current-state, and Git handoff.
+Execute an accepted UTH formal plan by dispatching a fresh implementer per
+task, one task reviewer that returns separate spec and quality verdicts, and
+a broad final review. The owning `uth-dev` scene remains the controller for
+write scopes, worker Prompt persistence, verification, Feedback,
+current-state, and Git handoff.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
-**Core principle:** Fresh subagent per task + owner fixes own work + issue author rechecks + two-stage review = high quality, fast iteration
+**Core principle:** Fresh worker per task + owner fixes own work + finding author rechecks + one task review with two verdicts = accountable, efficient iteration
+
+**Narration:** between tool calls, narrate at most one short line — the
+ledger and the tool results carry the record.
+
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 ## When to Use
 
@@ -45,23 +53,23 @@ digraph when_to_use {
 **vs. Executing Plans (parallel session):**
 - Same session (no context switch)
 - Fresh subagent per task (no context pollution)
-- Two-stage review after each task: spec compliance first, then code quality
+- Review after each task (spec compliance + code quality), broad review at the end
 - Faster iteration (no human-in-loop between tasks)
 
 ## Accountability Loop
 
-The controller must keep a task-local accountability ledger before dispatching any fix loop:
+Before dispatching a task, maintain a task-local ledger containing:
 
-- `task_owner_worker_id`: exact worker/subagent id or stable handle for the worker that produced the task output.
-- `spec_evaluator_id` and `quality_evaluator_id`: exact evaluator/reviewer ids or stable handles for reviewers that raise findings.
-- `finding_owner_map`: finding id -> originating worker id -> finding author evaluator id -> status.
+- `task_owner_worker_id`: the exact worker id or stable handle.
+- `task_evaluator_id`: the exact reviewer id or stable handle.
+- `finding_owner_map`: finding id → originating worker id → finding author
+  evaluator id → status.
 
-Hard rule: whoever produced the problem fixes it; whoever raised the issue rechecks it.
-
-- If evaluator A finds an issue in worker B's output, route the fix back to worker B. Do not assign the fix to a fresh worker or the controller.
-- After worker B fixes, route the recheck back to evaluator A. Do not ask a fresh evaluator to approve A's finding.
-- A finding is closed only when its original evaluator rechecks and marks it resolved, or the controller rejects the finding with explicit technical reasoning recorded for `uth-review`.
-- If the platform cannot resume the same worker or evaluator, stop and ask the user before substituting a new agent. Record the substitution as an exception, not the normal path.
+The worker that produced a problem fixes it. The reviewer that raised a
+finding rechecks it. Do not replace either participant merely to save time.
+If the platform cannot resume the same worker or reviewer, stop and ask the
+user before substituting another agent, then record the substitution as an
+exception for `uth-review`.
 
 ## The Process
 
@@ -72,53 +80,52 @@ digraph process {
     subgraph cluster_per_task {
         label="Per Task";
         "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
-        "Record implementer id as task_owner_worker_id" [shape=box];
         "Implementer subagent asks questions?" [shape=diamond];
         "Answer questions, provide context to same implementer" [shape=box];
         "Implementer subagent implements, tests, verifies, self-reviews" [shape=box];
-        "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [shape=box];
-        "Record spec reviewer id as spec_evaluator_id" [shape=box];
-        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
-        "Same implementer fixes spec gaps" [shape=box];
-        "Same spec reviewer rechecks spec gaps" [shape=box];
-        "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
-        "Record quality reviewer id as quality_evaluator_id" [shape=box];
-        "Code quality reviewer subagent approves?" [shape=diamond];
-        "Same implementer fixes quality issues" [shape=box];
-        "Same quality reviewer rechecks quality issues" [shape=box];
-        "Mark task complete in TodoWrite" [shape=box];
+        "Write diff file, dispatch task reviewer subagent (./task-reviewer-prompt.md)" [shape=box];
+        "Task reviewer reports spec ✅ and quality approved?" [shape=diamond];
+        "Same implementer fixes Critical/Important findings" [shape=box];
+        "Same task reviewer rechecks findings" [shape=box];
+        "Mark task complete in todo list and progress ledger" [shape=box];
     }
 
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
+    "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
-    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+    "Dispatch final code reviewer subagent (../uth-sp-requesting-code-review/code-reviewer.md)" [shape=box];
     "Return to uth-dev closeout" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
-    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Record implementer id as task_owner_worker_id";
-    "Record implementer id as task_owner_worker_id" -> "Implementer subagent asks questions?";
+    "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context to same implementer" [label="yes"];
     "Answer questions, provide context to same implementer" -> "Implementer subagent implements, tests, verifies, self-reviews";
     "Implementer subagent asks questions?" -> "Implementer subagent implements, tests, verifies, self-reviews" [label="no"];
-    "Implementer subagent implements, tests, verifies, self-reviews" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)";
-    "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" -> "Record spec reviewer id as spec_evaluator_id";
-    "Record spec reviewer id as spec_evaluator_id" -> "Spec reviewer subagent confirms code matches spec?";
-    "Spec reviewer subagent confirms code matches spec?" -> "Same implementer fixes spec gaps" [label="no"];
-    "Same implementer fixes spec gaps" -> "Same spec reviewer rechecks spec gaps";
-    "Same spec reviewer rechecks spec gaps" -> "Spec reviewer subagent confirms code matches spec?";
-    "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
-    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Record quality reviewer id as quality_evaluator_id";
-    "Record quality reviewer id as quality_evaluator_id" -> "Code quality reviewer subagent approves?";
-    "Code quality reviewer subagent approves?" -> "Same implementer fixes quality issues" [label="no"];
-    "Same implementer fixes quality issues" -> "Same quality reviewer rechecks quality issues";
-    "Same quality reviewer rechecks quality issues" -> "Code quality reviewer subagent approves?";
-    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
-    "Mark task complete in TodoWrite" -> "More tasks remain?";
+    "Implementer subagent implements, tests, verifies, self-reviews" -> "Write diff file, dispatch task reviewer subagent (./task-reviewer-prompt.md)";
+    "Write diff file, dispatch task reviewer subagent (./task-reviewer-prompt.md)" -> "Task reviewer reports spec ✅ and quality approved?";
+    "Task reviewer reports spec ✅ and quality approved?" -> "Same implementer fixes Critical/Important findings" [label="no"];
+    "Same implementer fixes Critical/Important findings" -> "Same task reviewer rechecks findings";
+    "Same task reviewer rechecks findings" -> "Task reviewer reports spec ✅ and quality approved?";
+    "Task reviewer reports spec ✅ and quality approved?" -> "Mark task complete in todo list and progress ledger" [label="yes"];
+    "Mark task complete in todo list and progress ledger" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Return to uth-dev closeout";
+    "More tasks remain?" -> "Dispatch final code reviewer subagent (../uth-sp-requesting-code-review/code-reviewer.md)" [label="no"];
+    "Dispatch final code reviewer subagent (../uth-sp-requesting-code-review/code-reviewer.md)" -> "Return to uth-dev closeout";
 }
 ```
+
+## Pre-Flight Plan Review
+
+Before dispatching Task 1, scan the plan once for conflicts:
+
+- tasks that contradict each other or the plan's Global Constraints
+- anything the plan explicitly mandates that the review rubric treats as a
+  defect (a test that asserts nothing, verbatim duplication of a logic block)
+
+Present everything you find to your human partner as one batched question —
+each finding beside the plan text that mandates it, asking which governs —
+before execution begins, not one interrupt per discovery mid-plan. If the
+scan is clean, proceed without comment. The review loop remains the net for
+conflicts that only emerge from implementation.
 
 ## Model Selection
 
@@ -128,9 +135,27 @@ Use the least powerful model that can handle each role to conserve cost and incr
 
 **Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
 
-**Architecture, design, and review tasks**: use the most capable available model.
+**Architecture and design tasks**: use the most capable available model.
+The final whole-branch review is one of these — dispatch it on the most
+capable available model, not the session default.
 
-**Task complexity signals:**
+**Review tasks**: choose the model with the same judgment, scaled to the
+diff's size, complexity, and risk. A small mechanical diff does not need the
+most capable model; a subtle concurrency change does.
+
+**Always specify the model explicitly when dispatching a subagent.** An
+omitted model inherits your session's model — often the most capable and
+most expensive — which silently defeats this section.
+
+**Turn count beats token price.** Wall-clock and context cost scale with how
+many turns a subagent takes, and the cheapest models routinely take 2-3× the
+turns on multi-step work — costing more overall. Use a mid-tier model as the
+floor for reviewers and for implementers working from prose descriptions.
+When the task's plan text contains the complete code to write, the
+implementation is transcription plus testing: use the cheapest tier for
+that implementer. Single-file mechanical fixes also take the cheapest tier.
+
+**Task complexity signals (implementation tasks):**
 - Touches 1-2 files with a complete spec → cheap model
 - Touches multiple files with integration concerns → standard model
 - Requires design judgment or broad codebase understanding → most capable model
@@ -139,7 +164,11 @@ Use the least powerful model that can handle each role to conserve cost and incr
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Proceed to spec compliance review.
+**DONE:** Generate a working-tree review package with
+`scripts/review-package BASE WORKTREE`, where BASE is the accepted task or
+branch baseline supplied by `uth-dev`. The command includes tracked and
+untracked changes without creating a commit. Then dispatch the task reviewer
+with the printed path.
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
@@ -153,90 +182,184 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 
 **Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
 
+## Handling Reviewer ⚠️ Items
+
+The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
+that live in unchanged code or span tasks. These do not block the rest of the
+review, but you must resolve each one yourself before marking the task
+complete: you hold the plan and cross-task context the reviewer
+lacks. If you confirm an item is a real gap, treat it as a failed spec
+review — send it back to the implementer and re-review.
+
+## Constructing Reviewer Prompts
+
+Per-task reviews are task-scoped gates. The broad review happens once, at the
+final whole-branch review. When you fill a reviewer template:
+
+- Do not add open-ended directives like "check all uses" or "run race tests
+  if useful" without a concrete, task-specific reason
+- Do not ask a reviewer to re-run tests the implementer already ran on the
+  same code — the implementer's report carries the test evidence
+- Do not pre-judge findings for the reviewer — never instruct a reviewer to
+  ignore or not flag a specific issue. If you believe a finding would be a
+  false positive, let the reviewer raise it and adjudicate it in the review
+  loop. If the prompt you are writing contains "do not flag," "don't treat X
+  as a defect," "at most Minor," or "the plan chose" — stop: you are
+  pre-judging, usually to spare yourself a review loop.
+- The global-constraints block you hand the reviewer is its attention
+  lens. Copy the binding requirements verbatim from the plan's Global
+  Constraints section or the spec: exact values, exact formats, and the
+  stated relationships between components ("same layout as X", "matches
+  Y"). The reviewer's template already carries the process rules (YAGNI,
+  test hygiene, review method) — the constraints block is for what THIS
+  project's spec demands.
+- Hand the reviewer its diff as a file: run this skill's
+  `scripts/review-package BASE WORKTREE` and pass the printed path. It
+  captures tracked and untracked working-tree changes without creating a Git
+  commit. If `uth-review` supplied a committed range, `BASE HEAD` remains
+  valid as a read-only evidence mode.
+- A dispatch prompt describes one task, not the session's history. Do not
+  paste accumulated prior-task summaries ("state after Tasks 1-3") into
+  later dispatches — a real session's dispatch hit 42k chars of which 99%
+  was pasted history. A fresh subagent needs its task, the interfaces it
+  touches, and the global constraints. Nothing else.
+- Route Critical and Important findings back to the same implementer. Record Minor
+  findings in the progress ledger as you go, and point the final
+  whole-branch review at that list so it can triage which must be fixed
+  before merge. A roll-up nobody reads is a silent discard.
+- A finding labeled plan-mandated — or any finding that conflicts with
+  what the plan's text requires — is the human's decision, like any plan
+  contradiction: present the finding and the plan text, ask which governs.
+  Do not dismiss the finding because the plan mandates it, and do not
+  dispatch a fix that contradicts the plan without asking.
+- The final whole-scope review gets a package too: run
+  `scripts/review-package MERGE_BASE WORKTREE`, or use a committed HEAD only
+  when `uth-review` supplied that range, and include the
+  printed path in the final review dispatch, so the final reviewer reads
+  one file instead of re-deriving the branch diff with git commands.
+- Every fix dispatch to the same implementer carries the implementer contract: the worker
+  re-runs the tests covering its change and reports the results. Name the
+  covering test files in the dispatch — a one-line fix does not need the
+  whole suite. Before re-dispatching the reviewer, confirm the fix report
+  contains the covering tests, the command run, and the output; dispatch
+  the re-review once all three are present.
+- If the final whole-branch review returns findings, route the complete list
+  through the owning UTH scene. Preserve the original worker/reviewer identity
+  whenever findings can be mapped to a task.
+  Per-finding fixers each rebuild context and re-run suites; a real
+  session's final-review fix wave cost more than all its tasks combined.
+
+## File Handoffs
+
+Everything you paste into a dispatch prompt — and everything a subagent
+prints back — stays resident in your context for the rest of the session
+and is re-read on every later turn. Hand artifacts over as files:
+
+- **Task brief:** before dispatching an implementer, run this skill's
+  `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
+  uniquely named file and prints the path. Compose the dispatch so the
+  brief stays the single source of requirements. Your dispatch should
+  contain: (1) one line on where this task fits in the project; (2) the
+  brief path, introduced as "read this first — it is your requirements,
+  with the exact values to use verbatim"; (3) interfaces and decisions
+  from earlier tasks that the brief cannot know; (4) your resolution of
+  any ambiguity you noticed in the brief; (5) the report-file path and
+  report contract. Exact values (numbers, magic strings, signatures, test
+  cases) appear only in the brief.
+- **Report file:** name the implementer's report file after the brief
+  (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
+  the dispatch prompt. The implementer writes the full report there and
+  returns only status, changed files, a one-line test summary, and concerns.
+- **Reviewer inputs:** the task reviewer gets three paths — the same brief
+  file, the report file, and the review package — plus the global
+  constraints that bind the task.
+- Fix dispatches append their fix report (with test results) to the same
+  report file and return a short summary; re-reviews read the updated file.
+
+## Durable Progress
+
+Conversation memory does not survive compaction. In real sessions,
+controllers that lost their place have re-dispatched entire completed task
+sequences — the single most expensive failure observed. Track progress in
+a ledger file, not only in todos.
+
+- At skill start, check for a ledger:
+  `cat "$(git rev-parse --show-toplevel)/.uth-sp/sdd/progress.md"`. Tasks listed there
+  as complete are DONE — do not re-dispatch them; resume at the first task
+  not marked complete.
+- When a task's review comes back clean, append one line to the ledger in
+  the same message as your other bookkeeping:
+  `Task N: complete (worker <id>, reviewer <id>, review clean, report <path>)`.
+- The ledger is your recovery map. After compaction, verify its report and
+  review-package paths still exist before trusting a completed entry.
+- `git clean -fdx` will destroy the ledger (it's git-ignored scratch); if
+  that happens, recover from `git log`.
+
 ## Prompt Templates
 
-- `./implementer-prompt.md` - Dispatch implementer subagent
-- `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
-- `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
+- [implementer-prompt.md](implementer-prompt.md) - Dispatch implementer subagent
+- [task-reviewer-prompt.md](task-reviewer-prompt.md) - Dispatch task reviewer subagent (spec compliance + code quality)
+- Final whole-branch review: use uth-sp-requesting-code-review's [code-reviewer.md](../uth-sp-requesting-code-review/code-reviewer.md)
 
 ## Example Workflow
 
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read plan or Todo path supplied by uth-dev]
-[Extract all 5 tasks with full text and context]
-[Create TodoWrite with all tasks]
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
+[Create todos for all tasks]
 
 Task 1: Hook installation script
 
-[Get Task 1 text and context (already extracted)]
-[Dispatch implementation subagent with full task text + context]
-[Record worker id/handle as Task 1 owner]
+[Run task-brief for Task 1; dispatch implementer with brief + report paths + context]
 
 Implementer: "Before I begin - should the hook be installed at user or system level?"
 
-You: "User level (`$XDG_CONFIG_HOME/uth/hooks` or `~/.config/uth/hooks`)"
+You: "User level (~/.config/superpowers/hooks/)"
 
 Implementer: "Got it. Implementing now..."
 [Later] Implementer:
   - Implemented install-hook command
   - Added tests, 5/5 passing
   - Self-review: Found I missed --force flag, added it
-  - Verified and reported changed files
+  - Committed
 
-[Dispatch spec compliance reviewer]
-[Record reviewer id/handle as Task 1 spec evaluator]
-Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
-
-[Get git SHAs, dispatch code quality reviewer]
-[Record reviewer id/handle as Task 1 quality evaluator]
-Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
+[Run review-package, dispatch task reviewer with the printed path]
+Task reviewer: Spec ✅ - all requirements met, nothing extra.
+  Strengths: Good test coverage, clean. Issues: None. Task quality: Approved.
 
 [Mark Task 1 complete]
 
 Task 2: Recovery modes
 
-[Get Task 2 text and context (already extracted)]
-[Dispatch implementation subagent with full task text + context]
-[Record worker id/handle as Task 2 owner]
+[Run task-brief for Task 2; dispatch implementer with brief + report paths + context]
 
 Implementer: [No questions, proceeds]
 Implementer:
   - Added verify/repair modes
   - 8/8 tests passing
   - Self-review: All good
-  - Verified and reported changed files
+  - Committed
 
-[Dispatch spec compliance reviewer]
-[Record reviewer id/handle as Task 2 spec evaluator]
-Spec reviewer: ❌ Issues:
+[Run review-package, dispatch task reviewer with the printed path]
+Task reviewer: Spec ❌:
   - Missing: Progress reporting (spec says "report every 100 items")
   - Extra: Added --json flag (not requested)
+  Issues (Important): Magic number (100)
 
-[Send these findings back to the same implementer]
-Implementer: Removed --json flag, added progress reporting
+[Resume the same implementer with all findings]
+Implementer: Removed --json flag, added progress reporting, extracted PROGRESS_INTERVAL constant
 
-[Same spec reviewer reviews again]
-Spec reviewer: ✅ Spec compliant now
-
-[Dispatch code quality reviewer]
-[Record reviewer id/handle as Task 2 quality evaluator]
-Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
-
-[Same implementer fixes]
-Implementer: Extracted PROGRESS_INTERVAL constant
-
-[Same code reviewer reviews again]
-Code reviewer: ✅ Approved
+[Task reviewer reviews again]
+Task reviewer: Spec ✅. Task quality: Approved.
 
 [Mark Task 2 complete]
 
 ...
 
 [After all tasks]
-[Dispatch final code-reviewer/evaluator if uth-dev requested it]
-Final reviewer: Requirements checked; return to uth-dev for closeout, Feedback, current-state, and Git recommendation.
+[Dispatch final code-reviewer]
+Final reviewer: All requirements met, ready to merge
 
 Done!
 ```
@@ -255,20 +378,20 @@ Done!
 - Review checkpoints automatic
 
 **Efficiency gains:**
-- No file reading overhead (controller provides full text)
-- Controller curates exactly what context is needed
+- Controller curates exactly what context is needed; bulk artifacts move
+  as files, not pasted text
 - Subagent gets complete information upfront
 - Questions surfaced before work begins (not after)
 
 **Quality gates:**
 - Self-review catches issues before handoff
-- Two-stage review: spec compliance, then code quality
+- Task review carries two verdicts: spec compliance and code quality
 - Review loops ensure fixes actually work
 - Spec compliance prevents over/under-building
 - Code quality ensures implementation is well-built
 
 **Cost:**
-- More subagent invocations (implementer + 2 reviewers per task)
+- More subagent invocations (implementer + reviewer per task)
 - Controller does more prep work (extracting all tasks upfront)
 - Review loops add iterations
 - But catches issues early (cheaper than debugging later)
@@ -277,20 +400,25 @@ Done!
 
 **Never:**
 - Start implementation on main/master branch without explicit user consent
-- Skip reviews (spec compliance OR code quality)
+- Skip task review, or accept a report missing either verdict (spec compliance AND task quality are both required)
 - Proceed with unfixed issues
 - Dispatch multiple implementation subagents in parallel (conflicts)
-- Lose track of which worker produced a task result
-- Send a review finding to a different worker than the one who produced the faulty output
-- Ask a different evaluator to approve a finding raised by the original evaluator
-- Make subagent read plan file (provide full text instead)
+- Make a subagent read the whole plan file (hand it its task brief —
+  `scripts/task-brief` — instead)
 - Skip scene-setting context (subagent needs to understand where task fits)
 - Ignore subagent questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
+- Accept "close enough" on spec compliance (reviewer found spec issues = not done)
 - Skip review loops (reviewer found issues = implementer fixes = review again)
 - Let implementer self-review replace actual review (both are needed)
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
+- Tell a reviewer what not to flag, or pre-rate a finding's severity in the
+  dispatch prompt ("treat it as Minor at most") — the plan's example code is
+  a starting point, not evidence that its weaknesses were chosen
+- Dispatch a task reviewer without a diff file — generate it first
+  (`scripts/review-package BASE WORKTREE`) and name the printed path in the
+  prompt
+- Move to next task while the review has open Critical/Important issues
+- Re-dispatch a task the progress ledger already marks complete — check
+  the ledger (and `git log`) after any compaction or resume
 
 **If subagent asks questions:**
 - Answer clearly and completely
@@ -298,24 +426,25 @@ Done!
 - Don't rush them into implementation
 
 **If reviewer finds issues:**
-- Implementer (same subagent / same worker id) fixes them
-- Reviewer who raised the issue reviews again
+- Implementer (same subagent) fixes them
+- Reviewer reviews again
 - Repeat until approved
 - Don't skip the re-review
 
 **If subagent fails task:**
-- Dispatch fix subagent with specific instructions
+- Resume the same implementer with specific instructions when possible
 - Don't try to fix manually (context pollution)
 
 ## Integration
 
 **Workflow skills, only when selected by the owning UTH scene:**
-- **uth-sp-using-git-worktrees** - Set up isolated workspace only when `uth-dev` / `uth-git` approves it
+- **uth-sp-using-git-worktrees** - Plans isolation only through the UTH Git gate
 - **uth-sp-writing-plans** - Creates the plan this skill executes
-- **uth-sp-requesting-code-review** - Code review template for reviewer subagents
+- **uth-sp-requesting-code-review** - Code review template for the final whole-branch review
+- Return to **uth-dev** after review for Feedback, current-state, verification, and optional `uth-git` handoff
 
 **Subagents should use:**
 - **uth-sp-test-driven-development** - Subagents follow TDD for each task
 
 **Alternative workflow:**
-- **uth-sp-executing-plans** - Use for inline execution when the owning UTH scene chooses it
+- **uth-sp-executing-plans** - Use for parallel session instead of same-session execution

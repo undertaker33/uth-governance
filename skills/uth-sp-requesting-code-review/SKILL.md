@@ -44,13 +44,16 @@ If Git history is not the right evidence source, use the files, Todo, Feedback, 
 
 **2. Dispatch reviewer or perform structured review:**
 
-Use the template at `code-reviewer.md`.
+Dispatch a `general-purpose` reviewer with the template at
+[code-reviewer.md](code-reviewer.md), or perform the same structured review
+inline when `uth-review` does not authorize delegation.
 
 **Placeholders:**
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built
 - `{PLAN_OR_REQUIREMENTS}` - What it should do
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
+- `{REVIEW_SCOPE}` - Git range, working-tree diff, explicit files, Todo, or Feedback evidence supplied by `uth-review`
 - `{DESCRIPTION}` - Brief summary
 
 **3. Act on feedback:**

@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Write one read-only review artifact without requiring Git writes.
+#
+# Usage: review-package BASE HEAD_OR_WORKTREE [OUTFILE]
+#   BASE HEAD       committed range supplied by uth-review
+#   BASE WORKTREE   tracked, staged, unstaged, and untracked working-tree work
+set -euo pipefail
+
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: review-package BASE HEAD_OR_WORKTREE [OUTFILE]" >&2
+  exit 2
+fi
+
+base=$1
+scope=$2
+git rev-parse --verify --quiet "$base^{commit}" >/dev/null || {
+  echo "bad BASE: $base" >&2
+  exit 2
+}
+
+dir=$("$(cd "$(dirname "$0")" && pwd)/sdd-workspace")
+base_short=$(git rev-parse --short "$base")
+
+if [ "$scope" = WORKTREE ]; then
+  out=${3:-"$dir/review-${base_short}..worktree.diff"}
+  untracked=$(mktemp)
+  trap 'rm -f "$untracked"' EXIT
+  git ls-files --others --exclude-standard | while IFS= read -r file; do
+    [ "$file" = "$out" ] || printf '%s\n' "$file"
+  done > "$untracked"
+  {
+    echo "# Review package: ${base}..WORKTREE"
+    echo
+    echo "## Files changed"
+    git diff --stat "$base"
+    sed 's/^/untracked: /' "$untracked"
+    echo
+    echo "## Tracked diff"
+    git diff -U10 "$base"
+    while IFS= read -r file; do
+      [ -n "$file" ] || continue
+      echo
+      echo "## Untracked file: $file"
+      git diff --no-index -U10 -- /dev/null "$file" || status=$?
+      if [ "${status:-0}" -gt 1 ]; then
+        exit "$status"
+      fi
+      unset status
+    done < "$untracked"
+  } > "$out"
+else
+  git rev-parse --verify --quiet "$scope^{commit}" >/dev/null || {
+    echo "bad HEAD: $scope" >&2
+    exit 2
+  }
+  head_short=$(git rev-parse --short "$scope")
+  out=${3:-"$dir/review-${base_short}..${head_short}.diff"}
+  {
+    echo "# Review package: ${base}..${scope}"
+    echo
+    echo "## Commits"
+    git log --oneline "${base}..${scope}"
+    echo
+    echo "## Files changed"
+    git diff --stat "${base}..${scope}"
+    echo
+    echo "## Diff"
+    git diff -U10 "${base}..${scope}"
+  } > "$out"
+fi
+
+echo "wrote ${out}: $(wc -c < "$out" | tr -d ' ') bytes"

@@ -30,7 +30,7 @@ Load an accepted UTH plan, review critically, execute tasks inline, and return e
 1. Read plan file
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting
-4. If no concerns: Create TodoWrite and proceed
+4. If no concerns: Create tracked todos for the plan items and proceed
 
 ### Step 2: Execute Tasks
 
